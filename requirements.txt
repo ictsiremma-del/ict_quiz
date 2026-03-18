@@ -1,0 +1,8 @@
+flask
+openpyxl
+python-docx
+gunicorn
+PyPDF2
+waitress
+requests
+psycopg2-binary

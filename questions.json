@@ -1,0 +1,167 @@
+[
+  {
+    "id": 1,
+    "type": "mcq",
+    "question": "What does ICT stand for?",
+    "options": [
+      "Information and Communication Technology",
+      "International Computer Technology",
+      "Integrated Circuit Technology",
+      "Information Control Technology"
+    ],
+    "answer": "Information and Communication Technology",
+    "marks": 2
+  },
+  {
+    "id": 2,
+    "type": "mcq",
+    "question": "Which of the following is an input device?",
+    "options": [
+      "Monitor",
+      "Printer",
+      "Keyboard",
+      "Speaker"
+    ],
+    "answer": "Keyboard",
+    "marks": 2
+  },
+  {
+    "id": 3,
+    "type": "mcq",
+    "question": "What is the brain of a computer called?",
+    "options": [
+      "Hard Drive",
+      "RAM",
+      "CPU",
+      "Motherboard"
+    ],
+    "answer": "CPU",
+    "marks": 2
+  },
+  {
+    "id": 4,
+    "type": "mcq",
+    "question": "Which of these is a web browser?",
+    "options": [
+      "Microsoft Word",
+      "Google Chrome",
+      "Windows Media Player",
+      "Adobe Photoshop"
+    ],
+    "answer": "Google Chrome",
+    "marks": 2
+  },
+  {
+    "id": 5,
+    "type": "mcq",
+    "question": "What does RAM stand for?",
+    "options": [
+      "Read Access Memory",
+      "Random Access Memory",
+      "Rapid Access Memory",
+      "Read And Memory"
+    ],
+    "answer": "Random Access Memory",
+    "marks": 2
+  },
+  {
+    "id": 6,
+    "type": "mcq",
+    "question": "Which of these is an example of software?",
+    "options": [
+      "Mouse",
+      "Monitor",
+      "Microsoft Excel",
+      "Hard Disk"
+    ],
+    "answer": "Microsoft Excel",
+    "marks": 2
+  },
+  {
+    "id": 7,
+    "type": "mcq",
+    "question": "What is used to permanently store data?",
+    "options": [
+      "RAM",
+      "CPU",
+      "Hard Drive",
+      "Cache"
+    ],
+    "answer": "Hard Drive",
+    "marks": 2
+  },
+  {
+    "id": 8,
+    "type": "mcq",
+    "question": "What does www stand for?",
+    "options": [
+      "World Wide Web",
+      "World Web Work",
+      "Wide World Web",
+      "Web World Wide"
+    ],
+    "answer": "World Wide Web",
+    "marks": 2
+  },
+  {
+    "id": 9,
+    "type": "mcq",
+    "question": "Which device is used to print documents?",
+    "options": [
+      "Scanner",
+      "Projector",
+      "Printer",
+      "Plotter"
+    ],
+    "answer": "Printer",
+    "marks": 2
+  },
+  {
+    "id": 10,
+    "type": "mcq",
+    "question": "What is the full meaning of PDF?",
+    "options": [
+      "Portable Document Format",
+      "Print Document File",
+      "Personal Data File",
+      "Portable Data Form"
+    ],
+    "answer": "Portable Document Format",
+    "marks": 2
+  },
+  {
+    "id": 11,
+    "type": "tf",
+    "question": "A monitor is an output device.",
+    "answer": "True",
+    "marks": 1
+  },
+  {
+    "id": 12,
+    "type": "tf",
+    "question": "The keyboard is used to display information.",
+    "answer": "False",
+    "marks": 1
+  },
+  {
+    "id": 13,
+    "type": "tf",
+    "question": "The internet is a global network of computers.",
+    "answer": "True",
+    "marks": 1
+  },
+  {
+    "id": 14,
+    "type": "tf",
+    "question": "RAM is a type of permanent storage.",
+    "answer": "False",
+    "marks": 1
+  },
+  {
+    "id": 15,
+    "type": "tf",
+    "question": "A megabyte is larger than a gigabyte.",
+    "answer": "False",
+    "marks": 1
+  }
+]

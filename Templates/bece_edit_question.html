@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Edit BECE Question</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:17px;font-weight:700}
+.back{padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.2);color:white;text-decoration:none;font-size:12px;font-weight:600}
+.container{max-width:680px;margin:28px auto;padding:0 14px}
+.card{background:white;border-radius:14px;padding:26px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.card h2{font-size:17px;font-weight:700;color:#1a0a2e;margin-bottom:18px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.fg label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{padding:9px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#c0392b}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.save-btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.img-prev{max-width:200px;border-radius:6px;border:1px solid #e0e0e0;margin-top:6px;display:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>✏️ Edit BECE Question — {{ subject }} {{ year }}</h1>
+  <a href="/bece/manage?subject={{ subject|urlencode }}&year={{ year }}" class="back">← Back</a>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>{{ school }}</h2>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="fg">
+        <label>Question Text</label>
+        <textarea name="question" rows="3" required>{{ q.question }}</textarea>
+      </div>
+
+      {% if q.type=='mcq' %}
+      <div class="form-row">
+        <div class="fg"><label>Option A</label><input type="text" name="opt1" value="{{ q.options[0] if q.options|length>0 else '' }}"></div>
+        <div class="fg"><label>Option B</label><input type="text" name="opt2" value="{{ q.options[1] if q.options|length>1 else '' }}"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Option C</label><input type="text" name="opt3" value="{{ q.options[2] if q.options|length>2 else '' }}"></div>
+        <div class="fg"><label>Option D</label><input type="text" name="opt4" value="{{ q.options[3] if q.options|length>3 else '' }}"></div>
+      </div>
+      <div class="fg"><label>Correct Answer</label><input type="text" name="answer" value="{{ q.answer }}"></div>
+      {% elif q.type=='tf' %}
+      <div class="fg"><label>Correct Answer</label>
+        <select name="tf_answer">
+          <option value="True" {{ 'selected' if q.answer=='True' else '' }}>True</option>
+          <option value="False" {{ 'selected' if q.answer=='False' else '' }}>False</option>
+        </select>
+      </div>
+      {% elif q.type=='fitb' %}
+      <div class="fg"><label>Correct Answer</label><input type="text" name="fitb_answer" value="{{ q.answer }}"></div>
+      {% elif q.type=='theory' %}
+      <div class="fg"><label>Model Answer</label><textarea name="model_answer" rows="3">{{ q.get('model_answer','') }}</textarea></div>
+      {% endif %}
+
+      <div class="fg">
+        <label>Explanation (shown in Practice Mode)</label>
+        <textarea name="explanation" rows="2" placeholder="Explain why this is the correct answer...">{{ q.get('explanation','') }}</textarea>
+      </div>
+
+      <div class="form-row" style="max-width:220px">
+        <div class="fg"><label>Marks</label><input type="number" name="marks" value="{{ q.marks }}" min="1" max="10"></div>
+      </div>
+
+      <div class="fg">
+        <label>Replace Image (optional)</label>
+        <input type="file" name="image" accept="image/*" onchange="prev(this)">
+        {% if q.get('image') %}
+        <img src="/static/{{ q.image }}" class="img-prev" style="display:block">
+        {% else %}
+        <img id="ip" class="img-prev">
+        {% endif %}
+      </div>
+
+      <button type="submit" class="save-btn">💾 Save Changes</button>
+    </form>
+  </div>
+</div>
+<script>
+function prev(inp){
+  var p=document.getElementById("ip");
+  if(!p)return;
+  if(inp.files&&inp.files[0]){
+    var r=new FileReader();
+    r.onload=function(e){p.src=e.target.result;p.style.display="block";};
+    r.readAsDataURL(inp.files[0]);
+  }
+}
+</script>
+</body>
+</html>

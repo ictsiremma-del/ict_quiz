@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BECE Past Questions — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a0a2e 0%,#c0392b 100%);min-height:100vh;padding:20px 14px}
+.header{text-align:center;color:white;padding:28px 0 20px}
+.header h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.header p{font-size:13px;opacity:.85}
+.bece-badge{display:inline-block;background:rgba(255,255,255,.2);padding:6px 18px;border-radius:20px;font-size:12px;font-weight:700;color:white;margin-top:8px;letter-spacing:1px}
+.container{max-width:700px;margin:0 auto}
+.card{background:white;border-radius:18px;padding:28px;margin-bottom:16px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.card h2{font-size:17px;font-weight:700;color:#1a0a2e;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+input,select{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s;color:#333}
+input:focus,select:focus{border-color:#c0392b}
+.mode-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.mode-btn{padding:14px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;text-align:center;transition:all .15s;background:white}
+.mode-btn:hover{border-color:#c0392b}
+.mode-btn.sel{border-color:#c0392b;background:#fdf2f2}
+.mode-btn .mi{font-size:24px;display:block;margin-bottom:5px}
+.mode-btn .mt{font-size:13px;font-weight:700;color:#1a0a2e}
+.mode-btn .ms{font-size:11px;color:#888;margin-top:2px}
+.mode-btn input{display:none}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer}
+.btn:hover{opacity:.9}
+.subj-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:16px}
+.subj-card{background:#f8f9fa;border:2px solid #e0e0e0;border-radius:10px;padding:12px;cursor:pointer;transition:all .15s}
+.subj-card:hover{border-color:#c0392b;background:#fdf2f2}
+.subj-card.sel{border-color:#c0392b;background:#fdf2f2}
+.subj-card .si{font-size:22px;display:block;margin-bottom:4px}
+.subj-card .sn{font-size:13px;font-weight:600;color:#1a0a2e}
+.subj-card .sc{font-size:11px;color:#888;margin-top:2px}
+.years-wrap{display:none;margin-top:6px}
+.year-chip{display:inline-block;padding:5px 12px;border:1.5px solid #e0e0e0;border-radius:15px;font-size:12px;font-weight:600;cursor:pointer;margin:3px;background:white;color:#555;transition:all .15s}
+.year-chip:hover{border-color:#c0392b;color:#c0392b}
+.year-chip.sel{border-color:#c0392b;background:#c0392b;color:white}
+.no-qs{text-align:center;color:#aaa;padding:20px;font-size:13px}
+.tip-box{background:linear-gradient(135deg,#fff8e1,#fff3cd);border-radius:10px;padding:14px 18px;margin-bottom:16px;border-left:4px solid #f39c12}
+.tip-box h3{font-size:13px;font-weight:700;color:#856404;margin-bottom:6px}
+.tip-box p{font-size:12px;color:#856404;line-height:1.6}
+.back-link{text-align:center;margin-top:16px}
+.back-link a{color:rgba(255,255,255,.8);font-size:13px;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="header">
+  <div style="font-size:42px;margin-bottom:8px">🎓</div>
+  <h1>{{ school }}</h1>
+  <p>BECE Past Questions Practice</p>
+  <span class="bece-badge">JHS 3 — BECE PREPARATION</span>
+</div>
+
+<div class="container">
+  <div class="tip-box">
+    <h3>📚 How to use this section</h3>
+    <p>
+      <strong>Practice Mode</strong> — See the correct answer after each question. Great for learning.<br>
+      <strong>Exam Mode</strong> — Timed 30-minute test, answers shown only at the end. Simulates real BECE conditions.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>🎯 Start Past Questions Practice</h2>
+    <form action="/bece/start" method="POST" onsubmit="return validate()">
+      <div class="form-group">
+        <label>Your Full Name</label>
+        <input type="text" name="name" placeholder="Enter your full name" required autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label>Select Subject</label>
+        <div class="subj-grid" id="subjGrid">
+          {% for s in bece_subjects %}
+          <div class="subj-card" onclick="pickSubj('{{ s }}',this)" id="sc_{{ loop.index }}">
+            <span class="si">{{ subject_icons.get(s,'📝') }}</span>
+            <div class="sn">{{ s }}</div>
+            <div class="sc">
+              {% if subject_years.get(s) %}
+                {{ subject_years[s]|length }} year(s) available
+              {% else %}
+                No questions yet
+              {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <input type="hidden" name="subject" id="subjectInput" required>
+        <div id="subjErr" style="color:#e74c3c;font-size:12px;display:none">Please select a subject.</div>
+      </div>
+
+      <div class="form-group" id="yearWrap" style="display:none">
+        <label>Select Year</label>
+        <div id="yearChips"></div>
+        <input type="hidden" name="year" id="yearInput" required>
+        <div id="yearErr" style="color:#e74c3c;font-size:12px;display:none">Please select a year.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Mode</label>
+        <div class="mode-row">
+          <div class="mode-btn sel" onclick="pickMode('practice',this)">
+            <input type="radio" name="mode" value="practice" checked>
+            <span class="mi">📖</span>
+            <div class="mt">Practice Mode</div>
+            <div class="ms">See answers after each question</div>
+          </div>
+          <div class="mode-btn" onclick="pickMode('exam',this)">
+            <input type="radio" name="mode" value="exam">
+            <span class="mi">⏱️</span>
+            <div class="mt">Exam Mode</div>
+            <div class="ms">Timed, answers at end only</div>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn">START PRACTICE →</button>
+    </form>
+  </div>
+
+  {% if not subject_years %}
+  <div class="card">
+    <div class="no-qs">📭 No past questions uploaded yet.<br>Ask your teacher to upload BECE past questions.</div>
+  </div>
+  {% endif %}
+
+  <div class="back-link"><a href="/">← Back to Main Quiz Portal</a></div>
+</div>
+
+<script>
+var subjectYears = {{ subject_years | tojson }};
+var selSubject = "";
+
+function pickSubj(val, el){
+  document.querySelectorAll(".subj-card").forEach(c=>c.classList.remove("sel"));
+  el.classList.add("sel");
+  selSubject = val;
+  document.getElementById("subjectInput").value = val;
+  document.getElementById("subjErr").style.display = "none";
+  // Show years
+  var yearWrap = document.getElementById("yearWrap");
+  var chips    = document.getElementById("yearChips");
+  chips.innerHTML = "";
+  document.getElementById("yearInput").value = "";
+  var years = subjectYears[val] || [];
+  if(years.length > 0){
+    yearWrap.style.display = "block";
+    years.forEach(function(y){
+      var chip = document.createElement("span");
+      chip.className = "year-chip";
+      chip.textContent = y.year + " (" + y.count + " Qs)";
+      chip.onclick = function(){
+        document.querySelectorAll(".year-chip").forEach(c=>c.classList.remove("sel"));
+        chip.classList.add("sel");
+        document.getElementById("yearInput").value = y.year;
+        document.getElementById("yearErr").style.display = "none";
+      };
+      chips.appendChild(chip);
+    });
+  } else {
+    yearWrap.style.display = "block";
+    chips.innerHTML = '<div class="no-qs">No questions available for this subject yet.</div>';
+  }
+}
+
+function pickMode(val, el){
+  document.querySelectorAll(".mode-btn").forEach(b=>b.classList.remove("sel"));
+  el.classList.add("sel");
+  el.querySelector("input").checked = true;
+}
+
+function validate(){
+  var ok = true;
+  if(!document.getElementById("subjectInput").value){
+    document.getElementById("subjErr").style.display="block"; ok=false;
+  }
+  if(!document.getElementById("yearInput").value){
+    document.getElementById("yearErr").style.display="block"; ok=false;
+  }
+  return ok;
+}
+</script>
+</body>
+</html>

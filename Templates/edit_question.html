@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Edit Question</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,{{ subject_color }});color:white;padding:12px 22px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:16px;font-weight:700}
+.back{padding:6px 13px;border-radius:7px;background:rgba(255,255,255,.2);color:white;text-decoration:none;font-size:12px;font-weight:600}
+.container{max-width:680px;margin:24px auto;padding:0 14px}
+.card{background:white;border-radius:13px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.card h2{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:13px}
+.fg label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.3px}
+.fg input,.fg select,.fg textarea{padding:9px 11px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:{{ subject_color }}}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.save-btn{width:100%;padding:12px;background:linear-gradient(135deg,#1a3a5c,{{ subject_color }});color:white;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px}
+.type-badge{display:inline-block;padding:3px 11px;border-radius:9px;font-size:12px;font-weight:700;margin-bottom:14px}
+.bmcq{background:#e8f4f8;color:#2e86ab}.btf{background:#fef9e7;color:#e67e22}
+.bfitb{background:#e8f8e8;color:#27ae60}.bth{background:#f5e8f8;color:#8e44ad}
+.cls-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:5px}
+.cls-lbl{display:flex;align-items:center;gap:6px;padding:6px 10px;border:1.5px solid #e0e0e0;border-radius:7px;cursor:pointer;font-size:12px;color:#555;transition:all .15s}
+.cls-lbl:hover{border-color:{{ subject_color }}}
+.cls-lbl input{width:14px;height:14px;accent-color:{{ subject_color }}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>✏️ Edit Question — {{ subject }}</h1>
+  <a href="/dashboard?subject={{ subject|urlencode }}" class="back">← Back</a>
+</div>
+<div class="container">
+  <div class="card">
+    <h2>{{ school }}</h2>
+    <span class="type-badge
+      {% if q.type=='mcq' %}bmcq{% elif q.type=='tf' %}btf
+      {% elif q.type=='fitb' %}bfitb{% elif q.type=='theory' %}bth{% endif %}">
+      {% if q.type=='mcq' %}Multiple Choice
+      {% elif q.type=='tf' %}True / False
+      {% elif q.type=='fitb' %}Fill in Blank
+      {% elif q.type=='theory' %}Theory
+      {% else %}Label Diagram{% endif %}
+    </span>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="fg">
+        <label>Question Text</label>
+        <textarea name="question" rows="3" required>{{ q.question }}</textarea>
+      </div>
+
+      <!-- Strand -->
+      <div class="form-row">
+        <div class="fg">
+          <label>Strand</label>
+          <select name="strand" id="editStrand" onchange="loadSub()">
+            <option value="">-- Select Strand --</option>
+            {% for sname in strands.keys() %}
+            <option value="{{ sname }}" {{ 'selected' if sname==q.get('strand','') else '' }}>{{ sname }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="fg">
+          <label>Sub-Strand</label>
+          <select name="sub_strand" id="editSubStrand">
+            <option value="">-- Select Sub-Strand --</option>
+            {% if q.get('strand') and strands.get(q.strand) %}
+              {% for ss in strands[q.strand] %}
+              <option value="{{ ss }}" {{ 'selected' if ss==q.get('sub_strand','') else '' }}>{{ ss }}</option>
+              {% endfor %}
+            {% endif %}
+          </select>
+        </div>
+      </div>
+
+      {% if q.type=='mcq' %}
+      <div class="form-row">
+        <div class="fg"><label>Option A</label><input type="text" name="opt1" value="{{ q.options[0] if q.options|length>0 else '' }}"></div>
+        <div class="fg"><label>Option B</label><input type="text" name="opt2" value="{{ q.options[1] if q.options|length>1 else '' }}"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>Option C</label><input type="text" name="opt3" value="{{ q.options[2] if q.options|length>2 else '' }}"></div>
+        <div class="fg"><label>Option D</label><input type="text" name="opt4" value="{{ q.options[3] if q.options|length>3 else '' }}"></div>
+      </div>
+      <div class="fg"><label>Correct Answer</label><input type="text" name="answer" value="{{ q.answer }}"></div>
+      {% elif q.type=='tf' %}
+      <div class="fg"><label>Answer</label>
+        <select name="tf_answer">
+          <option value="True" {{ 'selected' if q.answer=='True' else '' }}>True</option>
+          <option value="False" {{ 'selected' if q.answer=='False' else '' }}>False</option>
+        </select>
+      </div>
+      {% elif q.type=='fitb' %}
+      <div class="fg"><label>Correct Answer</label><input type="text" name="fitb_answer" value="{{ q.answer }}"></div>
+      {% elif q.type=='theory' %}
+      <div class="fg"><label>Model Answer</label><textarea name="model_answer" rows="3">{{ q.get('model_answer','') }}</textarea></div>
+      {% endif %}
+
+      <div class="form-row" style="max-width:200px">
+        <div class="fg"><label>Marks</label><input type="number" name="marks" value="{{ q.marks }}" min="1" max="20"></div>
+      </div>
+
+      <div class="fg">
+        <label>Assign to Classes (blank = all)</label>
+        <div class="cls-grid">
+          {% for c in classes %}
+          <label class="cls-lbl">
+            <input type="checkbox" name="assigned_classes" value="{{ c }}"
+                   {{ 'checked' if c in q.get('assigned_classes',[]) else ''}}>
+            {{ c }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="fg">
+        <label>Replace Image (optional)</label>
+        <input type="file" name="image" accept="image/*">
+        {% if q.get('image') %}
+        <img src="/static/{{ q.image }}" style="max-width:180px;max-height:110px;border-radius:6px;border:1px solid #e0e0e0;margin-top:6px">
+        {% endif %}
+      </div>
+
+      <button type="submit" class="save-btn">💾 Save Changes</button>
+    </form>
+  </div>
+</div>
+<script>
+var strands={{ strands|tojson }};
+function loadSub(){
+  var strand=document.getElementById("editStrand").value;
+  var sub=document.getElementById("editSubStrand");
+  sub.innerHTML='<option value="">-- Select Sub-Strand --</option>';
+  if(strand && strands[strand]){
+    strands[strand].forEach(function(ss){
+      var o=document.createElement("option");
+      o.value=ss; o.textContent=ss; sub.appendChild(o);
+    });
+  }
+}
+</script>
+</body>
+</html>

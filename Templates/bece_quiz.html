@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BECE {{ year }} {{ subject }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.topbar h3{font-size:14px;font-weight:700}
+.topbar p{font-size:11px;opacity:.85;margin-top:1px}
+.timer-box{background:rgba(255,255,255,.2);border-radius:10px;padding:7px 16px;text-align:center;min-width:90px}
+#timer{font-size:22px;font-weight:700;letter-spacing:2px}
+.tlbl{font-size:9px;opacity:.8}
+.timer-box.warn{background:rgba(231,76,60,.7)}
+.practice-note{background:#fff3cd;padding:8px 20px;font-size:12px;color:#856404;font-weight:600;text-align:center;border-bottom:1px solid #ffc107}
+.container{max-width:800px;margin:0 auto;padding:20px 14px}
+.prog-wrap{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:5px}
+.prog-bar{background:#ddd;border-radius:8px;height:6px;margin-bottom:18px}
+.prog-fill{background:linear-gradient(90deg,#c0392b,#e74c3c);height:6px;border-radius:8px;transition:width .3s}
+.q-card{background:white;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.07);border-left:4px solid #c0392b}
+.q-card.done{border-left-color:#27ae60}
+.q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-num{font-size:11px;font-weight:700;color:#c0392b;text-transform:uppercase;letter-spacing:.8px}
+.badges{display:flex;gap:5px}
+.badge{font-size:10px;padding:2px 7px;border-radius:7px;font-weight:600}
+.bmcq{background:#fde8e8;color:#c0392b}.btf{background:#fef9e7;color:#e67e22}
+.bfitb{background:#e8f8e8;color:#27ae60}.bth{background:#f5e8f8;color:#8e44ad}
+.bmk{background:#f0f0f0;color:#666}
+.q-text{font-size:15px;color:#2c3e50;font-weight:500;margin-bottom:12px;line-height:1.5}
+.q-img{max-width:100%;border-radius:8px;border:1px solid #e0e0e0;margin-bottom:12px;max-height:260px;object-fit:contain}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;transition:all .15s;font-size:13px;color:#333}
+.opt:hover{border-color:#c0392b;background:#fdf5f5}
+.opt input{width:16px;height:16px;accent-color:#c0392b;cursor:pointer;flex-shrink:0}
+.tf-row{display:flex;gap:10px}
+.tf-btn{flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;background:white;transition:all .15s;text-align:center}
+.tf-t.sel{border-color:#27ae60;background:#d5f5e3;color:#27ae60}
+.tf-f.sel{border-color:#e74c3c;background:#fadbd8;color:#e74c3c}
+.fitb-input{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;transition:border .2s}
+.fitb-input:focus{border-color:#c0392b}
+.theory-box{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;resize:vertical;min-height:90px;font-family:inherit}
+.theory-box:focus{border-color:#c0392b}
+.submit-area{text-align:center;padding:16px 0 36px}
+.submit-btn{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white;border:none;padding:14px 44px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer}
+.ans-c{font-size:13px;color:#666;margin-bottom:10px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h3>{{ subject_icon }} BECE {{ year }} — {{ subject }}</h3>
+    <p>{{ student_name }} &nbsp;|&nbsp; JHS 3 &nbsp;|&nbsp;
+      {{ "Practice Mode" if mode=="practice" else "Exam Mode" }}</p>
+  </div>
+  {% if mode=="exam" %}
+  <div class="timer-box" id="tBox">
+    <div id="timer">30:00</div>
+    <div class="tlbl">TIME LEFT</div>
+  </div>
+  {% else %}
+  <div style="background:rgba(255,255,255,.2);border-radius:10px;padding:7px 16px;font-size:12px;font-weight:700">
+    📖 PRACTICE
+  </div>
+  {% endif %}
+</div>
+
+{% if mode=="practice" %}
+<div class="practice-note">
+  📖 Practice Mode — Answers will be shown after you submit
+</div>
+{% endif %}
+
+<div class="container">
+  <div class="prog-wrap">
+    <span id="ac">Answered: 0 / {{ questions|length }}</span>
+    <span>BECE {{ year }} — {{ questions|length }} Questions</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+
+  <form id="qForm" action="/bece/submit" method="POST">
+    {% for q in questions %}
+    <div class="q-card" id="card{{ q.id }}">
+      <div class="q-meta">
+        <span class="q-num">Question {{ loop.index }}</span>
+        <div class="badges">
+          {% if q.type=='mcq' %}<span class="badge bmcq">MCQ</span>
+          {% elif q.type=='tf' %}<span class="badge btf">True/False</span>
+          {% elif q.type=='fitb' %}<span class="badge bfitb">Fill in Blank</span>
+          {% elif q.type=='theory' %}<span class="badge bth">Theory</span>
+          {% endif %}
+          <span class="badge bmk">{{ q.marks }}mk</span>
+        </div>
+      </div>
+      <div class="q-text">{{ q.question }}</div>
+      {% if q.image %}<img src="/static/{{ q.image }}" class="q-img">{% endif %}
+
+      {% if q.type=='mcq' %}
+      <div class="options">
+        {% for opt in q.options %}
+        <label class="opt" onclick="mk({{ q.id }})">
+          <input type="radio" name="q{{ q.id }}" value="{{ opt }}" required>
+          <span>{{ opt }}</span>
+        </label>
+        {% endfor %}
+      </div>
+      {% elif q.type=='tf' %}
+      <div class="tf-row">
+        <div class="tf-btn tf-t" id="t{{ q.id }}" onclick="tf({{ q.id }},'True')">✅ True</div>
+        <div class="tf-btn tf-f" id="f{{ q.id }}" onclick="tf({{ q.id }},'False')">❌ False</div>
+        <input type="hidden" name="q{{ q.id }}" id="h{{ q.id }}" value="">
+      </div>
+      {% elif q.type=='fitb' %}
+      <input type="text" name="q{{ q.id }}" class="fitb-input"
+             placeholder="Type your answer..." oninput="mk({{ q.id }})">
+      {% elif q.type=='theory' %}
+      <textarea name="q{{ q.id }}" class="theory-box"
+                placeholder="Write your answer here..."
+                oninput="mk({{ q.id }})"></textarea>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="submit-area">
+      <p class="ans-c" id="ac2"></p>
+      <button type="button" class="submit-btn" onclick="doSub()">
+        ✅ SUBMIT {{ "EXAM" if mode=="exam" else "PRACTICE" }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+var left={{ timer }},total={{ questions|length }},done=0;
+var mode="{{ mode }}";
+function pad(n){return n<10?"0"+n:n}
+{% if mode=="exam" %}
+var iv=setInterval(function(){
+  left--;
+  document.getElementById("timer").textContent=
+    pad(Math.floor(left/60))+":"+pad(left%60);
+  if(left<=300)document.getElementById("tBox").classList.add("warn");
+  if(left<=0){clearInterval(iv);
+    alert("Time up! Submitting now.");
+    document.getElementById("qForm").submit();}
+},1000);
+{% endif %}
+function mk(id){
+  var c=document.getElementById("card"+id);
+  if(!c.classList.contains("done")){c.classList.add("done");done++;upd();}
+}
+function tf(id,v){
+  document.getElementById("h"+id).value=v;
+  document.getElementById("t"+id).className=
+    "tf-btn tf-t"+(v=="True"?" sel":"");
+  document.getElementById("f"+id).className=
+    "tf-btn tf-f"+(v=="False"?" sel":"");
+  mk(id);
+}
+function upd(){
+  var p=Math.round((done/total)*100);
+  document.getElementById("pf").style.width=p+"%";
+  document.getElementById("ac").textContent=
+    "Answered: "+done+" / "+total;
+  document.getElementById("ac2").textContent=
+    "Answered: "+done+" / "+total;
+}
+function doSub(){
+  if(done<total&&!confirm(
+    "Only "+done+"/"+total+" answered. Submit anyway?"))return;
+  document.getElementById("qForm").submit();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Student Reports — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar p{font-size:11px;opacity:0.8;margin-top:2px}
+.tb-right{display:flex;gap:8px}
+.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block}
+.bw{background:rgba(255,255,255,0.2);color:white}
+.bb{background:#2980b9;color:white}
+.container{max-width:1100px;margin:0 auto;padding:20px 14px}
+.search-bar{background:white;border-radius:12px;padding:16px 20px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,.06);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.search-bar input,.search-bar select{padding:8px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;transition:border .2s}
+.search-bar input:focus,.search-bar select:focus{border-color:#2e86ab}
+.search-bar label{font-size:13px;font-weight:600;color:#555}
+.student-card{background:white;border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-left:4px solid #2e86ab}
+.student-card.grade-a{border-left-color:#27ae60}
+.student-card.grade-b{border-left-color:#2980b9}
+.student-card.grade-c{border-left-color:#8e44ad}
+.student-card.grade-d{border-left-color:#f39c12}
+.student-card.grade-e{border-left-color:#e67e22}
+.student-card.grade-f{border-left-color:#e74c3c}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;flex-wrap:wrap;gap:10px}
+.card-header-left{display:flex;align-items:center;gap:12px}
+.avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:white;flex-shrink:0}
+.student-name{font-size:16px;font-weight:700;color:#1a3a5c}
+.student-class{font-size:13px;color:#888;margin-top:2px}
+.overall-badge{display:flex;align-items:center;gap:10px}
+.grade-circle{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;color:white}
+.overall-info{text-align:right}
+.avg-pct{font-size:22px;font-weight:700;color:#2c3e50}
+.remark{font-size:12px;color:#888;margin-top:2px}
+.subjects-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.subj-pill{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid #e0e0e0;background:#f8f9fa}
+.subj-pill .sp{font-size:13px;font-weight:700}
+.subj-pill .sg{display:inline-block;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;color:white;text-align:center;line-height:20px}
+.ga{background:#27ae60}.gb{background:#2980b9}.gc{background:#8e44ad}
+.gd{background:#f39c12}.ge{background:#e67e22}.gf{background:#e74c3c}
+.card-footer{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid #f0f4f8;flex-wrap:wrap;gap:8px}
+.tests-count{font-size:12px;color:#888}
+.bar-wrap{flex:1;max-width:200px;background:#e0e0e0;border-radius:6px;height:8px;margin:0 10px}
+.bar-fill{height:8px;border-radius:6px;transition:width .5s}
+.word-btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;background:#2980b9;color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none;transition:opacity .2s}
+.word-btn:hover{opacity:.85}
+.empty{text-align:center;color:#bbb;padding:48px;font-size:14px}
+.summary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.ss{background:white;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.ss .v{font-size:24px;font-weight:700;color:#1a3a5c}
+.ss .l{font-size:11px;color:#888;margin-top:3px}
+.back-btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:rgba(255,255,255,.2);color:white;border-radius:8px;font-size:12px;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>👨‍🎓 {{ school }}</h1>
+    <p>Student Combined Performance Reports</p>
+  </div>
+  <div class="tb-right">
+    <a href="/dashboard" class="back-btn">← Dashboard</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Summary stats -->
+  <div class="summary-stats">
+    <div class="ss"><div class="v">{{ summaries|length }}</div><div class="l">Total Students</div></div>
+    <div class="ss"><div class="v">{{ summaries|selectattr('grade','eq','A')|list|length }}</div><div class="l">Overall Grade A</div></div>
+    <div class="ss">
+      <div class="v">
+        {% if summaries %}{{ "%.1f"|format(summaries|sum(attribute='avg')/summaries|length) }}%{% else %}0%{% endif %}
+      </div>
+      <div class="l">Class Average</div>
+    </div>
+    <div class="ss"><div class="v">{{ summaries|selectattr('grade','in',['E','F'])|list|length }}</div><div class="l">Need Support</div></div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-bar">
+    <label>Search:</label>
+    <input type="text" id="sName" placeholder="🔍 Student name..." onkeyup="filterCards()">
+    <label>Class:</label>
+    <select id="sCls" onchange="filterCards()">
+      <option value="">All Classes</option>
+      {% set classes_seen = [] %}
+      {% for s in summaries %}
+        {% if s.class not in classes_seen %}
+          <option>{{ s.class }}</option>
+          {% if classes_seen.append(s.class) %}{% endif %}
+        {% endif %}
+      {% endfor %}
+    </select>
+    <label>Grade:</label>
+    <select id="sGrd" onchange="filterCards()">
+      <option value="">All Grades</option>
+      <option>A</option><option>B</option><option>C</option>
+      <option>D</option><option>E</option><option>F</option>
+    </select>
+  </div>
+
+  {% if summaries %}
+  <div id="cardList">
+  {% for s in summaries %}
+  {% set gc = {'A':'27ae60','B':'2980b9','C':'8e44ad','D':'f39c12','E':'e67e22','F':'e74c3c'} %}
+  {% set avc = s.avg | int %}
+  <div class="student-card grade-{{ s.grade|lower }}"
+       data-name="{{ s.name|lower }}"
+       data-class="{{ s.class|lower }}"
+       data-grade="{{ s.grade }}">
+
+    <div class="card-header">
+      <div class="card-header-left">
+        <div class="avatar" style="background:#{{ gc.get(s.grade,'95a5a6') }}">
+          {{ s.name[0]|upper }}
+        </div>
+        <div>
+          <div class="student-name">{{ s.name }}</div>
+          <div class="student-class">{{ s.class }} &nbsp;·&nbsp; {{ s.count }} test{% if s.count>1 %}s{% endif %} taken</div>
+        </div>
+      </div>
+      <div class="overall-badge">
+        <div class="overall-info">
+          <div class="avg-pct">{{ s.avg }}%</div>
+          <div class="remark">{{ s.remark }}</div>
+        </div>
+        <div class="grade-circle" style="background:#{{ gc.get(s.grade,'95a5a6') }}">{{ s.grade }}</div>
+      </div>
+    </div>
+
+    <!-- Subject pills -->
+    <div class="subjects-row">
+      {% for t in s.tests %}
+      <div class="subj-pill">
+        <span>{{ subject_icons.get(t.get('subject',''),'📝') }}</span>
+        <span>{{ t.get('subject','')[:12] }}</span>
+        <span class="sp">{{ t.percentage }}%</span>
+        <span class="sg g{{ t.grade|lower }}">{{ t.grade }}</span>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card-footer">
+      <div style="display:flex;align-items:center;gap:8px;flex:1">
+        <span class="tests-count">Overall average:</span>
+        <div class="bar-wrap">
+          <div class="bar-fill" style="width:{{ s.avg }}%;background:#{{ gc.get(s.grade,'95a5a6') }}"></div>
+        </div>
+        <span style="font-size:13px;font-weight:700;color:#1a3a5c">{{ s.avg }}%</span>
+      </div>
+      <a href="/student_report_word/{{ s.name|lower }}|{{ s.class|lower }}"
+         class="word-btn">📄 Download Report</a>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty">No student results yet. Students need to take tests first.</div>
+  {% endif %}
+
+</div>
+
+<script>
+function filterCards(){
+  var sn=document.getElementById("sName").value.toLowerCase();
+  var sc=document.getElementById("sCls").value.toLowerCase();
+  var sg=document.getElementById("sGrd").value.toLowerCase();
+  document.querySelectorAll(".student-card").forEach(function(c){
+    var show=(!sn||c.dataset.name.includes(sn))&&
+             (!sc||c.dataset.class.includes(sc))&&
+             (!sg||c.dataset.grade.toLowerCase()==sg);
+    c.style.display=show?"":"none";
+  });
+}
+</script>
+</body>
+</html>

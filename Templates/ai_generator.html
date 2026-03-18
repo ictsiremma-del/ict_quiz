@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Question Generator — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#6c3483);color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar p{font-size:11px;opacity:.8;margin-top:2px}
+.back{padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.2);color:white;text-decoration:none;font-size:12px;font-weight:600}
+.container{max-width:960px;margin:24px auto;padding:0 14px}
+.card{background:white;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.card h2{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f4f8;display:flex;align-items:center;gap:8px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fg label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select,.fg textarea{padding:10px 13px;border:2px solid #e0e0e0;border-radius:9px;font-size:13px;outline:none;transition:border .2s;font-family:inherit}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#6c3483}
+.qtype-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.qt-btn{padding:10px 8px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;text-align:center;background:white;transition:all .15s;font-size:12px;font-weight:600;color:#555}
+.qt-btn:hover{border-color:#6c3483}
+.qt-btn.on{border-color:#6c3483;background:#6c3483;color:white}
+.qt-btn .qi{font-size:20px;display:block;margin-bottom:3px}
+.gen-btn{width:100%;padding:14px;background:linear-gradient(135deg,#6c3483,#8e44ad);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+.gen-btn:hover{opacity:.9}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+.loading{display:none;text-align:center;padding:32px}
+.loading .spin{width:44px;height:44px;border:4px solid #e0e0e0;border-top:4px solid #6c3483;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 14px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{color:#666;font-size:14px}
+.results-area{display:none}
+.q-preview{background:#f8f9fa;border-radius:10px;padding:16px;margin-bottom:12px;border-left:4px solid #6c3483;position:relative}
+.q-preview.selected{border-left-color:#27ae60;background:#f0fff4}
+.q-preview .qp-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-preview .qp-type{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;background:#e8daef;color:#6c3483}
+.q-preview .qp-marks{font-size:11px;color:#888;background:#f0f0f0;padding:2px 8px;border-radius:6px}
+.q-preview .qp-text{font-size:14px;font-weight:500;color:#2c3e50;margin-bottom:8px;line-height:1.5}
+.q-preview .qp-opts{list-style:none;margin-bottom:6px}
+.q-preview .qp-opts li{font-size:13px;color:#555;padding:3px 0}
+.q-preview .qp-ans{font-size:12px;color:#27ae60;font-weight:600;background:#d5f5e3;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px}
+.q-preview .qp-model{font-size:12px;color:#2980b9;background:#d6eaf8;padding:4px 10px;border-radius:6px;display:inline-block;margin-top:4px}
+.q-select-btn{position:absolute;top:12px;right:12px;padding:5px 12px;border:none;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-select{background:#6c3483;color:white}
+.btn-deselect{background:#27ae60;color:white}
+.sel-count{font-size:14px;color:#6c3483;font-weight:700;margin-bottom:12px}
+.add-btn{width:100%;padding:13px;background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+.add-btn:disabled{opacity:.5;cursor:not-allowed}
+.success-msg{background:#d5f5e3;color:#27ae60;border-radius:10px;padding:14px;font-size:14px;font-weight:600;text-align:center;display:none;border-left:3px solid #27ae60}
+.error-msg{background:#fadbd8;color:#e74c3c;border-radius:10px;padding:14px;font-size:13px;display:none;border-left:3px solid #e74c3c}
+.tip-box{background:linear-gradient(135deg,#f5eef8,#e8daef);border-radius:10px;padding:14px 18px;margin-bottom:18px}
+.tip-box h3{font-size:13px;font-weight:700;color:#6c3483;margin-bottom:6px}
+.tip-box p{font-size:12px;color:#5b2c6f;line-height:1.7}
+.strand-info{font-size:11px;color:#888;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>🤖 AI Question Generator</h1>
+    <p>{{ school }} — Powered by Claude AI</p>
+  </div>
+  <a href="/dashboard" class="back">← Dashboard</a>
+</div>
+
+<div class="container">
+  <div class="tip-box">
+    <h3>💡 How to use the AI Question Generator</h3>
+    <p>
+      Type a topic, paste a paragraph from your textbook, or describe what you want to test.
+      The AI will generate ready-made questions tagged to the Ghana curriculum strands.
+      Review the questions, select the ones you want, and add them to your question bank with one click.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>⚙️ Configure Your Question Set</h2>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Subject</label>
+        <select id="aiSubject" onchange="loadStrands()">
+          {% for s in subjects %}
+          <option value="{{ s }}" {{ 'selected' if s==selected_subject else '' }}>
+            {{ subject_icons[s] }} {{ s }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Strand (optional)</label>
+        <select id="aiStrand" onchange="loadSubStrands()">
+          <option value="">All Strands</option>
+          {% for strand_name in strands.keys() %}
+          <option value="{{ strand_name }}">{{ strand_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Sub-Strand (optional)</label>
+        <select id="aiSubStrand">
+          <option value="">All Sub-Strands</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Class Level</label>
+        <select id="aiClass">
+          {% for c in classes %}
+          <option value="{{ c }}">{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Topic or Content to Generate Questions From</label>
+      <textarea id="aiTopic" rows="4"
+        placeholder="Examples:&#10;• Photosynthesis in plants&#10;• The water cycle and its stages&#10;• Paste a paragraph from a textbook here&#10;• Ghana independence and Kwame Nkrumah&#10;• Types of forces in science"></textarea>
+    </div>
+
+    <div class="fg" style="margin-bottom:14px">
+      <label>Question Types to Generate</label>
+      <div class="qtype-grid">
+        <div class="qt-btn on" onclick="toggleType('mcq',this)" id="btn_mcq">
+          <span class="qi">🔘</span>MCQ
+        </div>
+        <div class="qt-btn on" onclick="toggleType('tf',this)" id="btn_tf">
+          <span class="qi">✅</span>True/False
+        </div>
+        <div class="qt-btn on" onclick="toggleType('fitb',this)" id="btn_fitb">
+          <span class="qi">✏️</span>Fill Blank
+        </div>
+        <div class="qt-btn" onclick="toggleType('theory',this)" id="btn_theory">
+          <span class="qi">📝</span>Theory
+        </div>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Number of Questions</label>
+        <select id="aiCount">
+          <option value="5">5 questions</option>
+          <option value="10" selected>10 questions</option>
+          <option value="15">15 questions</option>
+          <option value="20">20 questions</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Difficulty Level</label>
+        <select id="aiDifficulty">
+          <option value="basic">Basic (Primary)</option>
+          <option value="intermediate" selected>Intermediate (JHS)</option>
+          <option value="challenging">Challenging (BECE Level)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <button class="gen-btn" id="genBtn" onclick="generateQuestions()">
+      <span>🤖</span>
+      <span id="genBtnText">Generate Questions with AI</span>
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loadingArea">
+    <div class="spin"></div>
+    <p id="loadingText">AI is generating questions...</p>
+    <p style="font-size:12px;color:#aaa;margin-top:6px">This takes about 10-15 seconds</p>
+  </div>
+
+  <!-- Results -->
+  <div class="results-area" id="resultsArea">
+    <div class="card">
+      <h2>📋 Generated Questions — Review and Select</h2>
+      <div class="sel-count" id="selCount">0 questions selected</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="selectAll()" style="padding:6px 14px;border:2px solid #6c3483;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:#6c3483;background:white">✅ Select All</button>
+        <button onclick="selectNone()" style="padding:6px 14px;border:2px solid #e0e0e0;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:#666;background:white">☐ Deselect All</button>
+        <button onclick="regenerate()" style="padding:6px 14px;border:2px solid #f39c12;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;color:#f39c12;background:white">🔄 Regenerate</button>
+      </div>
+      <div id="questionsContainer"></div>
+      <div class="success-msg" id="successMsg"></div>
+      <button class="add-btn" id="addBtn" onclick="addToBank()" disabled>
+        ➕ Add Selected Questions to Question Bank
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+var allStrands = {{ curriculum_strands | tojson }};
+var selectedTypes = new Set(['mcq','tf','fitb']);
+var generatedQuestions = [];
+var selectedIds = new Set();
+var currentSubject = "{{ selected_subject }}";
+
+function loadStrands(){
+  currentSubject = document.getElementById("aiSubject").value;
+  var strandSel = document.getElementById("aiStrand");
+  strandSel.innerHTML = '<option value="">All Strands</option>';
+  var strands = allStrands[currentSubject] || {};
+  Object.keys(strands).forEach(function(s){
+    var o = document.createElement("option");
+    o.value=s; o.textContent=s; strandSel.appendChild(o);
+  });
+  document.getElementById("aiSubStrand").innerHTML =
+    '<option value="">All Sub-Strands</option>';
+}
+
+function loadSubStrands(){
+  var strand = document.getElementById("aiStrand").value;
+  var sub = document.getElementById("aiSubStrand");
+  sub.innerHTML = '<option value="">All Sub-Strands</option>';
+  if(strand && allStrands[currentSubject] && allStrands[currentSubject][strand]){
+    allStrands[currentSubject][strand].forEach(function(ss){
+      var o=document.createElement("option");
+      o.value=ss; o.textContent=ss; sub.appendChild(o);
+    });
+  }
+}
+
+function toggleType(t, btn){
+  if(selectedTypes.has(t)){
+    selectedTypes.delete(t);
+    btn.classList.remove("on");
+  } else {
+    selectedTypes.add(t);
+    btn.classList.add("on");
+  }
+}
+
+function generateQuestions(){
+  var topic = document.getElementById("aiTopic").value.trim();
+  if(!topic){
+    showError("Please enter a topic or paste some content to generate questions from.");
+    return;
+  }
+  if(selectedTypes.size === 0){
+    showError("Please select at least one question type.");
+    return;
+  }
+  hideError();
+  document.getElementById("loadingArea").style.display="block";
+  document.getElementById("resultsArea").style.display="none";
+  document.getElementById("genBtn").disabled=true;
+
+  var subject   = document.getElementById("aiSubject").value;
+  var strand    = document.getElementById("aiStrand").value;
+  var subStrand = document.getElementById("aiSubStrand").value;
+  var cls       = document.getElementById("aiClass").value;
+  var count     = document.getElementById("aiCount").value;
+  var difficulty= document.getElementById("aiDifficulty").value;
+  var types     = Array.from(selectedTypes);
+
+  fetch("/ai_generate_questions", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({
+      topic: topic,
+      subject: subject,
+      strand: strand,
+      sub_strand: subStrand,
+      class_level: cls,
+      count: parseInt(count),
+      difficulty: difficulty,
+      types: types
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    document.getElementById("loadingArea").style.display="none";
+    document.getElementById("genBtn").disabled=false;
+    if(data.error){
+      showError(data.error);
+      return;
+    }
+    generatedQuestions = data.questions;
+    renderQuestions();
+    document.getElementById("resultsArea").style.display="block";
+    document.getElementById("resultsArea").scrollIntoView({behavior:"smooth"});
+  })
+  .catch(function(e){
+    document.getElementById("loadingArea").style.display="none";
+    document.getElementById("genBtn").disabled=false;
+    showError("Connection error. Make sure your computer is connected to the internet.");
+  });
+}
+
+function renderQuestions(){
+  var container = document.getElementById("questionsContainer");
+  container.innerHTML="";
+  selectedIds = new Set();
+  updateSelCount();
+
+  generatedQuestions.forEach(function(q, idx){
+    var div = document.createElement("div");
+    div.className="q-preview";
+    div.id="qp_"+idx;
+
+    var typeLabels={"mcq":"Multiple Choice","tf":"True/False",
+                    "fitb":"Fill in Blank","theory":"Theory"};
+    var html = '<div class="qp-meta">';
+    html += '<span class="qp-type">'+typeLabels[q.type]+'</span>';
+    html += '<span class="qp-marks">'+q.marks+' mark'+(q.marks>1?'s':'')+'</span>';
+    html += '</div>';
+    html += '<div class="qp-text">'+(idx+1)+'. '+q.question+'</div>';
+
+    if(q.type==='mcq' && q.options){
+      html += '<ul class="qp-opts">';
+      q.options.forEach(function(opt,oi){
+        var letter=String.fromCharCode(65+oi);
+        html += '<li>'+letter+'. '+opt+'</li>';
+      });
+      html += '</ul>';
+      html += '<span class="qp-ans">✓ '+q.answer+'</span>';
+    } else if(q.type==='tf'){
+      html += '<span class="qp-ans">✓ '+q.answer+'</span>';
+    } else if(q.type==='fitb'){
+      html += '<span class="qp-ans">✓ '+q.answer+'</span>';
+    } else if(q.type==='theory'){
+      html += '<span class="qp-model">📝 Model: '+q.model_answer+'</span>';
+    }
+
+    html += '<button class="q-select-btn btn-select" id="selbtn_'+idx+'" onclick="toggleSel('+idx+')">+ Select</button>';
+    div.innerHTML = html;
+    container.appendChild(div);
+  });
+}
+
+function toggleSel(idx){
+  if(selectedIds.has(idx)){
+    selectedIds.delete(idx);
+    document.getElementById("qp_"+idx).classList.remove("selected");
+    document.getElementById("selbtn_"+idx).className="q-select-btn btn-select";
+    document.getElementById("selbtn_"+idx).textContent="+ Select";
+  } else {
+    selectedIds.add(idx);
+    document.getElementById("qp_"+idx).classList.add("selected");
+    document.getElementById("selbtn_"+idx).className="q-select-btn btn-deselect";
+    document.getElementById("selbtn_"+idx).textContent="✓ Selected";
+  }
+  updateSelCount();
+}
+
+function selectAll(){
+  generatedQuestions.forEach(function(_,idx){ 
+    if(!selectedIds.has(idx)) toggleSel(idx); 
+  });
+}
+
+function selectNone(){
+  Array.from(selectedIds).forEach(function(idx){ toggleSel(idx); });
+}
+
+function updateSelCount(){
+  var n = selectedIds.size;
+  document.getElementById("selCount").textContent = n+" question"+(n!=1?"s":"")+" selected";
+  document.getElementById("addBtn").disabled = (n===0);
+}
+
+function regenerate(){
+  document.getElementById("resultsArea").style.display="none";
+  generateQuestions();
+}
+
+function addToBank(){
+  var subject   = document.getElementById("aiSubject").value;
+  var strand    = document.getElementById("aiStrand").value;
+  var subStrand = document.getElementById("aiSubStrand").value;
+  var selected  = Array.from(selectedIds).map(function(i){ return generatedQuestions[i]; });
+
+  document.getElementById("addBtn").disabled=true;
+  document.getElementById("addBtn").textContent="Adding...";
+
+  fetch("/ai_add_questions", {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+      subject: subject,
+      strand: strand,
+      sub_strand: subStrand,
+      questions: selected
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.ok){
+      document.getElementById("successMsg").style.display="block";
+      document.getElementById("successMsg").textContent =
+        "✅ "+data.added+" questions added to "+subject+" question bank! Go to the dashboard to see them.";
+      document.getElementById("addBtn").textContent="✅ Added to Question Bank";
+      selected.forEach(function(_,i){
+        var orig = Array.from(selectedIds)[i];
+        document.getElementById("qp_"+orig).style.opacity=".4";
+      });
+    }
+  })
+  .catch(function(){
+    document.getElementById("addBtn").disabled=false;
+    document.getElementById("addBtn").textContent="➕ Add Selected Questions to Question Bank";
+    showError("Failed to add questions. Please try again.");
+  });
+}
+
+function showError(msg){
+  var el = document.getElementById("errorMsg");
+  el.style.display="block";
+  el.textContent="⚠️ "+msg;
+}
+function hideError(){
+  document.getElementById("errorMsg").style.display="none";
+}
+</script>
+</body>
+</html>

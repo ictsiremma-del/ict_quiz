@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ subject }} — {{ aconf.label }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,{{ subject_color }});color:white;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 10px rgba(0,0,0,.2)}
+.topbar h3{font-size:14px;font-weight:700}
+.topbar p{font-size:11px;opacity:.85;margin-top:1px}
+.timer-box{background:rgba(255,255,255,.2);border-radius:10px;padding:7px 16px;text-align:center;min-width:90px}
+#timer{font-size:22px;font-weight:700;letter-spacing:2px}
+.tlbl{font-size:9px;opacity:.8}
+.timer-box.warn{background:rgba(231,76,60,.6)}
+.atype-bar{padding:7px 20px;font-size:12px;font-weight:600;text-align:center;color:white}
+.bar-test{background:#2980b9}.bar-exam{background:#8e44ad}.bar-hw{background:#f39c12;color:#1a0a00}
+.container{max-width:800px;margin:0 auto;padding:20px 14px}
+.prog-wrap{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:5px}
+.prog-bar{background:#ddd;border-radius:8px;height:6px;margin-bottom:18px}
+.prog-fill{background:linear-gradient(90deg,{{ subject_color }},#27ae60);height:6px;border-radius:8px;transition:width .3s}
+.q-card{background:white;border-radius:12px;padding:20px;margin-bottom:14px;box-shadow:0 2px 6px rgba(0,0,0,.07);border-left:4px solid #ddd}
+.q-card.done{border-left-color:#27ae60}
+.q-card.required-err{border-left-color:#e74c3c;box-shadow:0 2px 10px rgba(231,76,60,.2)}
+.q-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.q-num{font-size:11px;font-weight:700;color:{{ subject_color }};text-transform:uppercase;letter-spacing:.8px}
+.badges{display:flex;gap:5px}
+.badge{font-size:10px;padding:2px 7px;border-radius:7px;font-weight:600}
+.bmcq{background:#e8f4f8;color:#2e86ab}.btf{background:#fef9e7;color:#e67e22}
+.bfitb{background:#e8f8e8;color:#27ae60}.bth{background:#f5e8f8;color:#8e44ad}
+.blbl{background:#fff3e0;color:#f57c00}.bmk{background:#f0f0f0;color:#666}
+.q-text{font-size:15px;color:#2c3e50;font-weight:500;margin-bottom:12px;line-height:1.5}
+.q-img{max-width:100%;border-radius:8px;border:1px solid #e0e0e0;margin-bottom:12px;max-height:260px;object-fit:contain}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:10px;padding:10px 14px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;transition:all .15s;font-size:13px;color:#333}
+.opt:hover{border-color:{{ subject_color }};background:#f5f9ff}
+.opt input{width:16px;height:16px;accent-color:{{ subject_color }};cursor:pointer;flex-shrink:0}
+.tf-row{display:flex;gap:10px}
+.tf-btn{flex:1;padding:12px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;font-size:14px;font-weight:600;background:white;transition:all .15s;text-align:center}
+.tf-btn:hover{border-color:{{ subject_color }}}
+.tf-t.sel{border-color:#27ae60;background:#d5f5e3;color:#27ae60}
+.tf-f.sel{border-color:#e74c3c;background:#fadbd8;color:#e74c3c}
+.fitb-input{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;transition:border .2s}
+.fitb-input:focus{border-color:{{ subject_color }}}
+.theory-box{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;resize:vertical;min-height:90px;font-family:inherit}
+.theory-box:focus{border-color:{{ subject_color }}}
+.label-wrap{position:relative;display:inline-block;max-width:100%}
+.label-img{max-width:100%;border-radius:8px;border:1px solid #e0e0e0;display:block}
+.label-point{position:absolute;transform:translate(-50%,-50%)}
+.label-point .dot{width:14px;height:14px;background:#e74c3c;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3);margin:0 auto 3px}
+.label-point input{width:110px;padding:4px 7px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:11px;outline:none;background:rgba(255,255,255,.95);text-align:center}
+.submit-area{text-align:center;padding:16px 0 36px}
+.submit-btn{background:linear-gradient(135deg,#27ae60,#2ecc71);color:white;border:none;padding:14px 44px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 14px rgba(39,174,96,.3)}
+.submit-btn:hover{opacity:.9}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.save-hw-btn{background:linear-gradient(135deg,#f39c12,#e67e22);color:white;border:none;padding:12px 28px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;margin-right:12px}
+.ans-c{font-size:13px;color:#666;margin-bottom:10px}
+.unanswered-warn{background:#fadbd8;color:#e74c3c;border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:14px;display:none;border-left:3px solid #e74c3c}
+.hw-saved{background:#d5f5e3;color:#27ae60;border-radius:10px;padding:12px 16px;font-size:13px;margin-bottom:14px;display:none;border-left:3px solid #27ae60}
+.char-count{font-size:11px;color:#aaa;text-align:right;margin-top:3px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h3>{{ subject_icon }} {{ subject }} — {{ aconf.label }}</h3>
+    <p>{{ student_name }} | {{ student_class }}</p>
+  </div>
+  {% if aconf.timer_minutes > 0 %}
+  <div class="timer-box" id="tBox">
+    <div id="timer">{{ "%02d"|format(aconf.timer_minutes) }}:00</div>
+    <div class="tlbl">TIME LEFT</div>
+  </div>
+  {% else %}
+  <div style="background:rgba(255,255,255,.2);border-radius:10px;padding:7px 14px;font-size:12px;font-weight:700">
+    🏠 No Timer
+  </div>
+  {% endif %}
+</div>
+
+<div class="atype-bar
+  {% if atype=='class_test' %}bar-test
+  {% elif atype=='exam' %}bar-exam
+  {% else %}bar-hw{% endif %}">
+  {{ aconf.icon }} {{ aconf.label }}
+  {% if atype=='homework' %} — Save your progress anytime{% endif %}
+  {% if atype=='exam' %} — No answer review during exam{% endif %}
+</div>
+
+<div class="container">
+  <div class="prog-wrap">
+    <span id="ac">Answered: 0 / {{ questions|length }}</span>
+    <span>{{ questions|length }} Questions</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+
+  <div class="unanswered-warn" id="unWarn"></div>
+  <div class="hw-saved" id="hwSaved">✅ Progress saved! You can close the browser and resume later from the homepage.</div>
+
+  <form id="qForm" action="/submit" method="POST">
+    {% for q in questions %}
+    <div class="q-card" id="card{{ q.id }}">
+      <div class="q-meta">
+        <span class="q-num">Question {{ loop.index }}</span>
+        <div class="badges">
+          {% if q.type=='mcq' %}<span class="badge bmcq">MCQ</span>
+          {% elif q.type=='tf' %}<span class="badge btf">True/False</span>
+          {% elif q.type=='fitb' %}<span class="badge bfitb">Fill Blank</span>
+          {% elif q.type=='theory' %}<span class="badge bth">Theory</span>
+          {% elif q.type=='label' %}<span class="badge blbl">Label</span>
+          {% endif %}
+          <span class="badge bmk">{{ q.marks }} mark{% if q.marks>1 %}s{% endif %}</span>
+        </div>
+      </div>
+      <div class="q-text">{{ q.question }}</div>
+      {% if q.image %}<img src="/static/{{ q.image }}" class="q-img">{% endif %}
+
+      {% if q.type=='mcq' %}
+      <div class="options">
+        {% for opt in q.options %}
+        <label class="opt" onclick="mk({{ q.id }})">
+          <input type="radio" name="q{{ q.id }}" value="{{ opt }}"
+            {% if saved_answers and saved_answers.get('q'~q.id)==opt %}checked{% endif %}>
+          <span>{{ opt }}</span>
+        </label>
+        {% endfor %}
+      </div>
+
+      {% elif q.type=='tf' %}
+      {% set sv = saved_answers.get('q'~q.id,'') if saved_answers else '' %}
+      <div class="tf-row">
+        <div class="tf-btn tf-t {{ 'sel' if sv=='True' else '' }}"
+             id="t{{ q.id }}" onclick="tf({{ q.id }},'True')">✅ True</div>
+        <div class="tf-btn tf-f {{ 'sel' if sv=='False' else '' }}"
+             id="f{{ q.id }}" onclick="tf({{ q.id }},'False')">❌ False</div>
+        <input type="hidden" name="q{{ q.id }}" id="h{{ q.id }}" value="{{ sv }}">
+      </div>
+
+      {% elif q.type=='fitb' %}
+      <input type="text" name="q{{ q.id }}" class="fitb-input"
+             placeholder="Type your answer..."
+             value="{{ saved_answers.get('q'~q.id,'') if saved_answers else '' }}"
+             oninput="mk({{ q.id }})">
+
+      {% elif q.type=='theory' %}
+      <textarea name="q{{ q.id }}" class="theory-box"
+                placeholder="Write your answer here. Use key terms and explain clearly..."
+                oninput="mkT({{ q.id }},this)"
+                maxlength="2000">{{ saved_answers.get('q'~q.id,'') if saved_answers else '' }}</textarea>
+      <div class="char-count" id="cc{{ q.id }}">0 / 2000 characters</div>
+
+      {% elif q.type=='label' %}
+      <div class="label-wrap">
+        {% if q.image %}
+        <img src="/static/{{ q.image }}" class="label-img">
+        {% endif %}
+        {% for lbl in q.labels %}
+        <div class="label-point" style="left:{{ lbl.x }}%;top:{{ lbl.y }}%">
+          <div class="dot"></div>
+          <input type="text" name="q{{ q.id }}_label_{{ lbl.id }}"
+                 placeholder="{{ lbl.text }}" oninput="mk({{ q.id }})">
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div class="submit-area">
+      <p class="ans-c" id="ac2"></p>
+      {% if can_pause %}
+      <button type="button" class="save-hw-btn" onclick="saveHW()">💾 Save & Continue Later</button>
+      {% endif %}
+      <button type="button" class="submit-btn" id="submitBtn" onclick="doSub()">
+        ✅ SUBMIT {{ aconf.label|upper }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<script>
+var left={{ aconf.timer_minutes * 60 }};
+var total={{ questions|length }};
+var done=0;
+var atype="{{ atype }}";
+var hasTimer=(left>0);
+var answered={};
+
+// Mark pre-filled saved answers as done
+{% if saved_answers %}
+{% for q in questions %}
+{% if saved_answers.get('q'~q.id) %}
+answered[{{ q.id }}]=true;
+{% endif %}
+{% endfor %}
+done=Object.keys(answered).length;
+upd();
+{% endif %}
+
+function pad(n){return n<10?"0"+n:n}
+
+{% if aconf.timer_minutes > 0 %}
+var iv=setInterval(function(){
+  left--;
+  document.getElementById("timer").textContent=
+    pad(Math.floor(left/60))+":"+pad(left%60);
+  if(left<=300) document.getElementById("tBox").classList.add("warn");
+  if(left<=0){
+    clearInterval(iv);
+    alert("Time is up! Your test will now be submitted.");
+    document.getElementById("qForm").submit();
+  }
+},1000);
+{% endif %}
+
+function mk(id){
+  var c=document.getElementById("card"+id);
+  if(!answered[id]){
+    answered[id]=true; done++; upd();
+  }
+  c.classList.add("done");
+  c.classList.remove("required-err");
+}
+
+function mkT(id,el){
+  document.getElementById("cc"+id).textContent=el.value.length+" / 2000 characters";
+  mk(id);
+}
+
+function tf(id,v){
+  document.getElementById("h"+id).value=v;
+  document.getElementById("t"+id).className="tf-btn tf-t"+(v=="True"?" sel":"");
+  document.getElementById("f"+id).className="tf-btn tf-f"+(v=="False"?" sel":"");
+  mk(id);
+}
+
+function upd(){
+  var p=Math.round((done/total)*100);
+  document.getElementById("pf").style.width=p+"%";
+  document.getElementById("ac").textContent="Answered: "+done+" / "+total;
+  document.getElementById("ac2").textContent="Answered: "+done+" / "+total;
+}
+
+function doSub(){
+  // FIX 2: Must answer at least 1 question
+  if(done===0){
+    document.getElementById("unWarn").style.display="block";
+    document.getElementById("unWarn").textContent=
+      "⚠️ Please answer at least one question before submitting.";
+    window.scrollTo(0,0);
+    return;
+  }
+  // Warn about unanswered but allow submit
+  if(done<total){
+    // Highlight unanswered cards
+    {% for q in questions %}
+    if(!answered[{{ q.id }}]){
+      document.getElementById("card{{ q.id }}").classList.add("required-err");
+    }
+    {% endfor %}
+    if(!confirm("You have only answered "+done+" out of "+total+" questions.\n\nUnanswered questions will receive 0 marks.\n\nSubmit anyway?")){
+      return;
+    }
+  }
+  document.getElementById("submitBtn").disabled=true;
+  document.getElementById("submitBtn").textContent="Submitting...";
+  document.getElementById("qForm").submit();
+}
+
+function saveHW(){
+  var answers={};
+  // Collect all current answers
+  var form=document.getElementById("qForm");
+  var inputs=form.querySelectorAll("input[type=radio]:checked, input[type=hidden], input[type=text], textarea");
+  inputs.forEach(function(inp){
+    if(inp.name && inp.value) answers[inp.name]=inp.value;
+  });
+  fetch("/save_homework",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({answers:answers})
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.ok){
+      document.getElementById("hwSaved").style.display="block";
+      window.scrollTo(0,0);
+      setTimeout(function(){
+        document.getElementById("hwSaved").style.display="none";
+      },4000);
+    }
+  });
+}
+</script>
+</body>
+</html>

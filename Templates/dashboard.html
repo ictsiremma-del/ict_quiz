@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar-left h1{font-size:16px;font-weight:700}
+.topbar-left p{font-size:11px;opacity:.8;margin-top:2px}
+.tb-right{display:flex;gap:7px;flex-wrap:wrap}
+.btn-sm{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block;white-space:nowrap}
+.bg{background:#27ae60;color:white}.bb{background:#2980b9;color:white}
+.br{background:#e74c3c;color:white}.bw{background:rgba(255,255,255,.2);color:white}
+.bo{background:#f39c12;color:white}.bp{background:#8e44ad;color:white}
+.bece-btn{background:#c0392b;color:white}
+.container{max-width:1160px;margin:0 auto;padding:18px 14px}
+.ip-bar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);border-radius:12px;padding:14px 20px;margin-bottom:18px;color:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.ip-bar .ip-addr{font-size:20px;font-weight:700;font-family:monospace}
+.ip-bar .ip-lbl{font-size:11px;opacity:.8;margin-bottom:3px}
+.ip-box{background:rgba(255,255,255,.15);border-radius:8px;padding:7px 13px;font-size:12px;min-width:180px}
+.ip-box .ib-lbl{opacity:.8;margin-bottom:2px}
+.ip-box .ib-val{font-weight:700;font-family:monospace}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.stat{background:white;border-radius:11px;padding:16px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.06)}
+.stat .v{font-size:24px;font-weight:700;color:#1a3a5c}
+.stat .l{font-size:11px;color:#888;margin-top:3px}
+.teacher-badge{background:linear-gradient(135deg,#8e44ad,#6c3483);color:white;border-radius:10px;padding:10px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.teacher-badge .tb-icon{font-size:28px}
+.teacher-badge .tb-name{font-size:15px;font-weight:700}
+.teacher-badge .tb-sub{font-size:12px;opacity:.85;margin-top:2px}
+.subj-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.stab{padding:6px 12px;border-radius:18px;border:2px solid #e0e0e0;background:white;font-size:12px;font-weight:600;cursor:pointer;text-decoration:none;color:#555;transition:all .15s;white-space:nowrap}
+.stab:hover{border-color:#2e86ab;color:#2e86ab}
+.stab.active{border-color:#2e86ab;background:#2e86ab;color:white}
+.section{background:white;border-radius:13px;padding:20px;margin-bottom:18px;box-shadow:0 2px 5px rgba(0,0,0,.06)}
+.section h2{font-size:15px;font-weight:700;color:#1a3a5c;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #f0f4f8}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:8px 10px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:8px 10px;border-bottom:1px solid #f5f5f5}
+tr:hover td{background:#fafafa}
+.gb{display:inline-block;padding:2px 8px;border-radius:7px;font-weight:700;font-size:11px;color:white}
+.ga{background:#27ae60}.gb2{background:#2980b9}.gc{background:#8e44ad}
+.gd{background:#f39c12}.ge{background:#e67e22}.gf{background:#e74c3c}
+.pass{color:#27ae60;font-weight:600}.fail{color:#e74c3c;font-weight:600}
+.q-badge{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:600}
+.bmcq{background:#e8f4f8;color:#2e86ab}.btf{background:#fef9e7;color:#e67e22}
+.bfitb{background:#e8f8e8;color:#27ae60}.bth{background:#f5e8f8;color:#8e44ad}
+.blbl{background:#fff3e0;color:#f57c00}
+.del{background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600}
+.del:hover{background:#c0392b}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.3px}
+.fg input,.fg select,.fg textarea{padding:8px 10px;border:2px solid #e0e0e0;border-radius:7px;font-size:13px;outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#2e86ab}
+.btn-add{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;padding:10px 24px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer}
+.type-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:13px}
+.tbtn{padding:6px 13px;border:2px solid #e0e0e0;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600;background:white;transition:all .15s}
+.tbtn.on{border-color:#2e86ab;background:#e8f4f8;color:#2e86ab}
+.pdf-box{background:#f8f9fa;border-radius:9px;padding:14px;margin-bottom:14px;border:2px dashed #e0e0e0}
+.msg-ok{background:#d5f5e3;color:#27ae60;border-left:3px solid #27ae60;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
+.msg-err{background:#fadbd8;color:#e74c3c;border-left:3px solid #e74c3c;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
+.empty{text-align:center;color:#bbb;padding:24px;font-size:13px}
+.filters{display:flex;gap:7px;margin-bottom:13px;flex-wrap:wrap}
+.filters select,.filters input{padding:6px 10px;border:2px solid #e0e0e0;border-radius:7px;font-size:12px;outline:none}
+.strand-pill{display:inline-block;background:#e8f4f8;color:#2e86ab;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:4px}
+.sub-strand-pill{display:inline-block;background:#e8f8e8;color:#27ae60;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600;margin-left:2px}
+/* Bulk actions */
+.bulk-bar{background:#1a3a5c;color:white;border-radius:9px;padding:12px 16px;margin-bottom:13px;display:none;flex-wrap:wrap;gap:10px;align-items:center}
+.bulk-bar.show{display:flex}
+.bulk-count{font-size:13px;font-weight:700;flex:1}
+.bulk-action-form{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.bulk-input{padding:6px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-size:12px;outline:none}
+.bulk-input option{color:#333;background:white}
+.cbx{width:15px;height:15px;accent-color:#2e86ab;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <h1>🎓 {{ school }}</h1>
+    <p>Teacher Dashboard</p>
+  </div>
+  <div class="tb-right">
+    {% if is_head %}
+    <a href="/bece/manage" class="btn-sm bece-btn">🎓 BECE</a>
+    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
+    <a href="/list_backups" class="btn-sm bo">💾 Backups</a>
+    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
+    {% else %}
+    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
+    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
+    {% endif %}
+    <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
+    <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
+  </div>
+</div>
+
+<div class="container">
+  {% if pdf_msg %}
+  <div class="{{ 'msg-ok' if pdf_msg.startswith('ok:') else 'msg-err' }}">{{ pdf_msg[3:] }}</div>
+  {% endif %}
+
+  <!-- Teacher badge -->
+  <div class="teacher-badge">
+    <div class="tb-icon">👤</div>
+    <div>
+      <div class="tb-name">{{ teacher.name }}{% if is_head %} — Head Teacher{% endif %}</div>
+      <div class="tb-sub">Subjects: {{ teacher.subjects|join(', ') }}</div>
+    </div>
+  </div>
+
+  <!-- IP banner -->
+  <div class="ip-bar">
+    <div>
+      <div style="font-size:11px;opacity:.8;margin-bottom:3px">📡 Share this address with students</div>
+      <div class="ip-addr">http://{{ local_ip }}:5000</div>
+      <div style="font-size:11px;opacity:.7;margin-top:3px">Auto-detected • Updates when WiFi changes</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div class="ip-box">
+        <div class="ib-lbl">Student Link</div>
+        <div class="ib-val">http://{{ local_ip }}:5000</div>
+      </div>
+      <div class="ip-box">
+        <div class="ib-lbl">Teacher Login</div>
+        <div class="ib-val">http://{{ local_ip }}:5000/teacher</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="v">{{ total_students }}</div><div class="l">Results</div></div>
+    <div class="stat"><div class="v">{{ avg_score }}%</div><div class="l">Average</div></div>
+    <div class="stat"><div class="v">{{ grade_counts.get('A',0) }}</div><div class="l">Grade A</div></div>
+    <div class="stat"><div class="v">{{ questions|length }}</div><div class="l">Questions ({{ selected_subject[:8] }})</div></div>
+  </div>
+
+  <!-- Results -->
+  <div class="section">
+    <h2>📋 Student Results</h2>
+    <div class="filters">
+      <select id="fC" onchange="filt()">
+        <option value="">All Classes</option>
+        {% for c in classes %}<option>{{ c }}</option>{% endfor %}
+      </select>
+      <select id="fA" onchange="filt()">
+        <option value="">All Types</option>
+        {% for k,v in assessment_types.items() %}
+        <option value="{{ v.label }}">{{ v.label }}</option>
+        {% endfor %}
+      </select>
+      <select id="fG" onchange="filt()">
+        <option value="">All Grades</option>
+        <option>A</option><option>B</option><option>C</option>
+        <option>D</option><option>E</option><option>F</option>
+      </select>
+      <input id="fN" onkeyup="filt()" placeholder="🔍 Search name...">
+    </div>
+    {% if results %}
+    <table id="rT">
+      <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Subject</th><th>Type</th><th>Strand</th><th>Score</th><th>%</th><th>Grade</th><th>Date</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+        <tr data-c="{{ r.class }}" data-a="{{ r.get('assessment_label','') }}" data-g="{{ r.grade }}" data-n="{{ r.name|lower }}">
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ r.name }}</strong></td>
+          <td>{{ r.class }}</td>
+          <td>{{ subject_icons.get(r.get('subject',''),'📝') }} {{ r.get('subject','') }}</td>
+          <td><span style="font-size:11px;background:#f0f4f8;padding:2px 7px;border-radius:6px">{{ r.get('assessment_label','') }}</span></td>
+          <td style="font-size:11px;color:#888">{{ r.get('strand','') }}</td>
+          <td>{{ r.score }}/{{ r.total }}</td>
+          <td><strong>{{ r.percentage }}%</strong></td>
+          <td><span class="gb g{{ r.grade|lower }}{% if r.grade=='B' %}2{% endif %}">{{ r.grade }}</span></td>
+          <td>{{ r.get('date','') }}</td>
+          <td style="white-space:nowrap">
+            <a href="/export_word/{{ loop.index0 }}" class="btn-sm bb" style="font-size:11px;padding:3px 7px;margin-right:3px">📄</a>
+            <a href="/delete_result/{{ loop.index0 }}" class="del" onclick="return confirm('Delete?')">🗑</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No results yet for your subject(s).</div>
+    {% endif %}
+  </div>
+
+  <!-- Subject tabs -->
+  <div class="section">
+    <h2>📝 Manage Questions</h2>
+    <div class="subj-tabs">
+      {% for s in subjects %}
+      <a href="/dashboard?subject={{ s|urlencode }}" class="stab {{ 'active' if s==selected_subject else '' }}">
+        {{ subject_icons[s] }} {{ s[:15] }}
+      </a>
+      {% endfor %}
+    </div>
+
+    <!-- PDF Upload -->
+    <div class="pdf-box">
+      <p style="font-size:12px;color:#666;margin-bottom:10px">
+        📂 Upload PDF for <strong>{{ selected_subject }}</strong> —
+        <a href="/pdf_template" style="color:#2e86ab;font-weight:600">Download Template</a>
+      </p>
+      <form method="POST" action="/upload_pdf" enctype="multipart/form-data" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <input type="file" name="pdf" accept=".pdf" required style="font-size:12px">
+        <button type="submit" class="btn-sm bg">⬆️ Upload & Extract</button>
+      </form>
+    </div>
+
+    <!-- Add question -->
+    <div style="background:#f8f9fa;border-radius:9px;padding:16px;margin-bottom:16px">
+      <h3 style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:12px">➕ Add Question — {{ selected_subject }}</h3>
+      <div class="type-row">
+        <button class="tbtn on" onclick="sw('mcq',this)">MCQ</button>
+        <button class="tbtn" onclick="sw('tf',this)">True/False</button>
+        <button class="tbtn" onclick="sw('fitb',this)">Fill Blank</button>
+        <button class="tbtn" onclick="sw('theory',this)">Theory</button>
+        <button class="tbtn" onclick="sw('label',this)">Label</button>
+      </div>
+      <form method="POST" action="/add_question" enctype="multipart/form-data">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <input type="hidden" name="type" id="qt" value="mcq">
+
+        <div class="fg" style="margin-bottom:11px">
+          <label>Question Text</label>
+          <textarea name="question" rows="2" required placeholder="Type question here..." style="padding:8px 10px;border:2px solid #e0e0e0;border-radius:7px;font-size:13px;outline:none;resize:vertical"></textarea>
+        </div>
+
+        <!-- Strand selection -->
+        <div class="form-row">
+          <div class="fg">
+            <label>Strand</label>
+            <select name="strand" id="addStrand" onchange="loadAddSubStrands()">
+              <option value="">-- Select Strand --</option>
+              {% for strand_name in strands.keys() %}
+              <option value="{{ strand_name }}">{{ strand_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="fg">
+            <label>Sub-Strand</label>
+            <select name="sub_strand" id="addSubStrand">
+              <option value="">-- Select Sub-Strand --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="fg" style="margin-bottom:11px">
+          <label>Upload Image (optional)</label>
+          <input type="file" name="image" accept="image/*">
+        </div>
+
+        <div id="fMCQ">
+          <div class="form-row">
+            <div class="fg"><label>Option A</label><input type="text" name="opt1" placeholder="Option A"></div>
+            <div class="fg"><label>Option B</label><input type="text" name="opt2" placeholder="Option B"></div>
+          </div>
+          <div class="form-row">
+            <div class="fg"><label>Option C</label><input type="text" name="opt3" placeholder="Option C"></div>
+            <div class="fg"><label>Option D</label><input type="text" name="opt4" placeholder="Option D"></div>
+          </div>
+          <div class="fg" style="margin-bottom:11px">
+            <label>Correct Answer</label>
+            <input type="text" name="answer" placeholder="Must match option exactly">
+          </div>
+        </div>
+        <div id="fTF" style="display:none;margin-bottom:11px">
+          <div class="fg"><label>Answer</label>
+            <select name="tf_answer"><option value="True">True</option><option value="False">False</option></select>
+          </div>
+        </div>
+        <div id="fFITB" style="display:none;margin-bottom:11px">
+          <div class="fg"><label>Correct Answer</label><input type="text" name="fitb_answer" placeholder="Word that fills the blank"></div>
+        </div>
+        <div id="fTH" style="display:none;margin-bottom:11px">
+          <div class="fg"><label>Model Answer</label>
+            <textarea name="model_answer" rows="2" placeholder="Ideal answer for keyword marking..." style="padding:8px 10px;border:2px solid #e0e0e0;border-radius:7px;font-size:13px;outline:none;resize:vertical"></textarea>
+          </div>
+        </div>
+        <div id="fLBL" style="display:none;margin-bottom:11px">
+          {% for i in range(1,7) %}
+          <div class="form-row" style="margin-bottom:7px">
+            <div class="fg"><label>Label {{ i }}</label><input type="text" name="label{{ i }}_text" placeholder="Label name"></div>
+            <div class="fg"><label>Answer</label><input type="text" name="label{{ i }}_answer" placeholder="Correct answer"></div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Class assignment -->
+        <div class="fg" style="margin-bottom:11px">
+          <label>Assign to Classes (blank = all classes)</label>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px">
+            {% for c in classes %}
+            <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;background:#f8f9fa;padding:4px 10px;border-radius:7px;border:1.5px solid #e0e0e0">
+              <input type="checkbox" name="assigned_classes" value="{{ c }}"> {{ c }}
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="form-row" style="max-width:200px">
+          <div class="fg"><label>Marks</label><input type="number" name="marks" value="2" min="1" max="20"></div>
+        </div>
+        <button type="submit" class="btn-add">➕ Add Question</button>
+      </form>
+    </div>
+
+    <!-- Bulk actions bar -->
+    <div class="bulk-bar" id="bulkBar">
+      <span class="bulk-count" id="bulkCount">0 selected</span>
+      <form method="POST" action="/bulk_delete" style="display:inline" id="bulkDelForm">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <div id="bulkDelIds"></div>
+        <button type="button" class="btn-sm br" onclick="bulkDelete()">🗑 Delete Selected</button>
+      </form>
+      <form method="POST" action="/bulk_edit_strand" style="display:inline-flex;gap:7px;align-items:center;flex-wrap:wrap" id="bulkEditForm">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <div id="bulkEditIds"></div>
+        <select name="bulk_strand" class="bulk-input" onchange="loadBulkSub(this)">
+          <option value="">Set Strand...</option>
+          {% for sn in strands.keys() %}
+          <option value="{{ sn }}">{{ sn }}</option>
+          {% endfor %}
+        </select>
+        <select name="bulk_sub_strand" class="bulk-input" id="bulkSubSel">
+          <option value="">Set Sub-Strand...</option>
+        </select>
+        <select name="bulk_classes" class="bulk-input" multiple style="height:32px">
+          {% for c in classes %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+        <button type="button" class="btn-sm bg" onclick="bulkEdit()">✅ Apply to Selected</button>
+      </form>
+    </div>
+
+    <!-- Questions list -->
+    <h3 style="font-size:13px;font-weight:700;color:#1a3a5c;margin-bottom:11px">
+      {{ subject_icons[selected_subject] }} {{ selected_subject }} — {{ questions|length }} Questions
+    </h3>
+    {% if questions %}
+    <div style="margin-bottom:8px;display:flex;gap:8px;align-items:center">
+      <label style="font-size:12px;display:flex;align-items:center;gap:5px;cursor:pointer">
+        <input type="checkbox" id="selectAll" onchange="toggleAll(this)" class="cbx"> Select All
+      </label>
+      <span style="font-size:12px;color:#888">— tick boxes to use bulk actions</span>
+    </div>
+    <table>
+      <thead><tr><th>☐</th><th>#</th><th>Type</th><th>Question</th><th>Strand</th><th>Answer</th><th>Marks</th><th>Classes</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for q in questions %}
+        <tr>
+          <td><input type="checkbox" class="q-cbx cbx" data-id="{{ q.id }}" onchange="updateBulk()"></td>
+          <td>{{ loop.index }}</td>
+          <td>
+            {% if q.type=='mcq' %}<span class="q-badge bmcq">MCQ</span>
+            {% elif q.type=='tf' %}<span class="q-badge btf">T/F</span>
+            {% elif q.type=='fitb' %}<span class="q-badge bfitb">FITB</span>
+            {% elif q.type=='theory' %}<span class="q-badge bth">Theory</span>
+            {% elif q.type=='label' %}<span class="q-badge blbl">Label</span>
+            {% endif %}
+          </td>
+          <td>{{ q.question[:55] }}{% if q.question|length>55 %}...{% endif %}</td>
+          <td>
+            {% if q.get('strand') %}<span class="strand-pill">{{ q.strand }}</span>{% endif %}
+            {% if q.get('sub_strand') %}<span class="sub-strand-pill">{{ q.sub_strand }}</span>{% endif %}
+            {% if not q.get('strand') %}<span style="color:#ddd;font-size:11px">—</span>{% endif %}
+          </td>
+          <td style="color:#27ae60;font-size:12px;font-weight:600">
+            {% if q.type=='theory' %}(model)
+            {% elif q.type=='label' %}{{ q.labels|length }} pts
+            {% else %}{{ q.answer[:25] }}{% endif %}
+          </td>
+          <td>{{ q.marks }}</td>
+          <td style="font-size:11px;color:#888">
+            {% if q.get('assigned_classes') %}{{ q.assigned_classes|join(', ') }}
+            {% else %}<span style="color:#27ae60;font-weight:600">All</span>{% endif %}
+          </td>
+          <td style="white-space:nowrap">
+            <a href="/edit_question/{{ selected_subject|urlencode }}/{{ q.id }}"
+               class="btn-sm bb" style="font-size:11px;padding:3px 7px;margin-right:3px;text-decoration:none">✏️</a>
+            <a href="/delete_question/{{ selected_subject|urlencode }}/{{ q.id }}"
+               class="del" onclick="return confirm('Delete?')">🗑</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No questions yet. Add manually or upload a PDF.</div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+var allStrands = {{ curriculum_strands | tojson }};
+var selSub = "{{ selected_subject }}";
+
+function sw(t,btn){
+  document.getElementById("qt").value=t;
+  document.querySelectorAll(".tbtn").forEach(b=>b.classList.remove("on"));
+  btn.classList.add("on");
+  ["MCQ","TF","FITB","TH","LBL"].forEach(x=>{
+    document.getElementById("f"+x).style.display="none";
+  });
+  var m={"mcq":"MCQ","tf":"TF","fitb":"FITB","theory":"TH","label":"LBL"};
+  document.getElementById("f"+m[t]).style.display="block";
+}
+
+function loadAddSubStrands(){
+  var strand=document.getElementById("addStrand").value;
+  var sub=document.getElementById("addSubStrand");
+  sub.innerHTML='<option value="">-- Select Sub-Strand --</option>';
+  if(strand && allStrands[selSub] && allStrands[selSub][strand]){
+    allStrands[selSub][strand].forEach(function(ss){
+      var o=document.createElement("option");
+      o.value=ss; o.textContent=ss; sub.appendChild(o);
+    });
+  }
+}
+
+function loadBulkSub(sel){
+  var strand=sel.value;
+  var sub=document.getElementById("bulkSubSel");
+  sub.innerHTML='<option value="">Set Sub-Strand...</option>';
+  if(strand && allStrands[selSub] && allStrands[selSub][strand]){
+    allStrands[selSub][strand].forEach(function(ss){
+      var o=document.createElement("option");
+      o.value=ss; o.textContent=ss; sub.appendChild(o);
+    });
+  }
+}
+
+function filt(){
+  var fc=document.getElementById("fC").value.toLowerCase();
+  var fa=document.getElementById("fA").value.toLowerCase();
+  var fg=document.getElementById("fG").value.toLowerCase();
+  var fn=document.getElementById("fN").value.toLowerCase();
+  document.querySelectorAll("#rT tbody tr").forEach(function(r){
+    var show=(!fc||r.dataset.c.toLowerCase()==fc)&&
+             (!fa||r.dataset.a.toLowerCase().includes(fa))&&
+             (!fg||r.dataset.g.toLowerCase()==fg)&&
+             (!fn||r.dataset.n.includes(fn));
+    r.style.display=show?"":"none";
+  });
+}
+
+function getSelectedIds(){
+  return [...document.querySelectorAll(".q-cbx:checked")].map(c=>c.dataset.id);
+}
+
+function updateBulk(){
+  var ids=getSelectedIds();
+  var bar=document.getElementById("bulkBar");
+  document.getElementById("bulkCount").textContent=ids.length+" selected";
+  bar.classList.toggle("show",ids.length>0);
+}
+
+function toggleAll(cb){
+  document.querySelectorAll(".q-cbx").forEach(c=>{c.checked=cb.checked;});
+  updateBulk();
+}
+
+function injectIds(formId, containerIds){
+  var container=document.getElementById(containerIds);
+  container.innerHTML="";
+  getSelectedIds().forEach(function(id){
+    var inp=document.createElement("input");
+    inp.type="hidden"; inp.name="selected_ids"; inp.value=id;
+    container.appendChild(inp);
+  });
+}
+
+function bulkDelete(){
+  var ids=getSelectedIds();
+  if(ids.length==0){alert("Select at least one question.");return;}
+  if(!confirm("Delete "+ids.length+" question(s)?"))return;
+  injectIds("bulkDelForm","bulkDelIds");
+  document.getElementById("bulkDelForm").submit();
+}
+
+function bulkEdit(){
+  var ids=getSelectedIds();
+  if(ids.length==0){alert("Select at least one question.");return;}
+  injectIds("bulkEditForm","bulkEditIds");
+  document.getElementById("bulkEditForm").submit();
+}
+</script>
+</body>
+</html>

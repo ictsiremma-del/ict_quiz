@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Result — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;padding:20px 14px}
+.container{max-width:700px;margin:0 auto}
+.header{background:linear-gradient(135deg,#1a3a5c,{{ subject_color }});color:white;border-radius:14px;padding:22px;text-align:center;margin-bottom:16px}
+.header h1{font-size:19px}.header p{font-size:13px;opacity:.85;margin-top:3px}
+.score-card{background:white;border-radius:14px;padding:26px;text-align:center;margin-bottom:14px;box-shadow:0 3px 12px rgba(0,0,0,.07)}
+.grade-circle{width:100px;height:100px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;color:white;margin-bottom:12px;background:{{ grade_color }}}
+.score-big{font-size:28px;font-weight:700;color:#2c3e50}
+.score-pct{font-size:15px;color:#888;margin:3px 0 9px}
+.remark{display:inline-block;font-size:13px;font-weight:700;color:{{ grade_color }};background:#f8f9fa;padding:5px 16px;border-radius:14px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px}
+.info-box{background:white;border-radius:10px;padding:13px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+.info-box .v{font-size:15px;font-weight:700;color:#1a3a5c}.info-box .l{font-size:10px;color:#999;margin-top:3px}
+.details{background:white;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 2px 5px rgba(0,0,0,.05)}
+.details h3{font-size:14px;font-weight:700;color:#1a3a5c;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0f4f8}
+.q-row{padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
+.q-row:last-child{border-bottom:none}
+.q-txt{color:#333;font-weight:500;margin-bottom:5px;line-height:1.4}
+.ans-row{display:flex;flex-wrap:wrap;gap:12px;font-size:12px}
+.ok{color:#27ae60;font-weight:700}.ng{color:#e74c3c;font-weight:700}
+.mp{background:#f0f0f0;color:#666;font-size:10px;padding:1px 6px;border-radius:5px;float:right}
+.q-img{max-width:100%;max-height:160px;border-radius:6px;border:1px solid #e0e0e0;margin:6px 0;object-fit:contain}
+.theory-note{background:#f5e8f8;border-radius:6px;padding:7px 10px;font-size:11px;color:#8e44ad;margin-top:5px}
+.kw{background:#e8f4f8;color:#2e86ab;padding:2px 6px;border-radius:4px;font-size:11px;margin:2px}
+.label-sub{margin-top:6px;padding:6px 10px;background:#f8f9fa;border-radius:6px;font-size:12px}
+.btn-home{display:block;text-align:center;padding:13px;background:#1a3a5c;color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px}
+.btn-home:hover{background:#2e86ab}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>{{ subject_icon }} {{ school }}</h1>
+    <p>{{ result.subject }} Class Test — Result</p>
+  </div>
+  <div class="score-card">
+    <div class="grade-circle">{{ result.grade }}</div>
+    <div class="score-big">{{ result.score }} / {{ result.total }}</div>
+    <div class="score-pct">{{ result.percentage }}%</div>
+    <div class="remark">{{ result.remark }}</div>
+  </div>
+  <div class="info-grid">
+    <div class="info-box"><div class="v">{{ result.name }}</div><div class="l">Name</div></div>
+    <div class="info-box"><div class="v">{{ result.class }}</div><div class="l">Class</div></div>
+    <div class="info-box"><div class="v">{{ result.subject }}</div><div class="l">Subject</div></div>
+    <div class="info-box"><div class="v">{{ result.date }}</div><div class="l">Date</div></div>
+  </div>
+  <div class="details">
+    <h3>📋 Question Breakdown</h3>
+    {% for d in result.details %}
+    <div class="q-row">
+      <div class="q-txt">
+        {% if d.correct_flag %}<span class="ok">✅</span>{% else %}<span class="ng">❌</span>{% endif %}
+        {{ loop.index }}. {{ d.question }}
+        <span class="mp">{{ d.marks_earned }}/{{ d.marks_total }}</span>
+      </div>
+      {% if d.get('image') %}
+      <img src="/static/{{ d.image }}" class="q-img">
+      {% endif %}
+
+      {% if d.type=='theory' %}
+      <div class="theory-note">
+        <strong>Your answer:</strong> {{ d.given[:200] }}<br>
+        <strong>Keywords matched:</strong>
+        {% for kw in d.get('matched_keywords',[]) %}
+        <span class="kw">{{ kw }}</span>
+        {% endfor %}
+        {% if not d.get('matched_keywords') %}None matched{% endif %}
+      </div>
+
+      {% elif d.type=='label' %}
+      <div class="label-sub">
+        {% for ld in d.get('label_details',[]) %}
+        <div>
+          {% if ld.correct_flag %}✅{% else %}❌{% endif %}
+          Point {{ ld.label_id }}: You wrote <strong class="{{ 'ok' if ld.correct_flag else 'ng' }}">{{ ld.given }}</strong>
+          {% if not ld.correct_flag %} — Correct: <strong class="ok">{{ ld.correct }}</strong>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="ans-row">
+        <span>Your answer: <strong class="{{ 'ok' if d.correct_flag else 'ng' }}">{{ d.given }}</strong></span>
+        {% if not d.correct_flag and d.type != 'theory' %}
+        <span>Correct: <strong class="ok">{{ d.correct }}</strong></span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <div style="display:flex;gap:10px;margin-top:4px">
+  <a href="/" style="flex:1;display:block;text-align:center;padding:13px;background:#1a3a5c;color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">🏠 Back to Homepage</a>
+  <a href="/" style="flex:1;display:block;text-align:center;padding:13px;background:{{ subject_color }};color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px">📝 Take Another Test</a>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Backups — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar p{font-size:11px;opacity:.8;margin-top:2px}
+.back{padding:7px 14px;border-radius:8px;background:rgba(255,255,255,.2);color:white;text-decoration:none;font-size:12px;font-weight:600}
+.container{max-width:900px;margin:24px auto;padding:0 14px}
+.section{background:white;border-radius:14px;padding:24px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.section h2{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f4f8}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:10px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:10px 12px;border-bottom:1px solid #f5f5f5}
+tr:hover td{background:#fafafa}
+.btn-green{background:#27ae60;color:white;padding:5px 12px;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;display:inline-block;margin-right:4px}
+.btn-blue{background:#2980b9;color:white;padding:5px 12px;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;display:inline-block}
+.btn-orange{background:#f39c12;color:white;padding:5px 12px;border-radius:7px;text-decoration:none;font-size:12px;font-weight:600;display:inline-block}
+.empty{text-align:center;color:#bbb;padding:32px;font-size:13px}
+.upload-box{background:#f8f9fa;border:2px dashed #e0e0e0;border-radius:10px;padding:20px;text-align:center}
+.upload-box p{font-size:13px;color:#666;margin-bottom:12px}
+.upload-form{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;align-items:center}
+.upload-form input[type=file]{font-size:13px}
+.btn-submit{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;padding:9px 22px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer}
+.info-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.info-box{background:white;border-radius:12px;padding:16px;text-align:center;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.info-box .v{font-size:24px;font-weight:700;color:#1a3a5c}
+.info-box .l{font-size:11px;color:#888;margin-top:3px}
+.tip{background:#e8f4f8;border-radius:8px;padding:12px 16px;font-size:12px;color:#2e86ab;margin-bottom:16px;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>💾 {{ school }} — Data Backup & Restore</h1>
+    <p>Protect your student results</p>
+  </div>
+  <a href="/dashboard" class="back">← Dashboard</a>
+</div>
+
+<div class="container">
+
+  <div class="info-strip">
+    <div class="info-box">
+      <div class="v">{{ backups|length }}</div>
+      <div class="l">Backup Files</div>
+    </div>
+    <div class="info-box">
+      <div class="v">Auto</div>
+      <div class="l">Daily Backup</div>
+    </div>
+    <div class="info-box">
+      <div class="v">Safe</div>
+      <div class="l">Thread Protected</div>
+    </div>
+  </div>
+
+  <div class="tip">
+    💡 <strong>How backups work:</strong> A backup is created automatically every day whenever a student submits a test.
+    Backups are stored in the <strong>backups/</strong> folder inside your ict_quiz folder.
+    Download a backup ZIP before any major exam day to keep a copy on a USB drive.
+  </div>
+
+  <!-- Download full backup -->
+  <div class="section">
+    <h2>📦 Download Full Backup (ZIP)</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:14px">Downloads all results + all question banks in one ZIP file. Save this to a USB drive before exam days.</p>
+    <a href="/backup_results" class="btn-green" style="padding:10px 22px;font-size:14px">⬇️ Download Backup ZIP Now</a>
+  </div>
+
+  <!-- Restore from file -->
+  <div class="section">
+    <h2>⬆️ Restore From File</h2>
+    <div class="upload-box">
+      <p>Upload a previously downloaded backup file (.json or .zip) to restore your data.</p>
+      <form method="POST" action="/restore_results" enctype="multipart/form-data">
+        <div class="upload-form">
+          <input type="file" name="restore_file" accept=".json,.zip" required>
+          <button type="submit" class="btn-submit">⬆️ Restore Now</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Backup history -->
+  <div class="section">
+    <h2>📋 Automatic Backup History</h2>
+    {% if backups %}
+    <table>
+      <thead>
+        <tr>
+          <th>Backup File</th>
+          <th>Date Created</th>
+          <th>Size</th>
+          <th>Results Saved</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in backups %}
+        <tr>
+          <td>📄 {{ b.filename }}</td>
+          <td>{{ b.date }}</td>
+          <td>{{ b.size }} KB</td>
+          <td><strong>{{ b.count }}</strong> results</td>
+          <td>
+            <a href="/download_backup/{{ b.filename }}" class="btn-blue">⬇️ Download</a>
+            <a href="/restore_backup/{{ b.filename }}"
+               class="btn-orange"
+               onclick="return confirm('Restore results from this backup? Current results will be replaced.')">
+              🔄 Restore
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      No automatic backups yet.<br>
+      Backups are created automatically when students submit tests.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+</body>
+</html>

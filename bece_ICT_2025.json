@@ -1,0 +1,706 @@
+[
+  {
+    "id": 1,
+    "type": "mcq",
+    "question": "Which of the following computer keyboard keys is  used to type upper case letters when the",
+    "options": [
+      "Control key",
+      "Enter key",
+      "Insert key",
+      "Shift key"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 2,
+    "type": "mcq",
+    "question": "Which of the following devices are used to feed a computer system with data?",
+    "options": [
+      "Keyboard and monitor",
+      "Keyboard and mouse",
+      "Mouse and monitor",
+      "Mouse and printer"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 3,
+    "type": "mcq",
+    "question": "The component of the computer that houses the mo therboard and the power supply unit is",
+    "options": [
+      "central processing unit",
+      "monitor",
+      "printer",
+      "system unit"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 4,
+    "type": "mcq",
+    "question": "Which component of the computer resembles the ty pewriter?",
+    "options": [
+      "Keyboard",
+      "Monitor",
+      "Mouse",
+      "Webcam"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 5,
+    "type": "mcq",
+    "question": "Which of the following media stores data tempora rily?",
+    "options": [
+      "Floppy disk",
+      "Hard disk",
+      "Random Access Memory",
+      "Read Only Memory"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 6,
+    "type": "mcq",
+    "question": "The part of the central processing unit responsi ble for performing all logical operations is",
+    "options": [
+      "ALU",
+      "CU",
+      "RAM",
+      "ROM"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 7,
+    "type": "mcq",
+    "question": "Which of the following gives the user a log of all opened programs?",
+    "options": [
+      "Start button",
+      "Start menu",
+      "Taskbar",
+      "Title bar"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 8,
+    "type": "mcq",
+    "question": "Dragging a folder from one drive to a window on  the same drive is equivalent to a",
+    "options": [
+      "copy operation",
+      "cut operation",
+      "delete operation",
+      "move operation"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 9,
+    "type": "mcq",
+    "question": "The stages of information processing cycle unde r ICT are",
+    "options": [
+      "input, output, process and distribution",
+      "input, process, output and distribution",
+      "input, process, distribution and output",
+      "input, distribution, output and process."
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 10,
+    "type": "mcq",
+    "question": "Which of the following is a reason for copyrigh ting ICT tools or technologies?",
+    "options": [
+      "To avoid distribution of viruses",
+      "To encourage people to make illegal copies",
+      "To protect the intellectual works of the invento rs",
+      "To ensure poorer people do not have access to IC T tools"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 11,
+    "type": "mcq",
+    "question": "To search for information on various topics, wh ich of the following packages is used?",
+    "options": [
+      "Database",
+      "Encarta",
+      "Presentation",
+      "Spreadsheet"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 12,
+    "type": "mcq",
+    "question": "To underline selected text(s) under a word proc essing environment, use the shortcut keys",
+    "options": [
+      "Ctrl+U",
+      "Shift+U",
+      "Alt+U",
+      "Insert+U"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 13,
+    "type": "mcq",
+    "question": "Adding 3-D effect to an object is done through the",
+    "options": [
+      "Auto Formatting dialogue box",
+      "Drawing Toolbar",
+      "Formatting Toolbar",
+      "Graphic Styles menu"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 14,
+    "type": "mcq",
+    "question": "The process of automatically moving an entire w ord to start the next line in a word",
+    "options": [
+      "text wrap",
+      "text movement",
+      "word wrap",
+      "word movement"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 15,
+    "type": "mcq",
+    "question": "In the symbol H2O, the 2 appears as a",
+    "options": [
+      "number",
+      "positive integer",
+      "subscript",
+      "superscript"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 16,
+    "type": "mcq",
+    "question": "Which of the following document views will enab le a user to view a document as it will",
+    "options": [
+      "Normal view",
+      "Outline view",
+      "Print layout view",
+      "Web layout view"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 17,
+    "type": "mcq",
+    "question": "The print preview button is located on which of  the following toolbars?",
+    "options": [
+      "Drawing toolbar",
+      "Formatting toolbar",
+      "Header/Footer toolbar",
+      "Standard toolbar"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 18,
+    "type": "mcq",
+    "question": "Transferring data from a local computer to a re mote computer is referred to as",
+    "options": [
+      "downlinking",
+      "downloading",
+      "uplinking",
+      "uploading"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 19,
+    "type": "mcq",
+    "question": "Information printed on paper is referred to as",
+    "options": [
+      "carbon copy",
+      "hard copy",
+      "print copy",
+      "soft copy"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 20,
+    "type": "mcq",
+    "question": "Computer virus is capable of",
+    "options": [
+      "enhancing the contents of a file",
+      "maintaining the computer system",
+      "making the work of the computer easy",
+      "slowing down the computer system performance"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 21,
+    "type": "mcq",
+    "question": "A computer program that enables users to surf t he internet is called",
+    "options": [
+      "internet surfer",
+      "web browser",
+      "web navigation",
+      "web surfer"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 22,
+    "type": "mcq",
+    "question": "The sign which represents an insertion of a for mula in a spreadsheet program is",
+    "options": [
+      "= or +",
+      "= or \u2013",
+      "= or *",
+      "= or /"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 23,
+    "type": "mcq",
+    "question": "Which of the following computer keyboard keys is  used to type upper case letters when the",
+    "options": [
+      "Control key",
+      "Enter key",
+      "Insert key",
+      "Shift key"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 24,
+    "type": "mcq",
+    "question": "Which of the following devices are used to feed a computer system with data?",
+    "options": [
+      "Keyboard and monitor",
+      "Keyboard and mouse",
+      "Mouse and monitor",
+      "Mouse and printer"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 25,
+    "type": "mcq",
+    "question": "The component of the computer that houses the mo therboard and the power supply unit is",
+    "options": [
+      "central processing unit",
+      "monitor",
+      "printer",
+      "system unit"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 26,
+    "type": "mcq",
+    "question": "Which component of the computer resembles the ty pewriter?",
+    "options": [
+      "Keyboard",
+      "Monitor",
+      "Mouse",
+      "Webcam"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 27,
+    "type": "mcq",
+    "question": "Which of the following media stores data tempora rily?",
+    "options": [
+      "Floppy disk",
+      "Hard disk",
+      "Random Access Memory",
+      "Read Only Memory"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 28,
+    "type": "mcq",
+    "question": "The part of the central processing unit responsi ble for performing all logical operations is",
+    "options": [
+      "ALU",
+      "CU",
+      "RAM",
+      "ROM"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 29,
+    "type": "mcq",
+    "question": "Which of the following gives the user a log of all opened programs?",
+    "options": [
+      "Start button",
+      "Start menu",
+      "Taskbar",
+      "Title bar"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 30,
+    "type": "mcq",
+    "question": "Dragging a folder from one drive to a window on  the same drive is equivalent to a",
+    "options": [
+      "copy operation",
+      "cut operation",
+      "delete operation",
+      "move operation"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 31,
+    "type": "mcq",
+    "question": "The stages of information processing cycle unde r ICT are",
+    "options": [
+      "input, output, process and distribution",
+      "input, process, output and distribution",
+      "input, process, distribution and output",
+      "input, distribution, output and process."
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 32,
+    "type": "mcq",
+    "question": "Which of the following is a reason for copyrigh ting ICT tools or technologies?",
+    "options": [
+      "To avoid distribution of viruses",
+      "To encourage people to make illegal copies",
+      "To protect the intellectual works of the invento rs",
+      "To ensure poorer people do not have access to IC T tools"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 33,
+    "type": "mcq",
+    "question": "To search for information on various topics, wh ich of the following packages is used?",
+    "options": [
+      "Database",
+      "Encarta",
+      "Presentation",
+      "Spreadsheet"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 34,
+    "type": "mcq",
+    "question": "To underline selected text(s) under a word proc essing environment, use the shortcut keys",
+    "options": [
+      "Ctrl+U",
+      "Shift+U",
+      "Alt+U",
+      "Insert+U"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 35,
+    "type": "mcq",
+    "question": "Adding 3-D effect to an object is done through the",
+    "options": [
+      "Auto Formatting dialogue box",
+      "Drawing Toolbar",
+      "Formatting Toolbar",
+      "Graphic Styles menu"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 36,
+    "type": "mcq",
+    "question": "The process of automatically moving an entire w ord to start the next line in a word",
+    "options": [
+      "text wrap",
+      "text movement",
+      "word wrap",
+      "word movement"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 37,
+    "type": "mcq",
+    "question": "In the symbol H2O, the 2 appears as a",
+    "options": [
+      "number",
+      "positive integer",
+      "subscript",
+      "superscript"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 38,
+    "type": "mcq",
+    "question": "Which of the following document views will enab le a user to view a document as it will",
+    "options": [
+      "Normal view",
+      "Outline view",
+      "Print layout view",
+      "Web layout view"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 39,
+    "type": "mcq",
+    "question": "The print preview button is located on which of  the following toolbars?",
+    "options": [
+      "Drawing toolbar",
+      "Formatting toolbar",
+      "Header/Footer toolbar",
+      "Standard toolbar"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 40,
+    "type": "mcq",
+    "question": "Transferring data from a local computer to a re mote computer is referred to as",
+    "options": [
+      "downlinking",
+      "downloading",
+      "uplinking",
+      "uploading"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 41,
+    "type": "mcq",
+    "question": "Information printed on paper is referred to as",
+    "options": [
+      "carbon copy",
+      "hard copy",
+      "print copy",
+      "soft copy"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 42,
+    "type": "mcq",
+    "question": "Computer virus is capable of",
+    "options": [
+      "enhancing the contents of a file",
+      "maintaining the computer system",
+      "making the work of the computer easy",
+      "slowing down the computer system performance"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 43,
+    "type": "mcq",
+    "question": "A computer program that enables users to surf t he internet is called",
+    "options": [
+      "internet surfer",
+      "web browser",
+      "web navigation",
+      "web surfer"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  },
+  {
+    "id": 44,
+    "type": "mcq",
+    "question": "The sign which represents an insertion of a for mula in a spreadsheet program is",
+    "options": [
+      "= or +",
+      "= or \u2013",
+      "= or *",
+      "= or /"
+    ],
+    "answer": "",
+    "marks": 2,
+    "image": "",
+    "assigned_classes": [],
+    "explanation": ""
+  }
+]

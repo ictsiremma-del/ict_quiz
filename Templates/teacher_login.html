@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Teacher Login — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:36px;width:100%;max-width:440px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.icon{text-align:center;font-size:48px;margin-bottom:12px}
+h1{text-align:center;color:#1a3a5c;font-size:20px;margin-bottom:4px}
+h2{text-align:center;color:#666;font-size:13px;font-weight:400;margin-bottom:24px}
+.fg{margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+input,select{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s}
+input:focus,select:focus{border-color:#2e86ab}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.error{background:#fadbd8;color:#e74c3c;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;border-left:3px solid #e74c3c}
+.back{text-align:center;margin-top:16px}
+.back a{color:#2e86ab;font-size:13px;text-decoration:none;font-weight:600}
+.teacher-list{background:#f8f9fa;border-radius:10px;padding:12px 16px;margin-bottom:16px}
+.teacher-list p{font-size:11px;color:#888;margin-bottom:8px;font-weight:700;text-transform:uppercase}
+.tl-item{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid #f0f0f0;color:#555}
+.tl-item:last-child{border-bottom:none}
+.tl-name{font-weight:600;color:#1a3a5c}
+.tl-sub{color:#888}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔐</div>
+  <h1>Teacher Login</h1>
+  <h2>{{ school }}</h2>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+
+  <div class="teacher-list">
+    <p>Select your name and enter your password</p>
+    {% for uid, t in teachers.items() %}
+    <div class="tl-item">
+      <span class="tl-name">{{ t.name }}</span>
+      <span class="tl-sub">{{ t.subjects|join(', ') }}</span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <form method="POST">
+    <div class="fg">
+      <label>Your Name</label>
+      <select name="username" required>
+        <option value="" disabled selected>-- Select your name --</option>
+        {% for uid, t in teachers.items() %}
+        <option value="{{ uid }}">{{ t.name }}{% if t.is_head %} (Head Teacher){% endif %}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter your password" required autofocus>
+    </div>
+    <button type="submit" class="btn">LOGIN →</button>
+  </form>
+  <div class="back"><a href="/">← Back to Student Portal</a></div>
+</div>
+</body>
+</html>
