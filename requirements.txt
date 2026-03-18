@@ -6,3 +6,4 @@ PyPDF2
 waitress
 requests
 psycopg2-binary
+cloudinary
