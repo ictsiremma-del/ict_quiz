@@ -11,12 +11,6 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "")
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
-# DEBUG — print what we see at startup
-print("==== DB DEBUG ====")
-print("DATABASE_URL present:", bool(DATABASE_URL))
-print("DATABASE_URL prefix:", DATABASE_URL[:40] if DATABASE_URL else "EMPTY")
-print("==================")
-
 def get_db():
     """Get database connection - PostgreSQL on Railway, SQLite locally"""
     if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
@@ -25,14 +19,7 @@ def get_db():
             conn = psycopg2.connect(DATABASE_URL)
             return conn, "postgres"
         except Exception as e:
-            print("==== POSTGRES CONNECTION FAILED ====")
-            print("Error type:", type(e).__name__)
-            print("Error detail:", str(e))
-            print("====================================")
-    else:
-        print("==== SKIPPING POSTGRES ====")
-        print("DATABASE_URL empty or wrong prefix:", repr(DATABASE_URL[:50] if DATABASE_URL else ""))
-        print("===========================")
+            print("PostgreSQL connection error:", e)
     # Fall back to SQLite
     import sqlite3
     conn = sqlite3.connect("quiz_data.db")
