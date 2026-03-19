@@ -22,6 +22,36 @@ try:
 except ImportError:
     REQUESTS_OK = False
 
+# ── CLOUDINARY SETUP ───────────────────────────────────────────────
+try:
+    import cloudinary
+    import cloudinary.uploader
+    CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME","")
+    CLOUDINARY_API_KEY    = os.environ.get("CLOUDINARY_API_KEY","")
+    CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET","")
+    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+        cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME,api_key=CLOUDINARY_API_KEY,api_secret=CLOUDINARY_API_SECRET)
+        CLOUDINARY_OK = True
+        print("Cloudinary configured OK")
+    else:
+        CLOUDINARY_OK = False
+except ImportError:
+    CLOUDINARY_OK = False
+
+def upload_image(file_storage, filename):
+    """Upload image to Cloudinary if available, else save locally"""
+    if CLOUDINARY_OK:
+        try:
+            result = cloudinary.uploader.upload(file_storage,public_id="quiz/{}".format(filename.rsplit(".",1)[0]),overwrite=True)
+            return result["secure_url"]
+        except Exception as e:
+            print("Cloudinary upload error:", e)
+    # Fallback: save locally
+    fn = secure_filename(filename)
+    file_storage.seek(0)
+    file_storage.save(os.path.join(UPLOAD_FOLDER, fn))
+    return "uploads/{}".format(fn)
+
 app = Flask(__name__)
 app.secret_key = "gloriouspearlsquiz2024"
 
@@ -356,8 +386,7 @@ def add_question():
     if "image" in request.files:
         img=request.files["image"]
         if img and img.filename and allowed_img(img.filename):
-            fn=secure_filename("{}_{}".format(new_id,img.filename))
-            img.save(os.path.join(UPLOAD_FOLDER,fn)); img_path="uploads/{}".format(fn)
+            img_path=upload_image(img,"{}_{}".format(new_id,img.filename))
     base={"id":new_id,"type":qtype,"question":question,"marks":marks,"image":img_path,"assigned_classes":assigned,"strand":strand,"sub_strand":sub_strand}
     if qtype=="mcq": base["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; base["answer"]=request.form.get("answer","").strip()
     elif qtype=="tf": base["answer"]=request.form.get("tf_answer","True")
@@ -389,7 +418,7 @@ def edit_question(subject,qid):
         if "image" in request.files:
             img=request.files["image"]
             if img and img.filename and allowed_img(img.filename):
-                fn=secure_filename("{}_{}".format(qid,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); q["image"]="uploads/{}".format(fn)
+                q["image"]=upload_image(img,"{}_{}".format(qid,img.filename))
         save_qs(subject,qs); return redirect(url_for("dashboard",subject=subject))
     return render_template("edit_question.html",q=q,subject=subject,school=SCHOOL_NAME,
         classes=CLASSES,strands=CURRICULUM_STRANDS.get(subject,{}),subject_color=SUBJECT_COLORS.get(subject,"#2e86ab"))
@@ -435,7 +464,9 @@ def upload_pdf():
     if "pdf" not in request.files: return redirect(url_for("dashboard",subject=subject))
     pdf=request.files["pdf"]
     if not pdf or not pdf.filename or not allowed_pdf(pdf.filename): return redirect(url_for("dashboard",subject=subject))
-    fp=os.path.join(UPLOAD_FOLDER,secure_filename(pdf.filename)); pdf.save(fp)
+    import tempfile
+    with tempfile.NamedTemporaryFile(delete=False,suffix=".pdf") as tmp:
+        pdf.save(tmp.name); fp=tmp.name
     extracted=extract_pdf(fp)
     if extracted:
         qs=load_qs(subject); mid=max((q["id"] for q in qs),default=0)
@@ -804,7 +835,7 @@ def bece_add_question():
     if "image" in request.files:
         img=request.files["image"]
         if img and img.filename and allowed_img(img.filename):
-            fn=secure_filename("bece_{}_{}".format(new_id,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); img_path="uploads/{}".format(fn)
+            img_path=upload_image(img,"bece_{}_{}".format(new_id,img.filename))
     base={"id":new_id,"type":qtype,"question":question,"marks":marks,"image":img_path,"explanation":expl}
     if qtype=="mcq": base["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; base["answer"]=request.form.get("answer","").strip()
     elif qtype=="tf": base["answer"]=request.form.get("tf_answer","True")
@@ -820,7 +851,9 @@ def bece_upload_pdf():
     if "pdf" not in request.files: return redirect(url_for("bece_manage",subject=subject,year=year))
     pdf=request.files["pdf"]
     if not pdf or not allowed_pdf(pdf.filename): return redirect(url_for("bece_manage",subject=subject,year=year))
-    fp=os.path.join(UPLOAD_FOLDER,secure_filename(pdf.filename)); pdf.save(fp)
+    import tempfile
+    with tempfile.NamedTemporaryFile(delete=False,suffix=".pdf") as tmp:
+        pdf.save(tmp.name); fp=tmp.name
     extracted=extract_pdf(fp)
     if extracted:
         qs=load_bece(subject,year); mid=max((q["id"] for q in qs),default=0)
@@ -845,7 +878,7 @@ def bece_edit_question(subject,year,qid):
         if "image" in request.files:
             img=request.files["image"]
             if img and img.filename and allowed_img(img.filename):
-                fn=secure_filename("bece_{}_{}".format(qid,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); q["image"]="uploads/{}".format(fn)
+                q["image"]=upload_image(img,"bece_{}_{}".format(qid,img.filename))
         save_bece(subject,year,qs); return redirect(url_for("bece_manage",subject=subject,year=year))
     return render_template("bece_edit_question.html",q=q,subject=subject,year=year,school=SCHOOL_NAME,subject_color=SUBJECT_COLORS.get(subject,"#c0392b"))
 
