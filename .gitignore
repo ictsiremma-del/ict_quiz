@@ -1,0 +1,32 @@
+# Local database
+quiz_data.db
+*.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Local data files
+results.json
+homework_saves.json
+questions_*.json
+bece_*.json
+
+# Backup files
+backups/
+*.zip
+
+# Uploads (stored on Cloudinary)
+static/uploads/
+
+# Environment variables
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+*.tmp
+*.log
