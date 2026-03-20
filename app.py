@@ -496,9 +496,11 @@ Subject: {subject} | Class: {cls} | Topic: {topic}
 Strand: {strand} | Difficulty: {diff}
 Question types: {types}
 
+IMPORTANT FOR MCQ: The "answer" field MUST be exactly "A", "B", "C", or "D" (the letter only, matching the correct option position).
+
 Return ONLY valid JSON, no other text:
 {{"questions":[
-  {{"type":"mcq","question":"text","options":["A","B","C","D"],"answer":"A","marks":2}},
+  {{"type":"mcq","question":"text","options":["option1","option2","option3","option4"],"answer":"A","marks":2}},
   {{"type":"tf","question":"text","answer":"True","marks":1}},
   {{"type":"fitb","question":"The _______ is...","answer":"word","marks":2}},
   {{"type":"theory","question":"Explain... [3 marks]","model_answer":"key points","marks":3}}
@@ -534,7 +536,18 @@ Return ONLY valid JSON, no other text:
             if qtype=="mcq":
                 opts=q.get("options",[])
                 if len(opts)<2: continue
-                clean["options"]=opts[:4]; clean["answer"]=q.get("answer","").strip()
+                clean["options"]=opts[:4]
+                raw_ans=q.get("answer","").strip()
+                # Normalize answer to A/B/C/D
+                if raw_ans.upper() in ["A","B","C","D"]:
+                    clean["answer"]=raw_ans.upper()
+                else:
+                    # Try to match answer text to option index
+                    matched_letter="A"
+                    for i,opt in enumerate(opts[:4]):
+                        if opt.strip().lower()==raw_ans.lower():
+                            matched_letter=["A","B","C","D"][i]; break
+                    clean["answer"]=matched_letter
             elif qtype=="tf":
                 ans=str(q.get("answer","True")).strip().capitalize()
                 clean["answer"]=ans if ans in ["True","False"] else "True"
@@ -877,12 +890,15 @@ def class_manager():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     t = current_teacher()
     managed = t.get("managed_class")
-    if not managed:
+    # Subject teachers can view assignments for classes they teach
+    # by passing ?class= parameter. Class managers see their own class by default.
+    view_class = request.args.get("class", managed)
+    if not view_class:
         return render_template("error.html", school=SCHOOL_NAME, error_code=403,
             error_message="No Class Assigned",
             error_detail="You are not assigned as a class manager for any class."), 403
     # Load all assignments for this class
-    assignments = db_load_assignments(managed)
+    assignments = db_load_assignments(view_class)
     # Load all results to check submissions
     all_results = load_results()
     # Build stats for each assignment
@@ -890,12 +906,11 @@ def class_manager():
     assignment_stats = []
     for a in assignments:
         submitted = [r for r in all_results if
-            r.get("class","") == managed and
+            r.get("class","") == view_class and
             r.get("subject","") == a["subject"] and
             r.get("assessment_type","") == a["assessment_type"] and
             r.get("assessment_label","") == a["title"]]
         done_names = set(r["name"].strip().lower() for r in submitted)
-        # Calculate due date countdown
         due = None; countdown = None; overdue = False
         if a.get("due_date"):
             try:
@@ -916,9 +931,21 @@ def class_manager():
             "submitted_results": submitted,
         })
     assignment_stats.sort(key=lambda x: (x["overdue"], x.get("due_date","")))
+    # Build list of classes this teacher can view
+    viewable_classes = []
+    if t.get("is_head"):
+        viewable_classes = CLASSES
+    else:
+        if managed: viewable_classes.append(managed)
+        # Add classes where teacher teaches subjects
+        for cls in CLASSES:
+            if cls not in viewable_classes:
+                viewable_classes.append(cls)
     return render_template("class_manager.html", school=SCHOOL_NAME,
-        teacher=t, managed_class=managed, assignments=assignment_stats,
-        subjects=SUBJECTS, assessment_types=ASSESSMENT_TYPES,
+        teacher=t, managed_class=managed, view_class=view_class,
+        viewable_classes=viewable_classes,
+        assignments=assignment_stats, subjects=SUBJECTS,
+        assessment_types=ASSESSMENT_TYPES,
         subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
         assign_msg=session.pop("assign_msg", None))
 
@@ -927,22 +954,23 @@ def assign_work():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     t = current_teacher()
     managed = t.get("managed_class")
-    if not managed: return redirect(url_for("dashboard"))
+    view_class = request.form.get("view_class", managed)
+    if not view_class: return redirect(url_for("dashboard"))
     title      = request.form.get("title","").strip()
     subject    = request.form.get("subject","").strip()
     atype      = request.form.get("assessment_type","class_test")
     due_date   = request.form.get("due_date","").strip()
     if not title or not subject:
         session["assign_msg"] = "err:Please fill in all fields."
-        return redirect(url_for("class_manager"))
+        return redirect(url_for("class_manager", **{"class": view_class}))
     db_save_assignment({
-        "class": managed, "title": title, "subject": subject,
+        "class": view_class, "title": title, "subject": subject,
         "assessment_type": atype, "due_date": due_date,
         "assigned_date": datetime.datetime.now().strftime("%Y-%m-%d"),
         "assigned_by": t.get("name","")
     })
     session["assign_msg"] = "ok:Work assigned successfully!"
-    return redirect(url_for("class_manager"))
+    return redirect(url_for("class_manager", **{"class": view_class}))
 
 @app.route("/delete_assignment/<int:aid>")
 def delete_assignment(aid):
@@ -1078,6 +1106,33 @@ def school_home(school_code):
         classes=CLASSES, subjects=SUBJECTS,
         subject_colors=SUBJECT_COLORS, subject_icons=SUBJECT_ICONS,
         assessment_types=ASSESSMENT_TYPES)
+
+@app.route("/bulk_copy_to_bank", methods=["POST"])
+def bulk_copy_to_bank():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    subject = request.form.get("subject","")
+    if not can_access(subject): return redirect(url_for("dashboard"))
+    ids = [int(x) for x in request.form.getlist("selected_ids")]
+    qs = load_qs(subject); count = 0
+    for q in qs:
+        if q["id"] in ids:
+            db_add_to_bank(subject, q); count += 1
+    session["pdf_msg"] = "ok:Copied {} questions to bank (still active).".format(count)
+    return redirect(url_for("dashboard", subject=subject))
+
+@app.route("/bulk_move_to_bank", methods=["POST"])
+def bulk_move_to_bank():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    subject = request.form.get("subject","")
+    if not can_access(subject): return redirect(url_for("dashboard"))
+    ids = [int(x) for x in request.form.getlist("selected_ids")]
+    qs = load_qs(subject); count = 0
+    for q in qs:
+        if q["id"] in ids:
+            db_add_to_bank(subject, q); count += 1
+    save_qs(subject, [q for q in qs if q["id"] not in ids])
+    session["pdf_msg"] = "ok:Moved {} questions to bank.".format(count)
+    return redirect(url_for("dashboard", subject=subject))
 
 if __name__=="__main__":
     try:

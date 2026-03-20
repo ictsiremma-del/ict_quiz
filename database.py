@@ -456,10 +456,12 @@ def _file_save_bece(subject, year, qs):
 def db_load_assignments(class_name):
     try:
         conn, db_type = get_db()
-        cur = conn.cursor()
         if db_type == "postgres":
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur.execute("SELECT * FROM assignments WHERE class=%s ORDER BY due_date ASC", (class_name,))
         else:
+            cur = conn.cursor()
             cur.execute("SELECT * FROM assignments WHERE class=? ORDER BY due_date ASC", (class_name,))
         rows = cur.fetchall(); cur.close(); conn.close()
         return [dict(r) for r in rows]
@@ -589,7 +591,11 @@ def db_register_school(data):
 def db_get_all_schools():
     try:
         conn, db_type = get_db()
-        cur = conn.cursor()
+        if db_type == "postgres":
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        else:
+            cur = conn.cursor()
         cur.execute("SELECT * FROM schools ORDER BY created_at DESC")
         rows = cur.fetchall(); cur.close(); conn.close()
         return [dict(r) for r in rows]
@@ -600,10 +606,12 @@ def db_get_all_schools():
 def db_get_school(school_code):
     try:
         conn, db_type = get_db()
-        cur = conn.cursor()
         if db_type == "postgres":
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
             cur.execute("SELECT * FROM schools WHERE school_code=%s", (school_code,))
         else:
+            cur = conn.cursor()
             cur.execute("SELECT * FROM schools WHERE school_code=?", (school_code,))
         row = cur.fetchone(); cur.close(); conn.close()
         return dict(row) if row else None

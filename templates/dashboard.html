@@ -96,8 +96,10 @@ tr:hover td{background:#fafafa}
     <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
     {% endif %}
     {% if teacher.managed_class %}
-<a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
-{% endif %}
+    <a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
+    {% else %}
+    <a href="/class_manager?class={{ classes[0] }}" class="btn-sm" style="background:#16a085;color:white">📋 Class Work</a>
+    {% endif %}
     <a href="/question_bank?subject={{ selected_subject|urlencode }}" class="btn-sm" style="background:#d35400;color:white">🏦 Question Bank</a>
     <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
     <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
@@ -325,6 +327,16 @@ tr:hover td{background:#fafafa}
         <div id="bulkDelIds"></div>
         <button type="button" class="btn-sm br" onclick="bulkDelete()">🗑 Delete Selected</button>
       </form>
+      <form method="POST" action="/bulk_copy_to_bank" style="display:inline" id="bulkCopyForm">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <div id="bulkCopyIds"></div>
+        <button type="button" class="btn-sm" style="background:#d35400;color:white" onclick="bulkCopyBank()">📥 Copy to Bank</button>
+      </form>
+      <form method="POST" action="/bulk_move_to_bank" style="display:inline" id="bulkMoveForm">
+        <input type="hidden" name="subject" value="{{ selected_subject }}">
+        <div id="bulkMoveIds"></div>
+        <button type="button" class="btn-sm" style="background:#8e44ad;color:white" onclick="bulkMoveBank()">📦 Move to Bank</button>
+      </form>
       <form method="POST" action="/bulk_edit_strand" style="display:inline-flex;gap:7px;align-items:center;flex-wrap:wrap" id="bulkEditForm">
         <input type="hidden" name="subject" value="{{ selected_subject }}">
         <div id="bulkEditIds"></div>
@@ -494,6 +506,22 @@ function bulkDelete(){
   if(!confirm("Delete "+ids.length+" question(s)?"))return;
   injectIds("bulkDelForm","bulkDelIds");
   document.getElementById("bulkDelForm").submit();
+}
+
+function bulkCopyBank(){
+  var ids=getSelectedIds();
+  if(ids.length==0){alert("Select at least one question.");return;}
+  if(!confirm("Copy "+ids.length+" question(s) to bank? They will stay active too."))return;
+  injectIds("bulkCopyForm","bulkCopyIds");
+  document.getElementById("bulkCopyForm").submit();
+}
+
+function bulkMoveBank(){
+  var ids=getSelectedIds();
+  if(ids.length==0){alert("Select at least one question.");return;}
+  if(!confirm("Move "+ids.length+" question(s) to bank? They will be removed from active questions."))return;
+  injectIds("bulkMoveForm","bulkMoveIds");
+  document.getElementById("bulkMoveForm").submit();
 }
 
 function bulkEdit(){

@@ -70,10 +70,17 @@
 <body>
 <div class="topbar">
     <div>
-        <div class="topbar h1" style="font-size:20px;font-weight:700">📋 Class Manager — {{ managed_class }}</div>
+        <div class="topbar h1" style="font-size:20px;font-weight:700">📋 Class Manager — {{ view_class }}</div>
         <div class="sub">{{ school }} &nbsp;·&nbsp; {{ teacher.name }}</div>
     </div>
     <div class="topbar-right">
+        {% if viewable_classes|length > 1 %}
+        <select onchange="window.location='/class_manager?class='+this.value" style="padding:7px 12px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer">
+            {% for c in viewable_classes %}
+            <option value="{{ c }}" {{ 'selected' if c == view_class else '' }}>{{ c }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
         <a href="/dashboard" class="btn btn-white">📊 Dashboard</a>
         <a href="/teacher_logout" class="btn btn-white">🚪 Logout</a>
     </div>
@@ -115,6 +122,7 @@
         </div>
         <div class="assign-form">
             <form method="POST" action="/assign_work">
+                <input type="hidden" name="view_class" value="{{ view_class }}">
                 <div class="form-row">
                     <div class="form-group">
                         <label>Assignment Title</label>
@@ -152,7 +160,7 @@
     <!-- Assignments List -->
     <div class="section">
         <div class="section-header">
-            <h2>📚 Assigned Work for {{ managed_class }}</h2>
+            <h2>📚 Assigned Work for {{ view_class }}</h2>
         </div>
         {% if assignments %}
         <table class="assignments-table">
@@ -242,7 +250,7 @@
         <div class="empty">
             <div class="icon">📭</div>
             <strong>No assignments yet</strong>
-            <p style="margin-top:8px;color:#bbb">Use the form above to assign work to {{ managed_class }}</p>
+            <p style="margin-top:8px;color:#bbb">Use the form above to assign work to {{ view_class }}</p>
         </div>
         {% endif %}
     </div>
