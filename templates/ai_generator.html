@@ -108,12 +108,13 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
         </select>
       </div>
       <div class="fg">
-        <label>Class Level</label>
-        <select id="aiClass">
+        <label>Assign to Classes (select one or more)</label>
+        <select id="aiClass" multiple style="height:120px;padding:6px">
           {% for c in classes %}
-          <option value="{{ c }}">{{ c }}</option>
+          <option value="{{ c }}" selected>{{ c }}</option>
           {% endfor %}
         </select>
+        <div class="strand-info">Hold Ctrl (Windows) or Cmd (Mac) to select multiple classes</div>
       </div>
     </div>
 
@@ -255,7 +256,8 @@ function generateQuestions(){
   var subject   = document.getElementById("aiSubject").value;
   var strand    = document.getElementById("aiStrand").value;
   var subStrand = document.getElementById("aiSubStrand").value;
-  var cls       = document.getElementById("aiClass").value;
+  var clsSel    = document.getElementById("aiClass");
+  var cls       = Array.from(clsSel.selectedOptions).map(function(o){return o.value;});
   var count     = document.getElementById("aiCount").value;
   var difficulty= document.getElementById("aiDifficulty").value;
   var types     = Array.from(selectedTypes);
@@ -268,7 +270,8 @@ function generateQuestions(){
       subject: subject,
       strand: strand,
       sub_strand: subStrand,
-      class_level: cls,
+      class_level: cls.join(", "),
+      assigned_classes: cls,
       count: parseInt(count),
       difficulty: difficulty,
       types: types
@@ -375,6 +378,8 @@ function addToBank(){
   var subject   = document.getElementById("aiSubject").value;
   var strand    = document.getElementById("aiStrand").value;
   var subStrand = document.getElementById("aiSubStrand").value;
+  var clsSel    = document.getElementById("aiClass");
+  var cls       = Array.from(clsSel.selectedOptions).map(function(o){return o.value;});
   var selected  = Array.from(selectedIds).map(function(i){ return generatedQuestions[i]; });
 
   document.getElementById("addBtn").disabled=true;
@@ -387,6 +392,7 @@ function addToBank(){
       subject: subject,
       strand: strand,
       sub_strand: subStrand,
+      assigned_classes: cls,
       questions: selected
     })
   })
@@ -395,7 +401,7 @@ function addToBank(){
     if(data.ok){
       document.getElementById("successMsg").style.display="block";
       document.getElementById("successMsg").textContent =
-        "✅ "+data.added+" questions added to "+subject+" question bank! Go to the dashboard to see them.";
+        "✅ "+data.added+" questions added to "+subject+" for classes: "+cls.join(", ")+"! Go to the dashboard to see them.";
       document.getElementById("addBtn").textContent="✅ Added to Question Bank";
       selected.forEach(function(_,i){
         var orig = Array.from(selectedIds)[i];

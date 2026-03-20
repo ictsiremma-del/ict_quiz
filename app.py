@@ -549,12 +549,13 @@ def ai_add_questions():
     data=request.json; subject=data.get("subject","ICT")
     if not can_access(subject): return jsonify({"error":"No access"}),403
     strand=data.get("strand",""); sub_strand=data.get("sub_strand","")
+    assigned_classes=data.get("assigned_classes",[])
     questions=data.get("questions",[]); existing=load_qs(subject)
     mid=max((q["id"] for q in existing),default=0); added=0
     for q in questions:
         mid+=1; q["id"]=mid; q["strand"]=strand or q.get("strand","")
         q["sub_strand"]=sub_strand or q.get("sub_strand","")
-        q["image"]=""; q["assigned_classes"]=[]
+        q["image"]=""; q["assigned_classes"]=assigned_classes
         if "answer" not in q and q.get("type")=="theory": q["answer"]=q.get("model_answer","")
         existing.append(q); added+=1
     save_qs(subject,existing); return jsonify({"ok":True,"added":added})
