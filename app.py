@@ -14,7 +14,8 @@ from database import (
     db_load_questions, db_save_questions,
     db_load_hw, db_save_hw, db_del_hw,
     db_load_bece, db_save_bece,
-    db_load_assignments, db_save_assignment, db_delete_assignment
+    db_load_assignments, db_save_assignment, db_delete_assignment,
+    db_load_bank, db_add_to_bank, db_delete_from_bank
 )
 
 try:
@@ -945,6 +946,74 @@ def delete_assignment(aid):
     db_delete_assignment(aid)
     session["assign_msg"] = "ok:Assignment deleted."
     return redirect(url_for("class_manager"))
+
+@app.route("/question_bank")
+def question_bank():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    t = current_teacher()
+    sel_sub = request.args.get("subject","")
+    all_bank = db_load_bank()
+    # Filter to teacher's subjects unless head
+    if not t.get("is_head"):
+        all_bank = [q for q in all_bank if q.get("_subject","") in t.get("subjects",[])]
+    # Group by subject
+    by_subject = {}
+    for q in all_bank:
+        subj = q.get("_subject","Unknown")
+        if subj not in by_subject: by_subject[subj] = []
+        by_subject[subj].append(q)
+    return render_template("question_bank.html", school=SCHOOL_NAME,
+        by_subject=by_subject, total_count=len(all_bank),
+        selected_subject=sel_sub, classes=CLASSES,
+        subject_icons=SUBJECT_ICONS, subjects=SUBJECTS,
+        bank_msg=session.pop("bank_msg", None))
+
+@app.route("/copy_to_bank/<subject>/<int:qid>")
+def copy_to_bank(subject, qid):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    if not can_access(subject): return redirect(url_for("dashboard"))
+    qs = load_qs(subject)
+    q = next((x for x in qs if x["id"]==qid), None)
+    if q:
+        db_add_to_bank(subject, q)
+        session["pdf_msg"] = "ok:Question copied to bank (still active)."
+    return redirect(url_for("dashboard", subject=subject))
+
+@app.route("/move_to_bank/<subject>/<int:qid>")
+def move_to_bank(subject, qid):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    if not can_access(subject): return redirect(url_for("dashboard"))
+    qs = load_qs(subject)
+    q = next((x for x in qs if x["id"]==qid), None)
+    if q:
+        db_add_to_bank(subject, q)
+        save_qs(subject, [x for x in qs if x["id"]!=qid])
+        session["pdf_msg"] = "ok:Question moved to bank."
+    return redirect(url_for("dashboard", subject=subject))
+
+@app.route("/restore_from_bank/<subject>/<int:bank_id>")
+def restore_from_bank(subject, bank_id):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    all_bank = db_load_bank(subject)
+    q = next((x for x in all_bank if x.get("_bank_id")==bank_id), None)
+    if q:
+        # Add back to active questions
+        qs = load_qs(subject)
+        new_id = max((x["id"] for x in qs), default=0) + 1
+        clean = {k:v for k,v in q.items() if not k.startswith("_")}
+        clean["id"] = new_id
+        qs.append(clean)
+        save_qs(subject, qs)
+        db_delete_from_bank(bank_id)
+        session["bank_msg"] = "ok:Question restored to active pool!"
+    return redirect(url_for("question_bank", subject=subject))
+
+@app.route("/delete_from_bank/<subject>/<int:bank_id>")
+def delete_from_bank(subject, bank_id):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    db_delete_from_bank(bank_id)
+    session["bank_msg"] = "ok:Question permanently deleted from bank."
+    return redirect(url_for("question_bank", subject=subject))
 
 if __name__=="__main__":
     try:

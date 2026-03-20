@@ -88,6 +88,14 @@ def init_db():
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS question_bank (
+                id SERIAL PRIMARY KEY,
+                subject TEXT NOT NULL,
+                data JSONB NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
     else:
         # SQLite syntax
         cur.execute("""
@@ -136,6 +144,14 @@ def init_db():
                 due_date TEXT,
                 assigned_date TEXT,
                 assigned_by TEXT,
+                created_at TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS question_bank (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                subject TEXT NOT NULL,
+                data TEXT NOT NULL,
                 created_at TEXT
             )
         """)
@@ -451,3 +467,62 @@ def db_delete_assignment(aid):
         conn.commit(); cur.close(); conn.close()
     except Exception as e:
         print("db_delete_assignment error:", e)
+
+# ── Question Bank ──────────────────────────────────────────────────
+
+def db_load_bank(subject=None):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if subject:
+            if db_type == "postgres":
+                cur.execute("SELECT id, subject, data FROM question_bank WHERE subject=%s ORDER BY id", (subject,))
+            else:
+                cur.execute("SELECT id, subject, data FROM question_bank WHERE subject=? ORDER BY id", (subject,))
+        else:
+            cur.execute("SELECT id, subject, data FROM question_bank ORDER BY subject, id")
+        rows = cur.fetchall(); cur.close(); conn.close()
+        result = []
+        for row in rows:
+            if db_type == "postgres":
+                d = dict(row["data"]) if isinstance(row["data"], dict) else row["data"]
+            else:
+                d = json.loads(row["data"])
+            d["_bank_id"] = row[0]
+            d["_subject"] = row[1]
+            result.append(d)
+        return result
+    except Exception as e:
+        print("db_load_bank error:", e)
+        return []
+
+def db_add_to_bank(subject, question):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            import psycopg2.extras
+            cur.execute("INSERT INTO question_bank (subject, data) VALUES (%s,%s)",
+                       (subject, psycopg2.extras.Json(question)))
+        else:
+            cur.execute("INSERT INTO question_bank (subject, data, created_at) VALUES (?,?,?)",
+                       (subject, json.dumps(question), datetime.datetime.now().isoformat()))
+        conn.commit(); cur.close(); conn.close()
+        return True
+    except Exception as e:
+        print("db_add_to_bank error:", e)
+        return False
+
+def db_delete_from_bank(bank_id):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("DELETE FROM question_bank WHERE id=%s", (bank_id,))
+        else:
+            cur.execute("DELETE FROM question_bank WHERE id=?", (bank_id,))
+        conn.commit(); cur.close(); conn.close()
+        return True
+    except Exception as e:
+        print("db_delete_from_bank error:", e)
+        return False

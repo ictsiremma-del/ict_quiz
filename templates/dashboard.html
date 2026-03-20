@@ -97,6 +97,7 @@ tr:hover td{background:#fafafa}
     {% if teacher.managed_class %}
 <a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
 {% endif %}
+    <a href="/question_bank?subject={{ selected_subject|urlencode }}" class="btn-sm" style="background:#d35400;color:white">🏦 Question Bank</a>
     <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
     <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
   </div>
@@ -387,6 +388,13 @@ tr:hover td{background:#fafafa}
           <td style="white-space:nowrap">
             <a href="/edit_question/{{ selected_subject|urlencode }}/{{ q.id }}"
                class="btn-sm bb" style="font-size:11px;padding:3px 7px;margin-right:3px;text-decoration:none">✏️</a>
+            <a href="/copy_to_bank/{{ selected_subject|urlencode }}/{{ q.id }}"
+               class="btn-sm" style="font-size:11px;padding:3px 7px;margin-right:3px;text-decoration:none;background:#d35400;color:white"
+               title="Copy to Bank (keeps active)">📥</a>
+            <a href="/move_to_bank/{{ selected_subject|urlencode }}/{{ q.id }}"
+               class="btn-sm" style="font-size:11px;padding:3px 7px;margin-right:3px;text-decoration:none;background:#8e44ad;color:white"
+               onclick="return confirm('Move to bank? This removes it from active questions.')"
+               title="Move to Bank (removes from active)">📦</a>
             <a href="/delete_question/{{ selected_subject|urlencode }}/{{ q.id }}"
                class="del" onclick="return confirm('Delete?')">🗑</a>
           </td>

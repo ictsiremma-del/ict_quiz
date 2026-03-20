@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Question Bank — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#6e2f00,#d35400);color:white;padding:13px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar p{font-size:11px;opacity:.8;margin-top:2px}
+.tb-right{display:flex;gap:8px;flex-wrap:wrap}
+.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block;white-space:nowrap}
+.bw{background:rgba(255,255,255,.2);color:white}
+.bg{background:#27ae60;color:white}
+.bb{background:#2980b9;color:white}
+.container{max-width:1160px;margin:0 auto;padding:18px 14px}
+.msg-ok{background:#d5f5e3;color:#27ae60;border-left:3px solid #27ae60;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
+.msg-err{background:#fadbd8;color:#e74c3c;border-left:3px solid #e74c3c;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
+.filters{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+.filters select{padding:8px 12px;border:2px solid #e0e0e0;border-radius:8px;font-size:13px;outline:none;background:white}
+.filters select:focus{border-color:#d35400}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:13px;margin-bottom:20px}
+.stat{background:white;border-radius:11px;padding:16px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.06);border-top:3px solid #d35400}
+.stat .v{font-size:28px;font-weight:800;color:#d35400}
+.stat .l{font-size:11px;color:#888;margin-top:3px}
+.section{background:white;border-radius:13px;padding:20px;margin-bottom:18px;box-shadow:0 2px 5px rgba(0,0,0,.06)}
+.section h2{font-size:15px;font-weight:700;color:#6e2f00;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #f0f4f8;display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#fef6f0;padding:8px 10px;text-align:left;font-weight:700;color:#6e2f00;border-bottom:2px solid #fde0c8}
+td{padding:8px 10px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+tr:hover td{background:#fffaf7}
+.q-badge{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:600}
+.bmcq{background:#e8f4f8;color:#2e86ab}.btf{background:#fef9e7;color:#e67e22}
+.bfitb{background:#e8f8e8;color:#27ae60}.bth{background:#f5e8f8;color:#8e44ad}
+.strand-pill{display:inline-block;background:#e8f4f8;color:#2e86ab;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:600}
+.class-pill{display:inline-block;background:#fde8d8;color:#d35400;padding:2px 6px;border-radius:6px;font-size:10px;font-weight:600;margin:1px}
+.btn-restore{background:#27ae60;color:white;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600;text-decoration:none;display:inline-block;margin-right:3px}
+.btn-restore:hover{background:#219a52}
+.del{background:#e74c3c;color:white;border:none;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-weight:600}
+.del:hover{background:#c0392b}
+.empty{text-align:center;color:#bbb;padding:40px;font-size:14px}
+.empty .icon{font-size:48px;margin-bottom:12px}
+.subject-header{background:linear-gradient(135deg,#fef6f0,#fde0c8);border-radius:10px;padding:12px 16px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.subject-header h3{font-size:14px;font-weight:700;color:#6e2f00}
+.subject-header .count{font-size:12px;color:#d35400;font-weight:600}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>🏦 Question Bank</h1>
+    <p>{{ school }} — Archived Questions</p>
+  </div>
+  <div class="tb-right">
+    <a href="/dashboard" class="btn-sm bw">← Dashboard</a>
+  </div>
+</div>
+
+<div class="container">
+  {% if bank_msg %}
+  <div class="{{ 'msg-ok' if bank_msg.startswith('ok:') else 'msg-err' }}">{{ bank_msg[3:] }}</div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="v">{{ total_count }}</div>
+      <div class="l">🏦 Total in Bank</div>
+    </div>
+    {% for subj, qs in by_subject.items() %}
+    <div class="stat">
+      <div class="v">{{ qs|length }}</div>
+      <div class="l">{{ subject_icons.get(subj,'📚') }} {{ subj[:12] }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <strong style="font-size:13px;color:#6e2f00">Filter:</strong>
+    <select id="fSubject" onchange="filterBank()">
+      <option value="">All Subjects</option>
+      {% for subj in by_subject.keys() %}
+      <option value="{{ subj }}" {{ 'selected' if selected_subject==subj else '' }}>{{ subject_icons.get(subj,'📚') }} {{ subj }}</option>
+      {% endfor %}
+    </select>
+    <select id="fClass" onchange="filterBank()">
+      <option value="">All Classes</option>
+      {% for c in classes %}
+      <option value="{{ c }}">{{ c }}</option>
+      {% endfor %}
+    </select>
+    <select id="fType" onchange="filterBank()">
+      <option value="">All Types</option>
+      <option value="mcq">MCQ</option>
+      <option value="tf">True/False</option>
+      <option value="fitb">Fill in Blank</option>
+      <option value="theory">Theory</option>
+    </select>
+  </div>
+
+  {% if total_count == 0 %}
+  <div class="section">
+    <div class="empty">
+      <div class="icon">🏦</div>
+      <strong>Question Bank is Empty</strong>
+      <p style="margin-top:8px;color:#bbb">Go to the Dashboard and use the 📥 or 📦 buttons on any question to add it here.</p>
+    </div>
+  </div>
+  {% else %}
+    {% for subj, qs in by_subject.items() %}
+    <div class="section" data-subject="{{ subj }}">
+      <div class="subject-header">
+        <h3>{{ subject_icons.get(subj,'📚') }} {{ subj }}</h3>
+        <span class="count">{{ qs|length }} question{{ 's' if qs|length != 1 else '' }}</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th><th>Type</th><th>Question</th><th>Strand</th>
+            <th>Answer</th><th>Marks</th><th>Classes</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for q in qs %}
+          <tr data-subject="{{ subj }}"
+              data-type="{{ q.type }}"
+              data-classes="{{ q.get('assigned_classes',[])|join(',') }}">
+            <td>{{ loop.index }}</td>
+            <td>
+              {% if q.type=='mcq' %}<span class="q-badge bmcq">MCQ</span>
+              {% elif q.type=='tf' %}<span class="q-badge btf">T/F</span>
+              {% elif q.type=='fitb' %}<span class="q-badge bfitb">FITB</span>
+              {% elif q.type=='theory' %}<span class="q-badge bth">Theory</span>
+              {% endif %}
+            </td>
+            <td>{{ q.question[:60] }}{% if q.question|length>60 %}...{% endif %}</td>
+            <td>
+              {% if q.get('strand') %}<span class="strand-pill">{{ q.strand }}</span>{% else %}—{% endif %}
+            </td>
+            <td style="color:#27ae60;font-size:12px;font-weight:600">
+              {% if q.type=='theory' %}(model){% else %}{{ q.get('answer','')[:20] }}{% endif %}
+            </td>
+            <td>{{ q.marks }}</td>
+            <td>
+              {% if q.get('assigned_classes') %}
+                {% for c in q.assigned_classes %}<span class="class-pill">{{ c }}</span>{% endfor %}
+              {% else %}<span style="color:#27ae60;font-size:11px;font-weight:600">All</span>{% endif %}
+            </td>
+            <td style="white-space:nowrap">
+              <a href="/restore_from_bank/{{ subj|urlencode }}/{{ q.id }}"
+                 class="btn-restore" title="Restore to active questions">♻️ Restore</a>
+              <a href="/delete_from_bank/{{ subj|urlencode }}/{{ q.id }}"
+                 class="del" onclick="return confirm('Permanently delete from bank?')">🗑</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endfor %}
+  {% endif %}
+</div>
+
+<script>
+function filterBank(){
+  var fS = document.getElementById("fSubject").value.toLowerCase();
+  var fC = document.getElementById("fClass").value.toLowerCase();
+  var fT = document.getElementById("fType").value.toLowerCase();
+  document.querySelectorAll("tbody tr").forEach(function(r){
+    var subj = r.dataset.subject ? r.dataset.subject.toLowerCase() : "";
+    var type = r.dataset.type ? r.dataset.type.toLowerCase() : "";
+    var cls  = r.dataset.classes ? r.dataset.classes.toLowerCase() : "";
+    var show = (!fS || subj===fS) &&
+               (!fT || type===fT) &&
+               (!fC || cls.includes(fC));
+    r.style.display = show ? "" : "none";
+  });
+  // Hide empty sections
+  document.querySelectorAll(".section[data-subject]").forEach(function(sec){
+    var visible = sec.querySelectorAll("tbody tr:not([style*='none'])").length;
+    sec.style.display = visible > 0 ? "" : "none";
+  });
+}
+</script>
+</body>
+</html>
