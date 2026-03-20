@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ school.school_name }} — Pending Approval</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:48px 40px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.icon{font-size:64px;margin-bottom:16px}
+h1{font-size:22px;font-weight:800;color:#1a3a5c;margin-bottom:10px}
+p{font-size:14px;color:#666;line-height:1.7;margin-bottom:12px}
+.school-name{font-size:18px;font-weight:700;color:#2e86ab;margin-bottom:20px}
+.info-box{background:#fef9e7;border-radius:12px;padding:16px;border-left:4px solid #f39c12;text-align:left;margin:20px 0}
+.info-box p{font-size:13px;color:#7d6608}
+.btn{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">⏳</div>
+  <h1>Awaiting Approval</h1>
+  <div class="school-name">{{ school.school_name }}</div>
+  <p>Your school registration has been received and is currently being reviewed by the system administrator.</p>
+  <div class="info-box">
+    <p><strong>What happens next?</strong></p>
+    <p>• The administrator will review your registration<br>
+       • You will be notified once approved<br>
+       • Approval usually takes 1-2 business days<br>
+       • Your school link will become active after approval</p>
+  </div>
+  <p style="font-size:12px;color:#aaa">Registered by: {{ school.head_name }}</p>
+  <a href="/" class="btn">← Back to Home</a>
+</div>
+</body>
+</html>

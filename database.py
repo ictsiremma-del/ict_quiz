@@ -96,6 +96,22 @@ def init_db():
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS schools (
+                id SERIAL PRIMARY KEY,
+                school_name TEXT NOT NULL,
+                school_code TEXT UNIQUE NOT NULL,
+                head_name TEXT NOT NULL,
+                head_email TEXT,
+                head_phone TEXT,
+                head_password TEXT NOT NULL,
+                region TEXT,
+                status TEXT DEFAULT 'pending',
+                demo_expires TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                approved_at TEXT
+            )
+        """)
     else:
         # SQLite syntax
         cur.execute("""
@@ -153,6 +169,22 @@ def init_db():
                 subject TEXT NOT NULL,
                 data TEXT NOT NULL,
                 created_at TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS schools (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                school_name TEXT NOT NULL,
+                school_code TEXT UNIQUE NOT NULL,
+                head_name TEXT NOT NULL,
+                head_email TEXT,
+                head_phone TEXT,
+                head_password TEXT NOT NULL,
+                region TEXT,
+                status TEXT DEFAULT 'pending',
+                demo_expires TEXT,
+                created_at TEXT,
+                approved_at TEXT
             )
         """)
 
@@ -525,4 +557,85 @@ def db_delete_from_bank(bank_id):
         return True
     except Exception as e:
         print("db_delete_from_bank error:", e)
+        return False
+
+# ── Schools ────────────────────────────────────────────────────────
+
+def db_register_school(data):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        now = datetime.datetime.now().isoformat()
+        if db_type == "postgres":
+            cur.execute("""
+                INSERT INTO schools (school_name, school_code, head_name, head_email, head_phone, head_password, region, status, created_at)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,'pending',%s)
+            """, (data["school_name"], data["school_code"], data["head_name"],
+                  data.get("head_email",""), data.get("head_phone",""),
+                  data["head_password"], data.get("region",""), now))
+        else:
+            cur.execute("""
+                INSERT INTO schools (school_name, school_code, head_name, head_email, head_phone, head_password, region, status, created_at)
+                VALUES (?,?,?,?,?,?,?,'pending',?)
+            """, (data["school_name"], data["school_code"], data["head_name"],
+                  data.get("head_email",""), data.get("head_phone",""),
+                  data["head_password"], data.get("region",""), now))
+        conn.commit(); cur.close(); conn.close()
+        return True
+    except Exception as e:
+        print("db_register_school error:", e)
+        return False
+
+def db_get_all_schools():
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM schools ORDER BY created_at DESC")
+        rows = cur.fetchall(); cur.close(); conn.close()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        print("db_get_all_schools error:", e)
+        return []
+
+def db_get_school(school_code):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("SELECT * FROM schools WHERE school_code=%s", (school_code,))
+        else:
+            cur.execute("SELECT * FROM schools WHERE school_code=?", (school_code,))
+        row = cur.fetchone(); cur.close(); conn.close()
+        return dict(row) if row else None
+    except Exception as e:
+        print("db_get_school error:", e)
+        return None
+
+def db_update_school_status(school_id, status):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        now = datetime.datetime.now().isoformat()
+        if db_type == "postgres":
+            cur.execute("UPDATE schools SET status=%s, approved_at=%s WHERE id=%s", (status, now, school_id))
+        else:
+            cur.execute("UPDATE schools SET status=?, approved_at=? WHERE id=?", (status, now, school_id))
+        conn.commit(); cur.close(); conn.close()
+        return True
+    except Exception as e:
+        print("db_update_school_status error:", e)
+        return False
+
+def db_school_code_exists(school_code):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("SELECT id FROM schools WHERE school_code=%s", (school_code,))
+        else:
+            cur.execute("SELECT id FROM schools WHERE school_code=?", (school_code,))
+        row = cur.fetchone(); cur.close(); conn.close()
+        return row is not None
+    except Exception as e:
+        print("db_school_code_exists error:", e)
         return False

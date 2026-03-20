@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Register Your School — ICT Quiz System</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c 0%,#2e86ab 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:40px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.logo{text-align:center;margin-bottom:28px}
+.logo .icon{font-size:48px;display:block;margin-bottom:8px}
+.logo h1{font-size:22px;font-weight:800;color:#1a3a5c}
+.logo p{font-size:13px;color:#888;margin-top:4px}
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.fg label{font-size:11px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.4px}
+.fg input,.fg select{padding:11px 14px;border:2px solid #e0e0e0;border-radius:9px;font-size:14px;outline:none;transition:border .2s}
+.fg input:focus,.fg select:focus{border-color:#2e86ab}
+.req{color:#e74c3c}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px}
+.btn:hover{opacity:.9}
+.divider{height:1px;background:#f0f4f8;margin:18px 0}
+.msg-ok{background:#d5f5e3;color:#27ae60;border-left:4px solid #27ae60;padding:14px;border-radius:9px;margin-bottom:18px}
+.msg-err{background:#fadbd8;color:#e74c3c;border-left:4px solid #e74c3c;padding:14px;border-radius:9px;margin-bottom:18px}
+.success-box{text-align:center;padding:20px 0}
+.success-box .big{font-size:56px;margin-bottom:12px}
+.success-box h2{font-size:20px;font-weight:800;color:#27ae60;margin-bottom:8px}
+.success-box p{font-size:14px;color:#666;line-height:1.7;margin-bottom:12px}
+.code-box{background:#f0f4f8;border-radius:10px;padding:14px;font-family:monospace;font-size:16px;font-weight:700;color:#1a3a5c;letter-spacing:1px;margin:12px 0}
+.back-link{text-align:center;margin-top:18px;font-size:13px;color:#888}
+.back-link a{color:#2e86ab;text-decoration:none;font-weight:600}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:480px){.form-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <span class="icon">🏫</span>
+    <h1>Register Your School</h1>
+    <p>Join the ICT Quiz System — Free Demo Account</p>
+  </div>
+
+  {% if success %}
+  <div class="success-box">
+    <div class="big">🎉</div>
+    <h2>Registration Submitted!</h2>
+    <p>Your school has been registered and is <strong>awaiting approval</strong> from the system administrator.</p>
+    <p>Once approved, your school's quiz system will be available at:</p>
+    <div class="code-box">ictquiz-production.up.railway.app/school/{{ school_code }}</div>
+    <p style="color:#888;font-size:12px">You will be notified when your account is approved. This usually takes 1-2 business days.</p>
+  </div>
+  <div class="back-link"><a href="/">← Back to Home</a></div>
+
+  {% else %}
+  {% if error %}
+  <div class="msg-err">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="fg">
+      <label>School Name <span class="req">*</span></label>
+      <input type="text" name="school_name" placeholder="e.g. Bright Future Academy" required>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Head Teacher Name <span class="req">*</span></label>
+        <input type="text" name="head_name" placeholder="Full name" required>
+      </div>
+      <div class="fg">
+        <label>Region <span class="req">*</span></label>
+        <select name="region" required>
+          <option value="">Select Region</option>
+          {% for r in regions %}
+          <option value="{{ r }}">{{ r }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Phone Number</label>
+        <input type="tel" name="head_phone" placeholder="0XX XXX XXXX">
+      </div>
+      <div class="fg">
+        <label>Email Address</label>
+        <input type="email" name="head_email" placeholder="school@email.com">
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="fg">
+      <label>Create Password <span class="req">*</span></label>
+      <input type="password" name="head_password" placeholder="Choose a secure password" required minlength="6">
+    </div>
+
+    <button type="submit" class="btn">🚀 Register School</button>
+  </form>
+
+  <div class="back-link">
+    Already registered? <a href="/school-login">Login here</a> &nbsp;·&nbsp; <a href="/">Back to Home</a>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

@@ -15,7 +15,9 @@ from database import (
     db_load_hw, db_save_hw, db_del_hw,
     db_load_bece, db_save_bece,
     db_load_assignments, db_save_assignment, db_delete_assignment,
-    db_load_bank, db_add_to_bank, db_delete_from_bank
+    db_load_bank, db_add_to_bank, db_delete_from_bank,
+    db_register_school, db_get_all_schools, db_get_school,
+    db_update_school_status, db_school_code_exists
 )
 
 try:
@@ -107,6 +109,8 @@ CURRICULUM_STRANDS = {
 BECE_SUBJECTS = ["ICT","Mathematics","Science","English Language","Social Studies",
                  "Religious and Moral Education","French","Career Technology","Creative Arts and Design"]
 BECE_YEARS = [str(y) for y in range(2010,2026)]
+GHANA_REGIONS = ["Ahafo","Ashanti","Bono","Bono East","Central","Eastern","Greater Accra",
+                 "North East","Northern","Oti","Savannah","Upper East","Upper West","Volta","Western","Western North"]
 
 # ── HELPERS ────────────────────────────────────────────────────────
 def get_local_ip():
@@ -1014,6 +1018,66 @@ def delete_from_bank(subject, bank_id):
     db_delete_from_bank(bank_id)
     session["bank_msg"] = "ok:Question permanently deleted from bank."
     return redirect(url_for("question_bank", subject=subject))
+
+@app.route("/register", methods=["GET","POST"])
+def register_school():
+    if request.method == "POST":
+        school_name  = request.form.get("school_name","").strip()
+        head_name    = request.form.get("head_name","").strip()
+        head_email   = request.form.get("head_email","").strip()
+        head_phone   = request.form.get("head_phone","").strip()
+        head_password= request.form.get("head_password","").strip()
+        region       = request.form.get("region","").strip()
+        if not school_name or not head_name or not head_password:
+            return render_template("register.html", error="Please fill in all required fields.", regions=GHANA_REGIONS)
+        # Generate school code from name
+        code = re.sub(r'[^a-z0-9]','', school_name.lower().replace(" ","-"))[:20]
+        if not code: code = "school"
+        # Make unique
+        base = code; counter = 1
+        while db_school_code_exists(base):
+            base = "{}-{}".format(code, counter); counter += 1
+        code = base
+        ok = db_register_school({
+            "school_name": school_name, "school_code": code,
+            "head_name": head_name, "head_email": head_email,
+            "head_phone": head_phone, "head_password": head_password,
+            "region": region
+        })
+        if ok:
+            return render_template("register.html", success=True, school_code=code, regions=GHANA_REGIONS)
+        return render_template("register.html", error="Registration failed. Please try again.", regions=GHANA_REGIONS)
+    return render_template("register.html", error=None, regions=GHANA_REGIONS)
+
+@app.route("/superadmin", methods=["GET","POST"])
+def superadmin():
+    t = current_teacher()
+    if not t or not t.get("is_head"): return redirect(url_for("teacher"))
+    if request.method == "POST":
+        school_id = request.form.get("school_id")
+        action    = request.form.get("action")
+        if school_id and action in ["approved","rejected"]:
+            db_update_school_status(int(school_id), action)
+    schools = db_get_all_schools()
+    pending  = [s for s in schools if s["status"]=="pending"]
+    approved = [s for s in schools if s["status"]=="approved"]
+    rejected = [s for s in schools if s["status"]=="rejected"]
+    return render_template("superadmin.html", school=SCHOOL_NAME,
+        pending=pending, approved=approved, rejected=rejected,
+        total=len(schools), admin_msg=session.pop("admin_msg",None))
+
+@app.route("/school/<school_code>")
+def school_home(school_code):
+    school = db_get_school(school_code)
+    if not school: return render_template("error.html", school="Quiz System",
+        error_code=404, error_message="School Not Found",
+        error_detail="This school link is invalid or has been removed."), 404
+    if school["status"] != "approved":
+        return render_template("school_pending.html", school=school)
+    return render_template("school_index.html", school=school,
+        classes=CLASSES, subjects=SUBJECTS,
+        subject_colors=SUBJECT_COLORS, subject_icons=SUBJECT_ICONS,
+        assessment_types=ASSESSMENT_TYPES)
 
 if __name__=="__main__":
     try:

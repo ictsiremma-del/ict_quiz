@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Super Admin — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#c0392b);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:18px;font-weight:700}
+.topbar p{font-size:11px;opacity:.8;margin-top:2px}
+.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block}
+.bw{background:rgba(255,255,255,.2);color:white}
+.container{max-width:1100px;margin:0 auto;padding:20px 14px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat{background:white;border-radius:11px;padding:16px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.06)}
+.stat .v{font-size:28px;font-weight:800;color:#1a3a5c}
+.stat .l{font-size:11px;color:#888;margin-top:3px}
+.section{background:white;border-radius:13px;padding:20px;margin-bottom:18px;box-shadow:0 2px 5px rgba(0,0,0,.06)}
+.section h2{font-size:15px;font-weight:700;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #f0f4f8;display:flex;align-items:center;gap:8px}
+.pending-h{color:#e67e22}
+.approved-h{color:#27ae60}
+.rejected-h{color:#e74c3c}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:9px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:9px 12px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
+tr:hover td{background:#fafafa}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.b-pending{background:#fef9e7;color:#e67e22;border:1px solid #f9ca24}
+.b-approved{background:#d5f5e3;color:#27ae60;border:1px solid #82e0aa}
+.b-rejected{background:#fadbd8;color:#e74c3c;border:1px solid #f1948a}
+.btn-approve{background:#27ae60;color:white;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;margin-right:4px}
+.btn-reject{background:#e74c3c;color:white;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-approve:hover{background:#219a52}
+.btn-reject:hover{background:#c0392b}
+.school-link{font-size:11px;color:#2e86ab;font-family:monospace}
+.empty{text-align:center;color:#bbb;padding:24px;font-size:13px}
+.msg-ok{background:#d5f5e3;color:#27ae60;border-left:3px solid #27ae60;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
+@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>🔐 Super Admin Panel</h1>
+    <p>{{ school }} — School Registration Management</p>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="/dashboard" class="btn-sm bw">← Dashboard</a>
+  </div>
+</div>
+
+<div class="container">
+  {% if admin_msg %}
+  <div class="msg-ok">✅ {{ admin_msg }}</div>
+  {% endif %}
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat"><div class="v">{{ total }}</div><div class="l">Total Schools</div></div>
+    <div class="stat"><div class="v" style="color:#e67e22">{{ pending|length }}</div><div class="l">⏳ Pending</div></div>
+    <div class="stat"><div class="v" style="color:#27ae60">{{ approved|length }}</div><div class="l">✅ Approved</div></div>
+    <div class="stat"><div class="v" style="color:#e74c3c">{{ rejected|length }}</div><div class="l">❌ Rejected</div></div>
+  </div>
+
+  <!-- Pending -->
+  <div class="section">
+    <h2 class="pending-h">⏳ Pending Approval ({{ pending|length }})</h2>
+    {% if pending %}
+    <table>
+      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>Contact</th><th>Registered</th><th>School Link</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for s in pending %}
+        <tr>
+          <td><strong>{{ s.school_name }}</strong></td>
+          <td>{{ s.head_name }}</td>
+          <td>{{ s.region or '—' }}</td>
+          <td>
+            {% if s.head_phone %}<div>📞 {{ s.head_phone }}</div>{% endif %}
+            {% if s.head_email %}<div>✉️ {{ s.head_email }}</div>{% endif %}
+          </td>
+          <td style="font-size:11px;color:#888">{{ s.created_at[:10] if s.created_at else '—' }}</td>
+          <td><span class="school-link">/school/{{ s.school_code }}</span></td>
+          <td>
+            <form method="POST" style="display:inline">
+              <input type="hidden" name="school_id" value="{{ s.id }}">
+              <input type="hidden" name="action" value="approved">
+              <button type="submit" class="btn-approve" onclick="return confirm('Approve {{ s.school_name }}?')">✅ Approve</button>
+            </form>
+            <form method="POST" style="display:inline">
+              <input type="hidden" name="school_id" value="{{ s.id }}">
+              <input type="hidden" name="action" value="rejected">
+              <button type="submit" class="btn-reject" onclick="return confirm('Reject {{ s.school_name }}?')">❌ Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">🎉 No pending registrations</div>
+    {% endif %}
+  </div>
+
+  <!-- Approved -->
+  <div class="section">
+    <h2 class="approved-h">✅ Approved Schools ({{ approved|length }})</h2>
+    {% if approved %}
+    <table>
+      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>School Link</th><th>Approved</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for s in approved %}
+        <tr>
+          <td><strong>{{ s.school_name }}</strong></td>
+          <td>{{ s.head_name }}</td>
+          <td>{{ s.region or '—' }}</td>
+          <td><a href="/school/{{ s.school_code }}" class="school-link" target="_blank">/school/{{ s.school_code }}</a></td>
+          <td style="font-size:11px;color:#888">{{ s.approved_at[:10] if s.approved_at else '—' }}</td>
+          <td><span class="badge b-approved">✅ Active</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No approved schools yet</div>
+    {% endif %}
+  </div>
+
+  <!-- Rejected -->
+  {% if rejected %}
+  <div class="section">
+    <h2 class="rejected-h">❌ Rejected ({{ rejected|length }})</h2>
+    <table>
+      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>Registered</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for s in rejected %}
+        <tr>
+          <td>{{ s.school_name }}</td>
+          <td>{{ s.head_name }}</td>
+          <td>{{ s.region or '—' }}</td>
+          <td style="font-size:11px;color:#888">{{ s.created_at[:10] if s.created_at else '—' }}</td>
+          <td><span class="badge b-rejected">❌ Rejected</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
