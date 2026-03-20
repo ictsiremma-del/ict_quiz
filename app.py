@@ -13,7 +13,8 @@ from database import (
     db_load_results, db_save_result, db_delete_result,
     db_load_questions, db_save_questions,
     db_load_hw, db_save_hw, db_del_hw,
-    db_load_bece, db_save_bece
+    db_load_bece, db_save_bece,
+    db_load_assignments, db_save_assignment, db_delete_assignment
 )
 
 try:
@@ -21,36 +22,6 @@ try:
     REQUESTS_OK = True
 except ImportError:
     REQUESTS_OK = False
-
-# ── CLOUDINARY SETUP ───────────────────────────────────────────────
-try:
-    import cloudinary
-    import cloudinary.uploader
-    CLOUDINARY_CLOUD_NAME = os.environ.get("CLOUDINARY_CLOUD_NAME","")
-    CLOUDINARY_API_KEY    = os.environ.get("CLOUDINARY_API_KEY","")
-    CLOUDINARY_API_SECRET = os.environ.get("CLOUDINARY_API_SECRET","")
-    if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
-        cloudinary.config(cloud_name=CLOUDINARY_CLOUD_NAME,api_key=CLOUDINARY_API_KEY,api_secret=CLOUDINARY_API_SECRET)
-        CLOUDINARY_OK = True
-        print("Cloudinary configured OK")
-    else:
-        CLOUDINARY_OK = False
-except ImportError:
-    CLOUDINARY_OK = False
-
-def upload_image(file_storage, filename):
-    """Upload image to Cloudinary if available, else save locally"""
-    if CLOUDINARY_OK:
-        try:
-            result = cloudinary.uploader.upload(file_storage,public_id="quiz/{}".format(filename.rsplit(".",1)[0]),overwrite=True)
-            return result["secure_url"]
-        except Exception as e:
-            print("Cloudinary upload error:", e)
-    # Fallback: save locally
-    fn = secure_filename(filename)
-    file_storage.seek(0)
-    file_storage.save(os.path.join(UPLOAD_FOLDER, fn))
-    return "uploads/{}".format(fn)
 
 app = Flask(__name__)
 app.secret_key = "gloriouspearlsquiz2024"
@@ -82,19 +53,24 @@ _lock = threading.Lock()
 
 # ── DATA ───────────────────────────────────────────────────────────
 TEACHERS = {
-    "sir_emma":    {"name":"Sir Emma",   "password":"Letgohome","subjects":["ICT"],"is_head":True},
-    "sir_eddie":   {"name":"Sir Eddie",  "password":"eddie123", "subjects":["Science"],"is_head":False},
-    "sir_bismark": {"name":"Sir Bismark","password":"bismark123","subjects":["Creative Arts and Design","Career Technology"],"is_head":False},
-    "sir_sam":     {"name":"Sir Sam",    "password":"sam123",   "subjects":["French"],"is_head":False},
-    "ms_gasu":     {"name":"Ms. Gasu",   "password":"gasu123",  "subjects":["English Language","Religious and Moral Education"],"is_head":False},
-    "sir_sackey":  {"name":"Sir Sackey", "password":"sackey123","subjects":["Social Studies"],"is_head":False},
-    "master":      {"name":"Master",     "password":"master123","subjects":["Mathematics"],"is_head":False},
-    "sir_otoo":    {"name":"Sir Otoo",   "password":"otoo123",  "subjects":["Ghanaian Language"],"is_head":False},
+    "sir_emma":      {"name":"Sir Emma",       "password":"Letgohome", "subjects":["ICT"],                                                      "is_head":True,  "managed_class":"JHS 2"},
+    "sir_eddie":     {"name":"Sir Eddie",      "password":"eddie123",  "subjects":["Science"],                                                  "is_head":False, "managed_class":"Basic 6"},
+    "sir_bismark":   {"name":"Sir Bismark",    "password":"bismark123","subjects":["Creative Arts and Design","Career Technology"],              "is_head":False, "managed_class":"Basic 5"},
+    "sir_sam":       {"name":"Sir Sam",        "password":"sam123",    "subjects":["French"],                                                   "is_head":False, "managed_class":"JHS 1"},
+    "ms_gasu":       {"name":"Ms. Gasu",       "password":"gasu123",   "subjects":["English Language","Religious and Moral Education"],          "is_head":False, "managed_class":None},
+    "sir_sackey":    {"name":"Sir Sackey",     "password":"sackey123", "subjects":["Social Studies"],                                           "is_head":False, "managed_class":"Basic 2"},
+    "master":        {"name":"Master",         "password":"master123", "subjects":["Mathematics"],                                              "is_head":False, "managed_class":"JHS 3"},
+    "sir_otoo":      {"name":"Sir Otoo",       "password":"otoo123",   "subjects":["Ghanaian Language"],                                        "is_head":False, "managed_class":None},
+    "mr_tinkorange": {"name":"Mr. Tinkorange", "password":"Sir TK",    "subjects":["Mathematics"],                                              "is_head":False, "managed_class":"Basic 4A"},
+    "mrs_victoria":  {"name":"Mrs. Victoria",  "password":"madvic",    "subjects":["English Language","Religious and Moral Education"],          "is_head":False, "managed_class":"Basic 4B"},
+    "ms_priscilla":  {"name":"Ms. Priscilla",  "password":"priscilla", "subjects":["English Language","Religious and Moral Education","French"], "is_head":False, "managed_class":"Basic 1"},
+    "mr_edem":       {"name":"Mr. Edem",       "password":"siredem",   "subjects":["Social Studies","Ghanaian Language"],                       "is_head":False, "managed_class":"Basic 3"},
 }
 SUBJECTS = ["ICT","Mathematics","Science","English Language","Social Studies",
             "Religious and Moral Education","French","Ghanaian Language",
             "Career Technology","Creative Arts and Design"]
-CLASSES  = ["Basic 4","Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"]
+CLASSES  = ["Basic 1","Basic 2","Basic 3","Basic 4A","Basic 4B",
+            "Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"]
 GRADES   = [(90,100,"A","Excellent"),(80,89,"B","Very Good"),(70,79,"C","Good"),
             (60,69,"D","Average"),(50,59,"E","Below Average"),(0,49,"F","Fail")]
 SUBJECT_COLORS = {
@@ -386,7 +362,8 @@ def add_question():
     if "image" in request.files:
         img=request.files["image"]
         if img and img.filename and allowed_img(img.filename):
-            img_path=upload_image(img,"{}_{}".format(new_id,img.filename))
+            fn=secure_filename("{}_{}".format(new_id,img.filename))
+            img.save(os.path.join(UPLOAD_FOLDER,fn)); img_path="uploads/{}".format(fn)
     base={"id":new_id,"type":qtype,"question":question,"marks":marks,"image":img_path,"assigned_classes":assigned,"strand":strand,"sub_strand":sub_strand}
     if qtype=="mcq": base["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; base["answer"]=request.form.get("answer","").strip()
     elif qtype=="tf": base["answer"]=request.form.get("tf_answer","True")
@@ -418,7 +395,7 @@ def edit_question(subject,qid):
         if "image" in request.files:
             img=request.files["image"]
             if img and img.filename and allowed_img(img.filename):
-                q["image"]=upload_image(img,"{}_{}".format(qid,img.filename))
+                fn=secure_filename("{}_{}".format(qid,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); q["image"]="uploads/{}".format(fn)
         save_qs(subject,qs); return redirect(url_for("dashboard",subject=subject))
     return render_template("edit_question.html",q=q,subject=subject,school=SCHOOL_NAME,
         classes=CLASSES,strands=CURRICULUM_STRANDS.get(subject,{}),subject_color=SUBJECT_COLORS.get(subject,"#2e86ab"))
@@ -464,9 +441,7 @@ def upload_pdf():
     if "pdf" not in request.files: return redirect(url_for("dashboard",subject=subject))
     pdf=request.files["pdf"]
     if not pdf or not pdf.filename or not allowed_pdf(pdf.filename): return redirect(url_for("dashboard",subject=subject))
-    import tempfile
-    with tempfile.NamedTemporaryFile(delete=False,suffix=".pdf") as tmp:
-        pdf.save(tmp.name); fp=tmp.name
+    fp=os.path.join(UPLOAD_FOLDER,secure_filename(pdf.filename)); pdf.save(fp)
     extracted=extract_pdf(fp)
     if extracted:
         qs=load_qs(subject); mid=max((q["id"] for q in qs),default=0)
@@ -835,7 +810,7 @@ def bece_add_question():
     if "image" in request.files:
         img=request.files["image"]
         if img and img.filename and allowed_img(img.filename):
-            img_path=upload_image(img,"bece_{}_{}".format(new_id,img.filename))
+            fn=secure_filename("bece_{}_{}".format(new_id,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); img_path="uploads/{}".format(fn)
     base={"id":new_id,"type":qtype,"question":question,"marks":marks,"image":img_path,"explanation":expl}
     if qtype=="mcq": base["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; base["answer"]=request.form.get("answer","").strip()
     elif qtype=="tf": base["answer"]=request.form.get("tf_answer","True")
@@ -851,9 +826,7 @@ def bece_upload_pdf():
     if "pdf" not in request.files: return redirect(url_for("bece_manage",subject=subject,year=year))
     pdf=request.files["pdf"]
     if not pdf or not allowed_pdf(pdf.filename): return redirect(url_for("bece_manage",subject=subject,year=year))
-    import tempfile
-    with tempfile.NamedTemporaryFile(delete=False,suffix=".pdf") as tmp:
-        pdf.save(tmp.name); fp=tmp.name
+    fp=os.path.join(UPLOAD_FOLDER,secure_filename(pdf.filename)); pdf.save(fp)
     extracted=extract_pdf(fp)
     if extracted:
         qs=load_bece(subject,year); mid=max((q["id"] for q in qs),default=0)
@@ -878,7 +851,7 @@ def bece_edit_question(subject,year,qid):
         if "image" in request.files:
             img=request.files["image"]
             if img and img.filename and allowed_img(img.filename):
-                q["image"]=upload_image(img,"bece_{}_{}".format(qid,img.filename))
+                fn=secure_filename("bece_{}_{}".format(qid,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); q["image"]="uploads/{}".format(fn)
         save_bece(subject,year,qs); return redirect(url_for("bece_manage",subject=subject,year=year))
     return render_template("bece_edit_question.html",q=q,subject=subject,year=year,school=SCHOOL_NAME,subject_color=SUBJECT_COLORS.get(subject,"#c0392b"))
 
@@ -892,6 +865,85 @@ def bece_delete_question(subject,year,qid):
 def no_questions_page():
     return render_template("no_questions.html",school=SCHOOL_NAME,
         subject=request.args.get("subject",""),cls=request.args.get("cls",""))
+
+@app.route("/class_manager")
+def class_manager():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    t = current_teacher()
+    managed = t.get("managed_class")
+    if not managed:
+        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
+            error_message="No Class Assigned",
+            error_detail="You are not assigned as a class manager for any class."), 403
+    # Load all assignments for this class
+    assignments = db_load_assignments(managed)
+    # Load all results to check submissions
+    all_results = load_results()
+    # Build stats for each assignment
+    now = datetime.datetime.now()
+    assignment_stats = []
+    for a in assignments:
+        submitted = [r for r in all_results if
+            r.get("class","") == managed and
+            r.get("subject","") == a["subject"] and
+            r.get("assessment_type","") == a["assessment_type"] and
+            r.get("assessment_label","") == a["title"]]
+        done_names = set(r["name"].strip().lower() for r in submitted)
+        # Calculate due date countdown
+        due = None; countdown = None; overdue = False
+        if a.get("due_date"):
+            try:
+                due = datetime.datetime.strptime(a["due_date"], "%Y-%m-%d")
+                delta = due - now
+                if delta.days < 0:
+                    overdue = True; countdown = "Overdue by {} days".format(abs(delta.days))
+                elif delta.days == 0:
+                    countdown = "Due Today!"
+                else:
+                    countdown = "{} days left".format(delta.days)
+            except: pass
+        assignment_stats.append({
+            "id": a["id"], "title": a["title"], "subject": a["subject"],
+            "assessment_type": a["assessment_type"], "due_date": a.get("due_date",""),
+            "assigned_date": a.get("assigned_date",""), "countdown": countdown,
+            "overdue": overdue, "submitted_count": len(done_names),
+            "submitted_results": submitted,
+        })
+    assignment_stats.sort(key=lambda x: (x["overdue"], x.get("due_date","")))
+    return render_template("class_manager.html", school=SCHOOL_NAME,
+        teacher=t, managed_class=managed, assignments=assignment_stats,
+        subjects=SUBJECTS, assessment_types=ASSESSMENT_TYPES,
+        subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
+        assign_msg=session.pop("assign_msg", None))
+
+@app.route("/assign_work", methods=["POST"])
+def assign_work():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    t = current_teacher()
+    managed = t.get("managed_class")
+    if not managed: return redirect(url_for("dashboard"))
+    title      = request.form.get("title","").strip()
+    subject    = request.form.get("subject","").strip()
+    atype      = request.form.get("assessment_type","class_test")
+    due_date   = request.form.get("due_date","").strip()
+    if not title or not subject:
+        session["assign_msg"] = "err:Please fill in all fields."
+        return redirect(url_for("class_manager"))
+    db_save_assignment({
+        "class": managed, "title": title, "subject": subject,
+        "assessment_type": atype, "due_date": due_date,
+        "assigned_date": datetime.datetime.now().strftime("%Y-%m-%d"),
+        "assigned_by": t.get("name","")
+    })
+    session["assign_msg"] = "ok:Work assigned successfully!"
+    return redirect(url_for("class_manager"))
+
+@app.route("/delete_assignment/<int:aid>")
+def delete_assignment(aid):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    db_delete_assignment(aid)
+    session["assign_msg"] = "ok:Assignment deleted."
+    return redirect(url_for("class_manager"))
 
 if __name__=="__main__":
     try:

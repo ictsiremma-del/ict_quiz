@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Manager — {{ managed_class }}</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a3a5c}
+        .topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+        .topbar h1{font-size:20px;font-weight:700}
+        .topbar .sub{font-size:13px;opacity:.8;margin-top:2px}
+        .topbar-right{display:flex;gap:10px;align-items:center}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;text-decoration:none;transition:.2s}
+        .btn-white{background:white;color:#1a3a5c}
+        .btn-white:hover{background:#e8f0fe}
+        .btn-primary{background:#2e86ab;color:white}
+        .btn-primary:hover{background:#1a6a8a}
+        .btn-danger{background:#e74c3c;color:white}
+        .btn-danger:hover{background:#c0392b}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .container{max-width:1200px;margin:0 auto;padding:24px}
+        .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+        .stat-card{background:white;border-radius:12px;padding:20px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid #2e86ab}
+        .stat-card.green{border-left-color:#27ae60}
+        .stat-card.red{border-left-color:#e74c3c}
+        .stat-card.orange{border-left-color:#f39c12}
+        .stat-num{font-size:36px;font-weight:800;line-height:1}
+        .stat-label{font-size:13px;color:#666;margin-top:4px}
+        .section{background:white;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.06);margin-bottom:24px;overflow:hidden}
+        .section-header{padding:18px 24px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between}
+        .section-header h2{font-size:17px;font-weight:700;color:#1a3a5c}
+        .assign-form{padding:24px;background:#f8fafc;border-bottom:1px solid #eef2f7}
+        .form-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:12px;align-items:end}
+        .form-group{display:flex;flex-direction:column;gap:6px}
+        .form-group label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px}
+        .form-group input,.form-group select{padding:10px 14px;border:1.5px solid #dde3ec;border-radius:8px;font-size:14px;color:#1a3a5c;background:white;outline:none;transition:.2s}
+        .form-group input:focus,.form-group select:focus{border-color:#2e86ab;box-shadow:0 0 0 3px rgba(46,134,171,.1)}
+        .assignments-table{width:100%;border-collapse:collapse}
+        .assignments-table th{padding:12px 16px;text-align:left;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#888;background:#f8fafc;border-bottom:2px solid #eef2f7}
+        .assignments-table td{padding:14px 16px;border-bottom:1px solid #f0f4f8;font-size:14px;vertical-align:middle}
+        .assignments-table tr:last-child td{border-bottom:none}
+        .assignments-table tr:hover td{background:#fafcff}
+        .badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:600}
+        .badge-blue{background:#e3f2fd;color:#1565c0}
+        .badge-green{background:#e8f5e9;color:#2e7d32}
+        .badge-orange{background:#fff3e0;color:#e65100}
+        .badge-red{background:#ffebee;color:#c62828}
+        .badge-gray{background:#f5f5f5;color:#616161}
+        .countdown{font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-block}
+        .countdown.ok{background:#e8f5e9;color:#2e7d32}
+        .countdown.soon{background:#fff3e0;color:#e65100}
+        .countdown.overdue{background:#ffebee;color:#c62828}
+        .progress-bar{height:6px;background:#eef2f7;border-radius:3px;overflow:hidden;margin-top:4px}
+        .progress-fill{height:100%;border-radius:3px;background:#27ae60;transition:.3s}
+        .sub-list{font-size:12px;color:#888;margin-top:2px}
+        .empty{padding:40px;text-align:center;color:#aaa}
+        .empty .icon{font-size:40px;margin-bottom:12px}
+        .msg{padding:12px 20px;border-radius:8px;margin-bottom:20px;font-weight:600;font-size:14px}
+        .msg.ok{background:#e8f5e9;color:#2e7d32;border-left:4px solid #27ae60}
+        .msg.err{background:#ffebee;color:#c62828;border-left:4px solid #e74c3c}
+        .submissions-panel{display:none;padding:16px 20px;background:#f8fafc;border-top:1px solid #eef2f7}
+        .submissions-panel.open{display:block}
+        .sub-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #eef2f7;font-size:13px}
+        .sub-item:last-child{border-bottom:none}
+        .sub-score{font-weight:700;color:#2e86ab}
+        @media(max-width:768px){.form-row{grid-template-columns:1fr;}.stats-row{grid-template-columns:1fr 1fr}}
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div>
+        <div class="topbar h1" style="font-size:20px;font-weight:700">📋 Class Manager — {{ managed_class }}</div>
+        <div class="sub">{{ school }} &nbsp;·&nbsp; {{ teacher.name }}</div>
+    </div>
+    <div class="topbar-right">
+        <a href="/dashboard" class="btn btn-white">📊 Dashboard</a>
+        <a href="/teacher_logout" class="btn btn-white">🚪 Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    {% if assign_msg %}
+        {% set parts = assign_msg.split(':',1) %}
+        <div class="msg {{ parts[0] }}">{{ parts[1] }}</div>
+    {% endif %}
+
+    <!-- Stats Row -->
+    {% set total_assigned = assignments|length %}
+    {% set total_submitted = assignments|sum(attribute='submitted_count') %}
+    {% set overdue_count = assignments|selectattr('overdue')|list|count %}
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-num">{{ total_assigned }}</div>
+            <div class="stat-label">📋 Total Assigned</div>
+        </div>
+        <div class="stat-card green">
+            <div class="stat-num">{{ total_submitted }}</div>
+            <div class="stat-label">✅ Total Submissions</div>
+        </div>
+        <div class="stat-card red">
+            <div class="stat-num">{{ overdue_count }}</div>
+            <div class="stat-label">⚠️ Overdue Assignments</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-num">{{ managed_class }}</div>
+            <div class="stat-label">🏫 Your Class</div>
+        </div>
+    </div>
+
+    <!-- Assign New Work -->
+    <div class="section">
+        <div class="section-header">
+            <h2>➕ Assign New Work</h2>
+        </div>
+        <div class="assign-form">
+            <form method="POST" action="/assign_work">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Assignment Title</label>
+                        <input type="text" name="title" placeholder="e.g. Chapter 3 Quiz" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <select name="subject" required>
+                            {% for s in subjects %}
+                            <option value="{{ s }}">{{ subject_icons.get(s,'📚') }} {{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="assessment_type">
+                            {% for k,v in assessment_types.items() %}
+                            <option value="{{ k }}">{{ v.icon }} {{ v.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" name="due_date">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-primary">Assign</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Assignments List -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📚 Assigned Work for {{ managed_class }}</h2>
+        </div>
+        {% if assignments %}
+        <table class="assignments-table">
+            <thead>
+                <tr>
+                    <th>Assignment</th>
+                    <th>Subject</th>
+                    <th>Type</th>
+                    <th>Due Date</th>
+                    <th>Countdown</th>
+                    <th>Submissions</th>
+                    <th>Progress</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in assignments %}
+                <tr>
+                    <td>
+                        <strong>{{ a.title }}</strong>
+                        <div class="sub-list">Assigned {{ a.assigned_date }} by {{ a.get('assigned_by','') if a is mapping else '' }}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-blue">
+                            {{ subject_icons.get(a.subject,'📚') }} {{ a.subject }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set atype = assessment_types.get(a.assessment_type, {}) %}
+                        <span class="badge badge-gray">{{ atype.get('icon','📝') }} {{ atype.get('label', a.assessment_type) }}</span>
+                    </td>
+                    <td>{{ a.due_date if a.due_date else '—' }}</td>
+                    <td>
+                        {% if a.countdown %}
+                            {% if a.overdue %}
+                                <span class="countdown overdue">⚠️ {{ a.countdown }}</span>
+                            {% elif 'Today' in a.countdown %}
+                                <span class="countdown soon">🔔 {{ a.countdown }}</span>
+                            {% elif a.countdown.split()[0]|int < 3 %}
+                                <span class="countdown soon">⏰ {{ a.countdown }}</span>
+                            {% else %}
+                                <span class="countdown ok">✅ {{ a.countdown }}</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge badge-gray">No deadline</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ a.submitted_count }}</strong> submission{{ 's' if a.submitted_count != 1 else '' }}
+                        {% if a.submitted_results %}
+                        <br><a href="#" onclick="toggleSubs('subs_{{ a.id }}');return false;" style="font-size:12px;color:#2e86ab">View names ▾</a>
+                        {% endif %}
+                    </td>
+                    <td style="min-width:120px">
+                        {% set pct = (a.submitted_count / 5 * 100)|int if a.submitted_count else 0 %}
+                        <div style="font-size:12px;color:#888">{{ a.submitted_count }} done</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width:{{ [pct,100]|min }}%;background:{{ '#e74c3c' if a.overdue else '#27ae60' }}"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="/delete_assignment/{{ a.id }}" class="btn btn-danger btn-sm"
+                           onclick="return confirm('Delete this assignment?')">🗑️</a>
+                    </td>
+                </tr>
+                {% if a.submitted_results %}
+                <tr>
+                    <td colspan="8" style="padding:0">
+                        <div class="submissions-panel" id="subs_{{ a.id }}">
+                            <strong style="font-size:13px;color:#1a3a5c">Submissions for "{{ a.title }}":</strong>
+                            {% for r in a.submitted_results %}
+                            <div class="sub-item">
+                                <span>👤 {{ r.name }}</span>
+                                <span class="sub-score">{{ r.score }}/{{ r.total }} ({{ r.percentage }}%)</span>
+                                <span class="badge badge-{{ 'green' if r.grade in ['A','B'] else 'orange' if r.grade == 'C' else 'red' }}">{{ r.grade }}</span>
+                                <span style="color:#aaa;font-size:12px">{{ r.date }} {{ r.time }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty">
+            <div class="icon">📭</div>
+            <strong>No assignments yet</strong>
+            <p style="margin-top:8px;color:#bbb">Use the form above to assign work to {{ managed_class }}</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function toggleSubs(id){
+    var el = document.getElementById(id);
+    el.classList.toggle('open');
+}
+// Set min date for due date input to today
+var dateInput = document.querySelector('input[type="date"]');
+if(dateInput){
+    var today = new Date().toISOString().split('T')[0];
+    dateInput.min = today;
+}
+</script>
+</body>
+</html>

@@ -7,19 +7,15 @@ import os, json, datetime
 # Detect environment
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
-# Fix for Railway: convert postgres:// to postgresql:// if needed
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-
 def get_db():
     """Get database connection - PostgreSQL on Railway, SQLite locally"""
     if DATABASE_URL and DATABASE_URL.startswith("postgresql"):
         try:
             import psycopg2
-            conn = psycopg2.connect(DATABASE_URL)
+            conn = psycopg2.connect(DATABASE_URL, sslmode="require")
             return conn, "postgres"
         except Exception as e:
-            print("PostgreSQL connection error:", e)
+            print("PostgreSQL error:", e)
     # Fall back to SQLite
     import sqlite3
     conn = sqlite3.connect("quiz_data.db")
@@ -79,6 +75,19 @@ def init_db():
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS assignments (
+                id SERIAL PRIMARY KEY,
+                class TEXT NOT NULL,
+                title TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                assessment_type TEXT NOT NULL,
+                due_date TEXT,
+                assigned_date TEXT,
+                assigned_by TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            )
+        """)
     else:
         # SQLite syntax
         cur.execute("""
@@ -114,6 +123,19 @@ def init_db():
                 subject TEXT NOT NULL,
                 year TEXT NOT NULL,
                 data TEXT NOT NULL,
+                created_at TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class TEXT NOT NULL,
+                title TEXT NOT NULL,
+                subject TEXT NOT NULL,
+                assessment_type TEXT NOT NULL,
+                due_date TEXT,
+                assigned_date TEXT,
+                assigned_by TEXT,
                 created_at TEXT
             )
         """)
@@ -380,3 +402,52 @@ def _file_load_bece(subject, year):
 def _file_save_bece(subject, year, qs):
     f = "bece_{}_{}.json".format(subject.replace(" ","_"), year)
     json.dump(qs, open(f,"w"), indent=2)
+
+# ── Assignments ────────────────────────────────────────────────────
+
+def db_load_assignments(class_name):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("SELECT * FROM assignments WHERE class=%s ORDER BY due_date ASC", (class_name,))
+        else:
+            cur.execute("SELECT * FROM assignments WHERE class=? ORDER BY due_date ASC", (class_name,))
+        rows = cur.fetchall(); cur.close(); conn.close()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        print("db_load_assignments error:", e)
+        return []
+
+def db_save_assignment(a):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("""
+                INSERT INTO assignments (class, title, subject, assessment_type, due_date, assigned_date, assigned_by)
+                VALUES (%s,%s,%s,%s,%s,%s,%s)
+            """, (a["class"], a["title"], a["subject"], a["assessment_type"],
+                  a.get("due_date",""), a.get("assigned_date",""), a.get("assigned_by","")))
+        else:
+            cur.execute("""
+                INSERT INTO assignments (class, title, subject, assessment_type, due_date, assigned_date, assigned_by, created_at)
+                VALUES (?,?,?,?,?,?,?,?)
+            """, (a["class"], a["title"], a["subject"], a["assessment_type"],
+                  a.get("due_date",""), a.get("assigned_date",""), a.get("assigned_by",""),
+                  datetime.datetime.now().isoformat()))
+        conn.commit(); cur.close(); conn.close()
+    except Exception as e:
+        print("db_save_assignment error:", e)
+
+def db_delete_assignment(aid):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            cur.execute("DELETE FROM assignments WHERE id=%s", (aid,))
+        else:
+            cur.execute("DELETE FROM assignments WHERE id=?", (aid,))
+        conn.commit(); cur.close(); conn.close()
+    except Exception as e:
+        print("db_delete_assignment error:", e)

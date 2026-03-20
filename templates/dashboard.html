@@ -94,6 +94,9 @@ tr:hover td{background:#fafafa}
     <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
     <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
     {% endif %}
+    {% if teacher.managed_class %}
+<a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
+{% endif %}
     <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
     <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
   </div>
@@ -109,7 +112,7 @@ tr:hover td{background:#fafafa}
     <div class="tb-icon">👤</div>
     <div>
       <div class="tb-name">{{ teacher.name }}{% if is_head %} — Head Teacher{% endif %}</div>
-      <div class="tb-sub">Subjects: {{ teacher.subjects|join(', ') }}</div>
+      <div class="tb-sub">Subjects: {{ teacher.subjects|join(', ') }}{% if teacher.managed_class %} &nbsp;·&nbsp; 📋 Class Manager: {{ teacher.managed_class }}{% endif %}</div>
     </div>
   </div>
 
