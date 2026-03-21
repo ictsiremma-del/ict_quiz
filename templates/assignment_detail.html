@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>{{ assignment.title }} — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+.topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:17px;font-weight:700}
+.topbar p{font-size:11px;opacity:.8;margin-top:2px}
+.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block}
+.bw{background:rgba(255,255,255,.2);color:white}
+.container{max-width:960px;margin:0 auto;padding:20px 14px}
+.card{background:white;border-radius:14px;padding:24px;margin-bottom:18px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.card h2{font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid #f0f4f8}
+.meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px}
+.meta-item{background:#f8fafc;border-radius:10px;padding:14px;text-align:center}
+.meta-item .v{font-size:22px;font-weight:800;color:#1a3a5c}
+.meta-item .l{font-size:11px;color:#888;margin-top:3px}
+.countdown{font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;display:inline-block;margin-bottom:16px}
+.countdown.ok{background:#e8f5e9;color:#2e7d32}
+.countdown.soon{background:#fff3e0;color:#e65100}
+.countdown.overdue{background:#ffebee;color:#c62828}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8f9fa;padding:9px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e0e0}
+td{padding:9px 12px;border-bottom:1px solid #f5f5f5}
+tr:hover td{background:#fafafa}
+.gb{display:inline-block;padding:2px 8px;border-radius:7px;font-weight:700;font-size:11px;color:white}
+.ga{background:#27ae60}.gb2{background:#2980b9}.gc{background:#8e44ad}
+.gd{background:#f39c12}.ge{background:#e67e22}.gf{background:#e74c3c}
+.empty{text-align:center;color:#bbb;padding:32px;font-size:14px}
+.assign-info{background:linear-gradient(135deg,#f0f4f8,#e8f0fe);border-radius:12px;padding:16px;margin-bottom:20px;display:flex;gap:20px;flex-wrap:wrap}
+.assign-info .ai-item{font-size:13px;color:#555}
+.assign-info .ai-item strong{color:#1a3a5c}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div>
+    <h1>📋 {{ assignment.title }}</h1>
+    <p>{{ school }} — Assignment Details</p>
+  </div>
+  <a href="/class_manager?class={{ assignment.class }}" class="btn-sm bw">← Back to Class</a>
+</div>
+
+<div class="container">
+  <!-- Assignment Info -->
+  <div class="card">
+    <h2>📌 Assignment Information</h2>
+    <div class="assign-info">
+      <div class="ai-item"><strong>Subject:</strong><br>{{ subject_icons.get(assignment.subject,'📚') }} {{ assignment.subject }}</div>
+      <div class="ai-item"><strong>Class:</strong><br>🏫 {{ assignment.class }}</div>
+      <div class="ai-item"><strong>Type:</strong><br>{{ assessment_types.get(assignment.assessment_type,{}).get('icon','📝') }} {{ assessment_types.get(assignment.assessment_type,{}).get('label', assignment.assessment_type) }}</div>
+      <div class="ai-item"><strong>Assigned By:</strong><br>👤 {{ assignment.get('assigned_by','—') }}</div>
+      <div class="ai-item"><strong>Assigned Date:</strong><br>📅 {{ assignment.assigned_date or '—' }}</div>
+      <div class="ai-item"><strong>Due Date:</strong><br>⏰ {{ assignment.due_date or 'No deadline' }}</div>
+    </div>
+
+    {% if assignment.due_date %}
+      {% set due = assignment.due_date %}
+      <div style="margin-top:8px">
+        <span class="countdown ok">📅 Due: {{ due }}</span>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="card">
+    <h2>📊 Submission Statistics</h2>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="v">{{ submitted|length }}</div>
+        <div class="l">✅ Submitted</div>
+      </div>
+      <div class="meta-item">
+        <div class="v">{{ questions|length }}</div>
+        <div class="l">❓ Questions</div>
+      </div>
+      <div class="meta-item">
+        <div class="v">
+          {% if submitted %}
+            {{ (submitted|sum(attribute='percentage') / submitted|length)|round(1) }}%
+          {% else %}0%{% endif %}
+        </div>
+        <div class="l">📈 Avg Score</div>
+      </div>
+      <div class="meta-item">
+        <div class="v">
+          {% if submitted %}
+            {{ submitted|selectattr('grade','in',['A','B'])|list|length }}
+          {% else %}0{% endif %}
+        </div>
+        <div class="l">🏆 Pass (A/B)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Submissions -->
+  <div class="card">
+    <h2>👨‍🎓 Student Submissions</h2>
+    {% if submitted %}
+    <table>
+      <thead>
+        <tr><th>#</th><th>Student Name</th><th>Score</th><th>%</th><th>Grade</th><th>Date</th><th>Time</th></tr>
+      </thead>
+      <tbody>
+        {% for r in submitted %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ r.name }}</strong></td>
+          <td>{{ r.score }}/{{ r.total }}</td>
+          <td>{{ r.percentage }}%</td>
+          <td>
+            <span class="gb g{{ r.grade.lower() if r.grade else 'f' }}">{{ r.grade }}</span>
+          </td>
+          <td>{{ r.date }}</td>
+          <td>{{ r.time }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">
+      📭 No submissions yet for this assignment.
+    </div>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

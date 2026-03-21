@@ -180,7 +180,7 @@
                 {% for a in assignments %}
                 <tr>
                     <td>
-                        <strong>{{ a.title }}</strong>
+                        <strong><a href="/open_assignment/{{ a.id }}" style="color:#1a3a5c;text-decoration:none">{{ a.title }}</a></strong>
                         <div class="sub-list">Assigned {{ a.assigned_date }} by {{ a.get('assigned_by','') if a is mapping else '' }}</div>
                     </td>
                     <td>

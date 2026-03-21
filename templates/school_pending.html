@@ -3,35 +3,67 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>{{ school.school_name }} — Pending Approval</title>
+<title>{{ school.school_name }} — ICT Quiz System</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:white;border-radius:20px;padding:48px 40px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.card{background:white;border-radius:20px;padding:48px 40px;max-width:500px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .icon{font-size:64px;margin-bottom:16px}
 h1{font-size:22px;font-weight:800;color:#1a3a5c;margin-bottom:10px}
 p{font-size:14px;color:#666;line-height:1.7;margin-bottom:12px}
-.school-name{font-size:18px;font-weight:700;color:#2e86ab;margin-bottom:20px}
-.info-box{background:#fef9e7;border-radius:12px;padding:16px;border-left:4px solid #f39c12;text-align:left;margin:20px 0}
-.info-box p{font-size:13px;color:#7d6608}
-.btn{display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin-top:8px}
+.school-name{font-size:20px;font-weight:800;color:#2e86ab;margin-bottom:8px}
+.school-region{font-size:13px;color:#888;margin-bottom:20px}
+.info-box{border-radius:12px;padding:16px;text-align:left;margin:20px 0}
+.info-box.pending{background:#fef9e7;border-left:4px solid #f39c12}
+.info-box.approved{background:#e8f5e9;border-left:4px solid #27ae60}
+.info-box p{font-size:13px}
+.info-box.pending p{color:#7d6608}
+.info-box.approved p{color:#1b5e20}
+.btn{display:inline-block;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;margin:6px}
+.btn-primary{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white}
+.btn-outline{border:2px solid #2e86ab;color:#2e86ab}
+.badge{display:inline-block;padding:4px 14px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:16px}
+.badge-pending{background:#fef9e7;color:#e67e22;border:1px solid #f9ca24}
+.badge-approved{background:#d5f5e3;color:#27ae60;border:1px solid #82e0aa}
+.contact{font-size:12px;color:#aaa;margin-top:16px}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="icon">⏳</div>
-  <h1>Awaiting Approval</h1>
-  <div class="school-name">{{ school.school_name }}</div>
-  <p>Your school registration has been received and is currently being reviewed by the system administrator.</p>
-  <div class="info-box">
-    <p><strong>What happens next?</strong></p>
-    <p>• The administrator will review your registration<br>
-       • You will be notified once approved<br>
-       • Approval usually takes 1-2 business days<br>
-       • Your school link will become active after approval</p>
-  </div>
-  <p style="font-size:12px;color:#aaa">Registered by: {{ school.head_name }}</p>
-  <a href="/" class="btn">← Back to Home</a>
+  {% if school.status == 'approved' %}
+    <div class="icon">🎉</div>
+    <span class="badge badge-approved">✅ Approved</span>
+    <div class="school-name">{{ school.school_name }}</div>
+    <div class="school-region">📍 {{ school.region or 'Ghana' }}</div>
+    <p>Your school has been <strong>approved</strong> and is now active on the ICT Quiz System!</p>
+    <div class="info-box approved">
+      <p><strong>Head Teacher:</strong> {{ school.head_name }}<br>
+         {% if school.head_phone %}<strong>Phone:</strong> {{ school.head_phone }}<br>{% endif %}
+         {% if school.head_email %}<strong>Email:</strong> {{ school.head_email }}{% endif %}
+      </p>
+    </div>
+    <p style="font-size:13px;color:#888">The full quiz system for your school is coming soon. Contact the administrator for your teacher login details.</p>
+    <a href="/" class="btn btn-primary">🏠 Back to Home</a>
+    <a href="/register" class="btn btn-outline">Register Another School</a>
+  {% else %}
+    <div class="icon">⏳</div>
+    <span class="badge badge-pending">⏳ Pending</span>
+    <div class="school-name">{{ school.school_name }}</div>
+    <div class="school-region">📍 {{ school.region or 'Ghana' }}</div>
+    <p>Your school registration has been received and is currently being reviewed.</p>
+    <div class="info-box pending">
+      <p><strong>What happens next?</strong><br><br>
+         • The administrator will review your registration<br>
+         • Approval usually takes 1-2 business days<br>
+         • Your school quiz system will be activated after approval<br>
+         • Keep this link saved for future access
+      </p>
+    </div>
+    <div class="contact">Registered by: {{ school.head_name }}
+      {% if school.head_phone %} · 📞 {{ school.head_phone }}{% endif %}
+    </div>
+    <a href="/" class="btn btn-primary" style="margin-top:16px">🏠 Back to Home</a>
+  {% endif %}
 </div>
 </body>
 </html>

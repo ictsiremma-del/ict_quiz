@@ -284,9 +284,34 @@ def submit():
         qid=str(q["id"]); qtype=q["type"]; given=request.form.get("q{}".format(qid),"").strip()
         correct=q.get("answer","").strip(); marks=q["marks"]
         if qtype in ["mcq","tf","fitb"]:
-            right=given.lower()==correct.lower(); got=marks if right else 0; earned+=got
-            details.append({"question":q["question"],"type":qtype,"given":given or "Not answered",
-                "correct":correct,"correct_flag":right,"marks_earned":got,"marks_total":marks,
+            # For MCQ: handle both letter (A/B/C/D) and full text answers
+            if qtype=="mcq":
+                opts=q.get("options",[])
+                letters=["A","B","C","D"]
+                # Convert given full text to letter if needed
+                given_letter=given
+                if given and given.upper() not in letters:
+                    for i,opt in enumerate(opts):
+                        if opt.strip().lower()==given.strip().lower() and i<4:
+                            given_letter=letters[i]; break
+                # Convert correct full text to letter if needed
+                correct_letter=correct
+                if correct and correct.upper() not in letters:
+                    for i,opt in enumerate(opts):
+                        if opt.strip().lower()==correct.strip().lower() and i<4:
+                            correct_letter=letters[i]; break
+                right=given_letter.upper()==correct_letter.upper()
+                # Store the full text for display
+                given_display=given or "Not answered"
+                correct_display=opts[letters.index(correct_letter)] if correct_letter.upper() in letters and letters.index(correct_letter)<len(opts) else correct
+            else:
+                right=given.lower()==correct.lower()
+                given_display=given or "Not answered"
+                correct_display=correct
+            got=marks if right else 0; earned+=got
+            details.append({"question":q["question"],"type":qtype,
+                "given":given_display,"correct":correct_display,
+                "correct_flag":right,"marks_earned":got,"marks_total":marks,
                 "strand":q.get("strand",""),"image":q.get("image","")})
         elif qtype=="theory":
             got,matched=keyword_score(given,q.get("model_answer",""),marks); earned+=got
@@ -903,6 +928,14 @@ def class_manager():
     all_results = load_results()
     # Build stats for each assignment
     now = datetime.datetime.now()
+    # Filter assignments: class manager sees all, subject teachers see only their own
+    filtered_assignments = []
+    for a in assignments:
+        is_manager = (managed == view_class)
+        is_assigner = (a.get("assigned_by","") == t.get("name",""))
+        if is_manager or is_assigner or t.get("is_head"):
+            filtered_assignments.append(a)
+    assignments = filtered_assignments
     assignment_stats = []
     for a in assignments:
         submitted = [r for r in all_results if
@@ -1100,14 +1133,32 @@ def school_home(school_code):
     if not school: return render_template("error.html", school="Quiz System",
         error_code=404, error_message="School Not Found",
         error_detail="This school link is invalid or has been removed."), 404
-    if school["status"] != "approved":
-        return render_template("school_pending.html", school=school)
-    return render_template("school_index.html", school=school,
-        classes=CLASSES, subjects=SUBJECTS,
-        subject_colors=SUBJECT_COLORS, subject_icons=SUBJECT_ICONS,
-        assessment_types=ASSESSMENT_TYPES)
+    return render_template("school_pending.html", school=school)
 
-@app.route("/bulk_copy_to_bank", methods=["POST"])
+@app.route("/open_assignment/<int:aid>")
+def open_assignment(aid):
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    # Load all assignments and find this one
+    from database import db_load_bank
+    all_assign = []
+    for cls in CLASSES:
+        all_assign.extend(db_load_assignments(cls))
+    a = next((x for x in all_assign if x.get("id")==aid), None)
+    if not a: return redirect(url_for("class_manager"))
+    # Show assignment details and submissions
+    all_results = load_results()
+    submitted = [r for r in all_results if
+        r.get("class","") == a["class"] and
+        r.get("subject","") == a["subject"] and
+        r.get("assessment_type","") == a["assessment_type"] and
+        r.get("assessment_label","") == a["title"]]
+    qs = load_qs(a["subject"])
+    # Filter questions for this class
+    cls_qs = [q for q in qs if not q.get("assigned_classes") or a["class"] in q.get("assigned_classes",[])]
+    return render_template("assignment_detail.html", school=SCHOOL_NAME,
+        assignment=a, submitted=submitted, questions=cls_qs,
+        subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
+        assessment_types=ASSESSMENT_TYPES, grade_color=gcolor)
 def bulk_copy_to_bank():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     subject = request.form.get("subject","")
