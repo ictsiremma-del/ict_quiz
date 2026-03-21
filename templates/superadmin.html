@@ -80,7 +80,7 @@ tr:hover td{background:#fafafa}
             {% if s.head_phone %}<div>📞 {{ s.head_phone }}</div>{% endif %}
             {% if s.head_email %}<div>✉️ {{ s.head_email }}</div>{% endif %}
           </td>
-          <td style="font-size:11px;color:#888">{{ s.created_at[:10] if s.created_at else '—' }}</td>
+          <td style="font-size:11px;color:#888">{{ s.created_at|string|truncate(10,true,'') if s.created_at else '—' }}</td>
           <td><span class="school-link">/school/{{ s.school_code }}</span></td>
           <td>
             <form method="POST" style="display:inline">
@@ -116,7 +116,7 @@ tr:hover td{background:#fafafa}
           <td>{{ s.head_name }}</td>
           <td>{{ s.region or '—' }}</td>
           <td><a href="/school/{{ s.school_code }}" class="school-link" target="_blank">/school/{{ s.school_code }}</a></td>
-          <td style="font-size:11px;color:#888">{{ s.approved_at[:10] if s.approved_at else '—' }}</td>
+          <td style="font-size:11px;color:#888">{{ s.approved_at|string|truncate(10,true,'') if s.approved_at else '—' }}</td>
           <td><span class="badge b-approved">✅ Active</span></td>
         </tr>
         {% endfor %}
@@ -139,7 +139,7 @@ tr:hover td{background:#fafafa}
           <td>{{ s.school_name }}</td>
           <td>{{ s.head_name }}</td>
           <td>{{ s.region or '—' }}</td>
-          <td style="font-size:11px;color:#888">{{ s.created_at[:10] if s.created_at else '—' }}</td>
+          <td style="font-size:11px;color:#888">{{ s.created_at|string|truncate(10,true,'') if s.created_at else '—' }}</td>
           <td><span class="badge b-rejected">❌ Rejected</span></td>
         </tr>
         {% endfor %}

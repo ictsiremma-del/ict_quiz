@@ -198,17 +198,20 @@ def init_db():
 def db_load_results():
     try:
         conn, db_type = get_db()
-        cur = conn.cursor()
+        if db_type == "postgres":
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+        else:
+            cur = conn.cursor()
         cur.execute("SELECT * FROM results ORDER BY id")
         rows = cur.fetchall()
         cur.close(); conn.close()
         results = []
         for row in rows:
+            r = dict(row)
             if db_type == "postgres":
-                r = dict(row)
                 r["details"] = r.get("details") or []
             else:
-                r = dict(row)
                 r["details"] = json.loads(r.get("details") or "[]")
             results.append(r)
         return results
