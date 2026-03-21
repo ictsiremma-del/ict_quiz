@@ -119,10 +119,11 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
       {% if q.type=='mcq' %}
       <div class="options">
         {% for opt in q.options %}
+        {% set letter = ['A','B','C','D'][loop.index0] %}
         <label class="opt" onclick="mk({{ q.id }})">
-          <input type="radio" name="q{{ q.id }}" value="{{ opt }}"
-            {% if saved_answers and saved_answers.get('q'~q.id)==opt %}checked{% endif %}>
-          <span>{{ opt }}</span>
+          <input type="radio" name="q{{ q.id }}" value="{{ letter }}"
+            {% if saved_answers and saved_answers.get('q'~q.id)==letter %}checked{% endif %}>
+          <span><strong>{{ letter }}.</strong> {{ opt }}</span>
         </label>
         {% endfor %}
       </div>

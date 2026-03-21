@@ -284,26 +284,24 @@ def submit():
         qid=str(q["id"]); qtype=q["type"]; given=request.form.get("q{}".format(qid),"").strip()
         correct=q.get("answer","").strip(); marks=q["marks"]
         if qtype in ["mcq","tf","fitb"]:
-            # For MCQ: handle both letter (A/B/C/D) and full text answers
             if qtype=="mcq":
-                opts=q.get("options",[])
-                letters=["A","B","C","D"]
-                # Convert given full text to letter if needed
-                given_letter=given
-                if given and given.upper() not in letters:
+                opts=q.get("options",[]); letters=["A","B","C","D"]
+                # Normalize given to letter
+                given_letter=given.upper() if given.upper() in letters else ""
+                if not given_letter:
                     for i,opt in enumerate(opts):
                         if opt.strip().lower()==given.strip().lower() and i<4:
                             given_letter=letters[i]; break
-                # Convert correct full text to letter if needed
-                correct_letter=correct
-                if correct and correct.upper() not in letters:
+                # Normalize correct to letter
+                correct_letter=correct.upper() if correct.upper() in letters else ""
+                if not correct_letter:
                     for i,opt in enumerate(opts):
                         if opt.strip().lower()==correct.strip().lower() and i<4:
                             correct_letter=letters[i]; break
-                right=given_letter.upper()==correct_letter.upper()
-                # Store the full text for display
-                given_display=given or "Not answered"
-                correct_display=opts[letters.index(correct_letter)] if correct_letter.upper() in letters and letters.index(correct_letter)<len(opts) else correct
+                right = given_letter==correct_letter if given_letter and correct_letter else False
+                # Get full text for display
+                given_display = "{}: {}".format(given_letter, opts[letters.index(given_letter)] if given_letter in letters and letters.index(given_letter)<len(opts) else given_letter) if given_letter else "Not answered"
+                correct_display = "{}: {}".format(correct_letter, opts[letters.index(correct_letter)] if correct_letter in letters and letters.index(correct_letter)<len(opts) else correct_letter) if correct_letter else correct
             else:
                 right=given.lower()==correct.lower()
                 given_display=given or "Not answered"
@@ -822,8 +820,27 @@ def bece_submit():
         qid=str(q["id"]); given=request.form.get("q{}".format(qid),"").strip()
         correct=q.get("answer","").strip(); marks=q["marks"]
         if q["type"] in ["mcq","tf","fitb"]:
-            right=given.lower()==correct.lower(); got=marks if right else 0; earned+=got
-            details.append({"question":q["question"],"type":q["type"],"given":given or "Not answered","correct":correct,"correct_flag":right,"marks_earned":got,"marks_total":marks,"explanation":q.get("explanation",""),"image":q.get("image","")})
+            if q["type"]=="mcq":
+                opts=q.get("options",[]); letters=["A","B","C","D"]
+                given_letter=given.upper() if given.upper() in letters else ""
+                if not given_letter:
+                    for i,opt in enumerate(opts):
+                        if opt.strip().lower()==given.strip().lower() and i<4:
+                            given_letter=letters[i]; break
+                correct_letter=correct.upper() if correct.upper() in letters else ""
+                if not correct_letter:
+                    for i,opt in enumerate(opts):
+                        if opt.strip().lower()==correct.strip().lower() and i<4:
+                            correct_letter=letters[i]; break
+                right=given_letter==correct_letter if given_letter and correct_letter else False
+                given_display="{}: {}".format(given_letter,opts[letters.index(given_letter)] if given_letter in letters and letters.index(given_letter)<len(opts) else given_letter) if given_letter else "Not answered"
+                correct_display="{}: {}".format(correct_letter,opts[letters.index(correct_letter)] if correct_letter in letters and letters.index(correct_letter)<len(opts) else correct_letter) if correct_letter else correct
+            else:
+                right=given.lower()==correct.lower()
+                given_display=given or "Not answered"
+                correct_display=correct
+            got=marks if right else 0; earned+=got
+            details.append({"question":q["question"],"type":q["type"],"given":given_display,"correct":correct_display,"correct_flag":right,"marks_earned":got,"marks_total":marks,"explanation":q.get("explanation",""),"image":q.get("image","")})
         elif q["type"]=="theory":
             got,matched=keyword_score(given,q.get("model_answer",""),marks); earned+=got
             details.append({"question":q["question"],"type":"theory","given":given or "Not answered","correct":q.get("model_answer",""),"correct_flag":got>=marks*0.5,"marks_earned":got,"marks_total":marks,"matched_keywords":matched,"explanation":q.get("explanation",""),"image":q.get("image","")})
