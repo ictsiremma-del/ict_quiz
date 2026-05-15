@@ -412,9 +412,9 @@ def google_callback():
     uid=email.split("@")[0] if email else None
     t=TEACHERS.get(uid)
     if not t:
-        t={"name": profile.get("name","Google User"),"subjects":[],"is_head":False,"managed_class":None}
+        return redirect(url_for("teacher", error="This Google account is not linked to a teacher record."))
     session["teacher"]=True
-    session["teacher_data"]={**t,"uid":uid or email}
+    session["teacher_data"]={**t,"uid":uid}
     return redirect(url_for("dashboard"))
 
 @app.route("/teacher_logout")
