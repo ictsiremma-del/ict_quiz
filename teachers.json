@@ -1,0 +1,13 @@
+{
+  "sir emma": {
+    "name": "Emmanuel Gibson",
+    "password": "Letgohome233",
+    "subjects": [
+      "ICT"
+    ],
+    "is_head": false,
+    "managed_class": null,
+    "email": "ict.siremma@gmail.com",
+    "status": "approved"
+  }
+}

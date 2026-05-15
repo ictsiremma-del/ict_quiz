@@ -40,6 +40,7 @@ HOMEWORK_FILE= "homework_saves.json"
 UPLOAD_FOLDER= "static/uploads"
 ALLOWED_IMG  = {"png","jpg","jpeg","gif","webp"}
 ALLOWED_PDF  = {"pdf"}
+TEACHERS_FILE = "teachers.json"
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "523848643345-5pjbo9avqt8b8s2gm1rc9u4mrk7cfkcf.apps.googleusercontent.com")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "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")
 GOOGLE_AUTH_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5000/google-callback")
@@ -51,6 +52,30 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs("static", exist_ok=True)
 os.makedirs("backups", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
+
+def load_custom_teachers():
+    if not os.path.exists(TEACHERS_FILE):
+        with open(TEACHERS_FILE,"w",encoding="utf-8") as f:
+            json.dump({}, f)
+        return {}
+    try:
+        with open(TEACHERS_FILE,"r",encoding="utf-8") as f:
+            return json.load(f) or {}
+    except Exception as e:
+        print("Unable to load teachers file:", e)
+        return {}
+
+
+def save_custom_teachers(data):
+    try:
+        with open(TEACHERS_FILE,"w",encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print("Unable to save teachers file:", e)
+
+
+CUSTOM_TEACHERS = load_custom_teachers()
+
 # Initialise database on startup
 try:
     init_db()
@@ -162,6 +187,31 @@ def get_qs_for_student(subject,cls,shuffle=True,strand=None,sub_strand=None):
                 opts=q["options"].copy(); random.shuffle(opts); q["options"]=opts
     return filtered
 def current_teacher(): return session.get("teacher_data")
+
+def get_teacher_by_id(uid):
+    if not uid: return None, None
+    if uid in TEACHERS:
+        return uid, TEACHERS[uid]
+    if uid in CUSTOM_TEACHERS:
+        return uid, CUSTOM_TEACHERS[uid]
+    lower = uid.lower()
+    for key, teacher in {**TEACHERS, **CUSTOM_TEACHERS}.items():
+        if teacher.get("email","",).lower() == lower:
+            return key, teacher
+    return None, None
+
+
+def teacher_exists(uid, email=None):
+    _, teacher = get_teacher_by_id(uid)
+    if teacher:
+        return True
+    if email:
+        lower = email.lower()
+        for teacher in {**TEACHERS, **CUSTOM_TEACHERS}.values():
+            if teacher.get("email","",).lower() == lower:
+                return True
+    return False
+
 def can_access(subject):
     t=current_teacher()
     if not t: return False
@@ -352,12 +402,40 @@ def submit():
 def teacher():
     if request.method=="POST":
         uid=request.form.get("username","").strip(); pwd=request.form.get("password","").strip()
-        t=TEACHERS.get(uid)
-        if t and t["password"]==pwd:
-            session["teacher"]=True; session["teacher_data"]={**t,"uid":uid}
-            return redirect(url_for("dashboard"))
-        return render_template("teacher_login.html",error="Wrong username or password.",school=SCHOOL_NAME,teachers=TEACHERS)
-    return render_template("teacher_login.html",school=SCHOOL_NAME,error=request.args.get("error"),teachers=TEACHERS)
+        stored_uid, t = get_teacher_by_id(uid)
+        if t:
+            status = t.get("status","approved")
+            if status == "pending":
+                return render_template("teacher_login.html",error="Your registration is pending admin approval.",school=SCHOOL_NAME)
+            if status == "rejected":
+                return render_template("teacher_login.html",error="Your registration was rejected. Contact the administrator.",school=SCHOOL_NAME)
+            if t.get("password") == pwd:
+                session["teacher"] = True; session["teacher_data"] = {**t, "uid": stored_uid}
+                return redirect(url_for("dashboard"))
+        return render_template("teacher_login.html",error="Wrong username or password.",school=SCHOOL_NAME)
+    return render_template("teacher_login.html",school=SCHOOL_NAME,error=request.args.get("error"))
+
+@app.route("/teacher_register", methods=["GET","POST"])
+def teacher_register():
+    if request.method=="POST":
+        name=request.form.get("name","\"").strip()
+        uid=request.form.get("uid","\"").strip().lower()
+        email=request.form.get("email","\"").strip().lower()
+        password=request.form.get("password","")
+        confirm=request.form.get("confirm_password","")
+        subjects=request.form.getlist("subjects")
+        if not (name and uid and password and confirm and subjects):
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Please fill in all fields and select at least one subject.")
+        if password != confirm:
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Passwords do not match.")
+        if teacher_exists(uid, email):
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="A teacher with that username or email already exists.")
+        if any(s not in SUBJECTS for s in subjects):
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Please select valid subjects.")
+        CUSTOM_TEACHERS[uid] = {"name":name,"password":password,"subjects":subjects,"is_head":False,"managed_class":None,"email":email,"status":"pending"}
+        save_custom_teachers(CUSTOM_TEACHERS)
+        return redirect(url_for("teacher", error="Registration submitted and is pending admin approval."))
+    return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error=None)
 
 @app.route("/google-login")
 def google_login():
@@ -410,12 +488,21 @@ def google_callback():
     profile=profile_resp.json()
     email=profile.get("email","")
     uid=email.split("@")[0] if email else None
-    t=TEACHERS.get(uid)
-    if not t:
-        return redirect(url_for("teacher", error="This Google account is not linked to a teacher record."))
-    session["teacher"]=True
-    session["teacher_data"]={**t,"uid":uid}
-    return redirect(url_for("dashboard"))
+    stored_uid, t = get_teacher_by_id(uid or email)
+    if t:
+        status = t.get("status","approved")
+        if status == "pending":
+            return redirect(url_for("teacher", error="Your Google account is pending admin approval."))
+        if status == "rejected":
+            return redirect(url_for("teacher", error="Your Google registration was rejected."))
+        session["teacher"] = True
+        session["teacher_data"] = {**t, "uid": stored_uid}
+        return redirect(url_for("dashboard"))
+    created_uid = email or uid
+    t = {"name": profile.get("name","Google User"),"password":"","subjects":SUBJECTS,"is_head":False,"managed_class":None,"email":email,"status":"pending"}
+    CUSTOM_TEACHERS[created_uid] = t
+    save_custom_teachers(CUSTOM_TEACHERS)
+    return redirect(url_for("teacher", error="Google account registration submitted and is pending admin approval."))
 
 @app.route("/teacher_logout")
 def teacher_logout(): session.clear(); return redirect(url_for("index"))
@@ -1198,16 +1285,28 @@ def superadmin():
     if not t or not t.get("is_head"): return redirect(url_for("teacher"))
     if request.method == "POST":
         school_id = request.form.get("school_id")
+        teacher_uid = request.form.get("teacher_uid")
         action    = request.form.get("action")
         if school_id and action in ["approved","rejected"]:
             db_update_school_status(int(school_id), action)
+            session["admin_msg"] = "School status updated."
+        if teacher_uid and action in ["approved","rejected"] and teacher_uid in CUSTOM_TEACHERS:
+            CUSTOM_TEACHERS[teacher_uid]["status"] = action
+            save_custom_teachers(CUSTOM_TEACHERS)
+            session["admin_msg"] = "Teacher status updated."
     schools = db_get_all_schools()
     pending  = [s for s in schools if s["status"]=="pending"]
     approved = [s for s in schools if s["status"]=="approved"]
     rejected = [s for s in schools if s["status"]=="rejected"]
+    all_teachers = [{**t, "uid": uid} for uid,t in CUSTOM_TEACHERS.items()]
+    teacher_pending = [t for t in all_teachers if t.get("status","pending") == "pending"]
+    teacher_approved = [t for t in all_teachers if t.get("status","approved")]
+    teacher_rejected = [t for t in all_teachers if t.get("status","rejected")]
     return render_template("superadmin.html", school=SCHOOL_NAME,
         pending=pending, approved=approved, rejected=rejected,
-        total=len(schools), admin_msg=session.pop("admin_msg",None))
+        total=len(schools), admin_msg=session.pop("admin_msg",None),
+        teacher_pending=teacher_pending, teacher_approved=teacher_approved, teacher_rejected=teacher_rejected,
+        teacher_total=len(all_teachers))
 
 @app.route("/school/<school_code>")
 def school_home(school_code):

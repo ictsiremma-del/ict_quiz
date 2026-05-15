@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Teacher Registration — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:36px;width:100%;max-width:520px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.icon{text-align:center;font-size:48px;margin-bottom:12px}
+h1{text-align:center;color:#1a3a5c;font-size:22px;margin-bottom:8px}
+p{text-align:center;color:#556;font-size:14px;margin-bottom:24px;line-height:1.6}
+.fg{margin-bottom:16px}
+label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+input,select{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:#2e86ab}
+textarea{resize:vertical}
+.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
+.error{background:#fadbd8;color:#e74c3c;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;border-left:3px solid #e74c3c}
+.subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.subjects label{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;font-weight:600}
+.back{text-align:center;margin-top:18px}
+.back a{color:#2e86ab;font-size:13px;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🧑‍🏫</div>
+  <h1>Teacher Registration</h1>
+  <p>Create a new teacher account for the quiz system.</p>
+  {% if error %}<div class="error">{{ error }}</div>{% endif %}
+  <form method="POST">
+    <div class="fg">
+      <label>Full Name</label>
+      <input type="text" name="name" placeholder="Enter your full name" required>
+    </div>
+    <div class="fg">
+      <label>Login ID</label>
+      <input type="text" name="uid" placeholder="Choose a username" required>
+    </div>
+    <div class="fg">
+      <label>Email Address</label>
+      <input type="email" name="email" placeholder="Enter your email address" required>
+    </div>
+    <div class="fg">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter a password" required>
+    </div>
+    <div class="fg">
+      <label>Confirm Password</label>
+      <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+    </div>
+    <div class="fg">
+      <label>Subjects</label>
+      <div class="subjects">
+        {% for subject in subjects %}
+        <label><input type="checkbox" name="subjects" value="{{ subject }}"> {{ subject }}</label>
+        {% endfor %}
+      </div>
+    </div>
+    <button type="submit" class="btn">Register</button>
+  </form>
+  <div class="back"><a href="/teacher">← Back to Teacher Login</a></div>
+</div>
+</body>
+</html>

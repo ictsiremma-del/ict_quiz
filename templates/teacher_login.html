@@ -39,34 +39,22 @@ input:focus,select:focus{border-color:#2e86ab}
   <h2>{{ school }}</h2>
   {% if error %}<div class="error">{{ error }}</div>{% endif %}
 
-  <div class="teacher-list">
-    <p>Select your name and enter your password</p>
-    {% for uid, t in teachers.items() %}
-    <div class="tl-item">
-      <span class="tl-name">{{ t.name }}</span>
-      <span class="tl-sub">{{ t.subjects|join(', ') }}</span>
-    </div>
-    {% endfor %}
-  </div>
-
   <form method="POST">
     <div class="fg">
-      <label>Your Name</label>
-      <select name="username" required>
-        <option value="" disabled selected>-- Select your name --</option>
-        {% for uid, t in teachers.items() %}
-        <option value="{{ uid }}">{{ t.name }}{% if t.is_head %} (Head Teacher){% endif %}</option>
-        {% endfor %}
-      </select>
+      <label>Username or Email</label>
+      <input type="text" name="username" placeholder="Enter your username or email" required autofocus>
     </div>
     <div class="fg">
       <label>Password</label>
-      <input type="password" name="password" placeholder="Enter your password" required autofocus>
+      <input type="password" name="password" placeholder="Enter your password" required>
     </div>
     <button type="submit" class="btn">LOGIN →</button>
   </form>
   <div class="or">OR</div>
   <a href="/google-login" class="btn google-btn"><span class="google-icon"></span>Sign in with Google</a>
+  <div class="back" style="margin-top:18px;text-align:center;">
+    <a href="/teacher_register">New teacher? Register here</a>
+  </div>
   <div class="back"><a href="/">← Back to Student Portal</a></div>
 </div>
 </body>

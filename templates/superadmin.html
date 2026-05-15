@@ -147,6 +147,82 @@ tr:hover td{background:#fafafa}
     </table>
   </div>
   {% endif %}
+
+  <!-- Teacher Approvals -->
+  <div class="section">
+    <h2 class="approved-h">👩‍🏫 Pending Teachers ({{ teacher_pending|length }})</h2>
+    {% if teacher_pending %}
+    <table>
+      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for t in teacher_pending %}
+        <tr>
+          <td>{{ t.uid }}</td>
+          <td>{{ t.name }}</td>
+          <td>{{ t.email or '—' }}</td>
+          <td>{{ t.subjects|join(', ') }}</td>
+          <td>
+            <form method="POST" style="display:inline">
+              <input type="hidden" name="teacher_uid" value="{{ t.uid }}">
+              <input type="hidden" name="action" value="approved">
+              <button type="submit" class="btn-approve" onclick="return confirm('Approve {{ t.name }}?')">✅ Approve</button>
+            </form>
+            <form method="POST" style="display:inline">
+              <input type="hidden" name="teacher_uid" value="{{ t.uid }}">
+              <input type="hidden" name="action" value="rejected">
+              <button type="submit" class="btn-reject" onclick="return confirm('Reject {{ t.name }}?')">❌ Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No pending teacher registrations</div>
+    {% endif %}
+  </div>
+
+  <div class="section">
+    <h2 class="approved-h">✅ Approved Teachers ({{ teacher_approved|length }})</h2>
+    {% if teacher_approved %}
+    <table>
+      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in teacher_approved %}
+        <tr>
+          <td>{{ t.uid }}</td>
+          <td>{{ t.name }}</td>
+          <td>{{ t.email or '—' }}</td>
+          <td>{{ t.subjects|join(', ') }}</td>
+          <td><span class="badge b-approved">✅ Approved</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty">No approved teachers yet</div>
+    {% endif %}
+  </div>
+
+  {% if teacher_rejected %}
+  <div class="section">
+    <h2 class="rejected-h">❌ Rejected Teachers ({{ teacher_rejected|length }})</h2>
+    <table>
+      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for t in teacher_rejected %}
+        <tr>
+          <td>{{ t.uid }}</td>
+          <td>{{ t.name }}</td>
+          <td>{{ t.email or '—' }}</td>
+          <td>{{ t.subjects|join(', ') }}</td>
+          <td><span class="badge b-rejected">❌ Rejected</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endif %}
 </div>
 </body>
 </html>
