@@ -4,9 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Dashboard — {{ school }}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+body{background:#f0f4f8 !important;}
 .topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 .topbar-left h1{font-size:16px;font-weight:700}
 .topbar-left p{font-size:11px;opacity:.8;margin-top:2px}
@@ -79,105 +80,189 @@ tr:hover td{background:#fafafa}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-left">
-    <h1>🎓 {{ school }}</h1>
-    <p>Teacher Dashboard</p>
-  </div>
-  <div class="tb-right">
-    {% if is_head %}
-    <a href="/bece/manage" class="btn-sm bece-btn">🎓 BECE</a>
-    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
-    <a href="/list_backups" class="btn-sm bo">💾 Backups</a>
-    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
-    <a href="/superadmin" class="btn-sm" style="background:#c0392b;color:white">🔐 Super Admin</a>
-    {% else %}
-    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
-    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
-    {% endif %}
-    {% if teacher.managed_class %}
-    <a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
-    {% else %}
-    <a href="/class_manager?class={{ classes[0] }}" class="btn-sm" style="background:#16a085;color:white">📋 Class Work</a>
-    {% endif %}
-    <a href="/question_bank?subject={{ selected_subject|urlencode }}" class="btn-sm" style="background:#d35400;color:white">🏦 Question Bank</a>
-    <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
-    <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
+<nav class="navbar navbar-expand-lg navbar-dark" style="background:linear-gradient(135deg,#1a3a5c,#2e86ab);">
+<div class="container-fluid">
+  <a class="navbar-brand" href="#">🎓 {{ school }}</a>
+  <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+      {% if is_head %}
+      <li class="nav-item">
+        <a class="nav-link" href="/bece/manage">🎓 BECE</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/student_report">👨‍🎓 Reports</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/list_backups">💾 Backups</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/export_excel">📊 Excel</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link text-danger" href="/superadmin">🔐 Super Admin</a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="/student_report">👨‍🎓 Reports</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/export_excel">📊 Excel</a>
+      </li>
+      {% endif %}
+      {% if teacher.managed_class %}
+      <li class="nav-item">
+        <a class="nav-link text-success" href="/class_manager">📋 My Class ({{ teacher.managed_class }})</a>
+      </li>
+      {% else %}
+      <li class="nav-item">
+        <a class="nav-link" href="/class_manager?class={{ classes[0] }}">📋 Class Work</a>
+      </li>
+      {% endif %}
+      <li class="nav-item">
+        <a class="nav-link" href="/question_bank?subject={{ selected_subject|urlencode }}">🏦 Question Bank</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/ai_generator?subject={{ selected_subject|urlencode }}">🤖 AI Generator</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/teacher_logout">🚪 Logout</a>
+      </li>
+    </ul>
   </div>
 </div>
+</nav>
 
-<div class="container">
+<div class="container-fluid mt-3">
   {% if pdf_msg %}
-  <div class="{{ 'msg-ok' if pdf_msg.startswith('ok:') else 'msg-err' }}">{{ pdf_msg[3:] }}</div>
+  <div class="alert {{ 'alert-success' if pdf_msg.startswith('ok:') else 'alert-danger' }}">{{ pdf_msg[3:] }}</div>
   {% endif %}
 
   <!-- Teacher badge -->
-  <div class="teacher-badge">
-    <div class="tb-icon">👤</div>
-    <div>
-      <div class="tb-name">{{ teacher.name }}{% if is_head %} — Head Teacher{% endif %}</div>
-      <div class="tb-sub">Subjects: {{ teacher.subjects|join(', ') }}{% if teacher.managed_class %} &nbsp;·&nbsp; 📋 Class Manager: {{ teacher.managed_class }}{% endif %}</div>
+  <div class="card mb-3">
+    <div class="card-body bg-primary text-white">
+      <div class="d-flex align-items-center">
+        <div class="me-3" style="font-size:28px;">👤</div>
+        <div>
+          <h5 class="card-title mb-1">{{ teacher.name }}{% if is_head %} — Head Teacher{% endif %}</h5>
+          <p class="card-text small mb-0">Subjects: {{ teacher.subjects|join(', ') }}{% if teacher.managed_class %} &nbsp;·&nbsp; 📋 Class Manager: {{ teacher.managed_class }}{% endif %}</p>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- IP banner -->
-  <div class="ip-bar">
-    <div>
-      <div style="font-size:11px;opacity:.8;margin-bottom:3px">📡 Share this address with students</div>
-      <div class="ip-addr">http://{{ local_ip }}:5000</div>
-      <div style="font-size:11px;opacity:.7;margin-top:3px">Auto-detected • Updates when WiFi changes</div>
-    </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <div class="ip-box">
-        <div class="ib-lbl">Student Link</div>
-        <div class="ib-val">http://{{ local_ip }}:5000</div>
-      </div>
-      <div class="ip-box">
-        <div class="ib-lbl">Teacher Login</div>
-        <div class="ib-val">http://{{ local_ip }}:5000/teacher</div>
+  <div class="card mb-3 bg-primary text-white">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-8">
+          <small class="opacity-75">📡 Share this address with students</small>
+          <h4 class="mb-1">http://{{ local_ip }}:5000</h4>
+          <small class="opacity-75">Auto-detected • Updates when WiFi changes</small>
+        </div>
+        <div class="col-md-4">
+          <div class="d-flex gap-2 flex-wrap">
+            <div class="bg-white bg-opacity-25 rounded p-2">
+              <small class="d-block opacity-75">Student Link</small>
+              <small class="fw-bold">http://{{ local_ip }}:5000</small>
+            </div>
+            <div class="bg-white bg-opacity-25 rounded p-2">
+              <small class="d-block opacity-75">Teacher Login</small>
+              <small class="fw-bold">http://{{ local_ip }}:5000/teacher</small>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- Stats -->
-  <div class="stats">
-    <div class="stat"><div class="v">{{ total_students }}</div><div class="l">Results</div></div>
-    <div class="stat"><div class="v">{{ avg_score }}%</div><div class="l">Average</div></div>
-    <div class="stat"><div class="v">{{ grade_counts.get('A',0) }}</div><div class="l">Grade A</div></div>
-    <div class="stat"><div class="v">{{ questions|length }}</div><div class="l">Questions ({{ selected_subject[:8] }})</div></div>
+  <div class="row mb-3">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="card-title text-primary">{{ total_students }}</h3>
+          <p class="card-text small text-muted">Results</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="card-title text-success">{{ avg_score }}%</h3>
+          <p class="card-text small text-muted">Average</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="card-title text-info">{{ grade_counts.get('A',0) }}</h3>
+          <p class="card-text small text-muted">Grade A</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3 class="card-title text-warning">{{ questions|length }}</h3>
+          <p class="card-text small text-muted">Questions ({{ selected_subject[:8] }})</p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Results -->
-  <div class="section">
-    <h2>📋 Student Results</h2>
-    <div class="filters">
-      <select id="fC" onchange="filt()">
-        <option value="">All Classes</option>
-        {% for c in classes %}<option>{{ c }}</option>{% endfor %}
-      </select>
-      <select id="fA" onchange="filt()">
-        <option value="">All Types</option>
-        {% for k,v in assessment_types.items() %}
-        <option value="{{ v.label }}">{{ v.label }}</option>
+  <div class="card mb-3">
+    <div class="card-header">
+      <h5 class="mb-0">📋 Student Results</h5>
+    </div>
+    <div class="card-body">
+      <div class="mb-3">
+        <select id="fC" class="form-select d-inline-block w-auto me-2" onchange="filt()">
+          <option value="">All Classes</option>
+          {% for c in classes %}<option>{{ c }}</option>{% endfor %}
+        </select>
+        <select id="fA" class="form-select d-inline-block w-auto" onchange="filt()">
+          <option value="">All Types</option>
+          {% for k,v in assessment_types.items() %}
+          <option value="{{ v.label }}">{{ v.label }}</option>
         {% endfor %}
       </select>
-      <select id="fG" onchange="filt()">
+      <select id="fG" class="form-select d-inline-block w-auto me-2" onchange="filt()">
         <option value="">All Grades</option>
         <option>A</option><option>B</option><option>C</option>
         <option>D</option><option>E</option><option>F</option>
       </select>
-      <input id="fN" onkeyup="filt()" placeholder="🔍 Search name...">
+      <input id="fN" class="form-control d-inline-block w-auto" onkeyup="filt()" placeholder="🔍 Search name...">
     </div>
     {% if results %}
-    <table id="rT">
-      <thead><tr><th>#</th><th>Name</th><th>Class</th><th>Subject</th><th>Type</th><th>Strand</th><th>Score</th><th>%</th><th>Grade</th><th>Date</th><th>Actions</th></tr></thead>
-      <tbody>
-        {% for r in results %}
-        <tr data-c="{{ r.class }}" data-a="{{ r.get('assessment_label','') }}" data-g="{{ r.grade }}" data-n="{{ r.name|lower }}">
-          <td>{{ loop.index }}</td>
-          <td><strong>{{ r.name }}</strong></td>
-          <td>{{ r.class }}</td>
-          <td>{{ subject_icons.get(r.get('subject',''),'📝') }} {{ r.get('subject','') }}</td>
+    <div class="table-responsive">
+      <table id="rT" class="table table-striped table-hover">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Subject</th>
+            <th>Type</th>
+            <th>Strand</th>
+            <th>Score</th>
+            <th>%</th>
+            <th>Grade</th>
+            <th>Date</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in results %}
+          <tr data-c="{{ r.class }}" data-a="{{ r.get('assessment_label','') }}" data-g="{{ r.grade }}" data-n="{{ r.name|lower }}">
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ r.name }}</strong></td>
+            <td>{{ r.class }}</td>
+            <td>{{ subject_icons.get(r.get('subject',''),'📝') }} {{ r.get('subject','') }}</td>
           <td><span style="font-size:11px;background:#f0f4f8;padding:2px 7px;border-radius:6px">{{ r.get('assessment_label','') }}</span></td>
           <td style="font-size:11px;color:#888">{{ r.get('strand','') }}</td>
           <td>{{ r.score }}/{{ r.total }}</td>

@@ -1,55 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>{{ school }} — Quiz Portal</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdn.jsdelivr.net/npm/daisyui@latest/dist/full.css" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c 0%,#2e86ab 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:white;border-radius:20px;padding:32px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+body{background:linear-gradient(135deg,#E0E7FF 0%,#F3E8FF 100%) !important;}
+.card{box-shadow:0 20px 60px rgba(0,0,0,.3);border:none;border-radius:15px;overflow:hidden}
 .school-icon{text-align:center;font-size:48px;margin-bottom:8px}
-h1{text-align:center;color:#1a3a5c;font-size:18px;font-weight:700;margin-bottom:3px}
-h2{text-align:center;color:#666;font-size:13px;font-weight:400;margin-bottom:22px}
-.fg{margin-bottom:14px}
-label{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-input,select{width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s;color:#333;background:white}
-input:focus,select:focus{border-color:#2e86ab}
 .subj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:14px}
 .subj-btn{padding:9px 8px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;font-size:11px;font-weight:600;background:white;transition:all .15s;text-align:center;color:#555}
-.subj-btn:hover{border-color:#2e86ab;background:#f0f8ff}
-.subj-btn.sel{border-color:#2e86ab;background:#2e86ab;color:white}
+.subj-btn:hover{border-color:#4F46E5;background:#f0f8ff}
+.subj-btn.sel{border-color:#4F46E5;background:#4F46E5;color:white}
 .subj-btn .si{font-size:16px;display:block;margin-bottom:2px}
 .atype-row{display:flex;gap:8px;margin-bottom:14px}
 .atype-btn{flex:1;padding:10px 6px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;text-align:center;transition:all .15s;background:white}
-.atype-btn:hover{border-color:#2e86ab}
-.atype-btn.sel{border-color:#2e86ab;background:#2e86ab;color:white}
+.atype-btn:hover{border-color:#4F46E5}
+.atype-btn.sel{border-color:#4F46E5;background:#4F46E5;color:white}
 .atype-btn .ai{font-size:18px;display:block;margin-bottom:2px}
 .atype-btn .an{font-size:11px;font-weight:700}
 .atype-btn .ad{font-size:10px;opacity:.7;margin-top:1px}
 .strand-wrap{display:none;margin-bottom:14px}
-.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s}
-.btn:hover{opacity:.9}
-.hw-resume{background:linear-gradient(135deg,#f39c12,#e67e22);color:white;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.hw-resume{background:linear-gradient(135deg,#22D3EE,#4F46E5);color:white;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
 .hw-resume .hw-info{font-size:13px}
 .hw-resume .hw-title{font-weight:700;font-size:14px;margin-bottom:2px}
 .hw-resume a{background:rgba(255,255,255,.25);color:white;padding:7px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700}
 .info-strip{display:flex;gap:7px;margin-top:14px}
 .info-box{flex:1;background:#f8f9fa;border-radius:8px;padding:9px;text-align:center}
-.info-box .n{font-size:16px;font-weight:700;color:#1a3a5c}
+.info-box .n{font-size:16px;font-weight:700;color:#4F46E5}
 .info-box .l{font-size:10px;color:#888;margin-top:2px}
 .links{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
 .links a{font-size:12px;font-weight:600;text-decoration:none;padding:7px 14px;border-radius:8px}
-.link-bece{background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white}
-.link-teacher{color:#2e86ab}
+.link-bece{background:linear-gradient(135deg,#1a0a2e,#4F46E5);color:white}
+.link-teacher{color:#4F46E5}
 .err{color:#e74c3c;font-size:12px;display:none;margin-top:4px}
 </style>
 </head>
-<body>
+<body class="flex items-center justify-center min-h-screen py-4">
+<div class="max-w-md mx-auto">
+<div class="flex justify-center">
+<div class="w-full">
 <div class="card">
+<div class="p-6">
   <div class="school-icon">🎓</div>
-  <h1>{{ school }}</h1>
-  <h2>Student Assessment Portal</h2>
+  <h1 class="text-center text-indigo-600 font-bold mb-1">{{ school }}</h1>
+  <h2 class="text-center text-gray-600 text-sm mb-3">Student Assessment Portal</h2>
 
   {% if hw_save %}
   <div class="hw-resume">
@@ -62,21 +59,21 @@ input:focus,select:focus{border-color:#2e86ab}
   {% endif %}
 
   <form action="/start" method="POST" onsubmit="return validate()">
-    <div class="fg">
-      <label>Full Name</label>
-      <input type="text" name="name" placeholder="Enter your full name" required autocomplete="off">
+    <div class="mb-4">
+      <label class="block font-bold text-xs uppercase mb-1">Full Name</label>
+      <input type="text" name="name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Enter your full name" required autocomplete="off">
     </div>
 
-    <div class="fg">
-      <label>Class</label>
-      <select name="class" required>
+    <div class="mb-4">
+      <label class="block font-bold text-xs uppercase mb-1">Class</label>
+      <select name="class" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
         <option value="" disabled selected>-- Select Your Class --</option>
         {% for c in classes %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
       </select>
     </div>
 
-    <div class="fg">
-      <label>Assessment Type</label>
+    <div class="mb-4">
+      <label class="block font-bold text-xs uppercase mb-1">Assessment Type</label>
       <div class="atype-row" id="atypeRow">
         {% for key, at in assessment_types.items() %}
         <div class="atype-btn {{ 'sel' if loop.first else '' }}" onclick="pickType('{{ key }}',this)">
@@ -90,8 +87,8 @@ input:focus,select:focus{border-color:#2e86ab}
       </div>
     </div>
 
-    <div class="fg">
-      <label>Subject</label>
+    <div class="mb-4">
+      <label class="block font-bold text-xs uppercase mb-1">Subject</label>
       <div class="subj-grid" id="subjGrid">
         {% for s in subjects %}
         <div class="subj-btn" onclick="pickSubj('{{ s }}',this)">
@@ -101,37 +98,41 @@ input:focus,select:focus{border-color:#2e86ab}
         {% endfor %}
       </div>
       <input type="hidden" name="subject" id="subjectInput">
-      <div class="err" id="subjErr">Please select a subject.</div>
+      <div class="err text-red-500 text-xs" id="subjErr">Please select a subject.</div>
     </div>
 
-    <div class="strand-wrap fg" id="strandWrap">
-      <label>Strand (optional — leave blank for all strands)</label>
-      <select name="strand" id="strandSel" onchange="loadSubStrands()">
+    <div class="strand-wrap mb-4" id="strandWrap">
+      <label class="block font-bold text-xs uppercase mb-1">Strand (optional — leave blank for all strands)</label>
+      <select name="strand" id="strandSel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500" onchange="loadSubStrands()">
         <option value="">All Strands</option>
       </select>
     </div>
 
-    <div class="strand-wrap fg" id="subStrandWrap">
-      <label>Sub-Strand (optional)</label>
-      <select name="sub_strand" id="subStrandSel">
+    <div class="strand-wrap mb-4" id="subStrandWrap">
+      <label class="block font-bold text-xs uppercase mb-1">Sub-Strand (optional)</label>
+      <select name="sub_strand" id="subStrandSel" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500">
         <option value="">All Sub-Strands</option>
       </select>
     </div>
 
-    <button type="submit" class="btn" id="startBtn">START →</button>
+    <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md font-bold hover:bg-indigo-700 transition" id="startBtn">START →</button>
   </form>
 
-  <div class="info-strip">
+  <div class="info-strip mt-3">
     <div class="info-box"><div class="n">📝</div><div class="l">Class Test 30min</div></div>
     <div class="info-box"><div class="n">📋</div><div class="l">Exam 60min</div></div>
     <div class="info-box"><div class="n">🏠</div><div class="l">Homework No Timer</div></div>
     <div class="info-box"><div class="n">A-F</div><div class="l">Auto Grade</div></div>
   </div>
 
-  <div class="links">
-    <a href="/bece" class="link-bece">🎓 JHS 3 — BECE Practice</a>
-    <a href="/teacher" class="link-teacher">🔐 Teacher Login</a>
+  <div class="links mt-3">
+    <a href="/bece" class="bg-gradient-to-r from-purple-900 to-indigo-600 text-white px-4 py-2 rounded-md text-sm font-semibold">🎓 JHS 3 — BECE Practice</a>
+    <a href="/teacher" class="border border-indigo-600 text-indigo-600 px-4 py-2 rounded-md text-sm font-semibold hover:bg-indigo-600 hover:text-white transition">🔐 Teacher Login</a>
   </div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
 <script>

@@ -278,6 +278,10 @@ def bece_years_for(subject):
 
 # ── ROUTES ─────────────────────────────────────────────────────────
 @app.route("/")
+def landing():
+    return render_template("landing.html", school=SCHOOL_NAME)
+
+@app.route("/student")
 def index():
     hw_key=session.get("hw_save_key"); hw_save=load_hw().get(hw_key) if hw_key else None
     return render_template("index.html",classes=CLASSES,subjects=SUBJECTS,school=SCHOOL_NAME,
