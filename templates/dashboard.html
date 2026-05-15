@@ -10,13 +10,25 @@ body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
 .topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:12px 22px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
 .topbar-left h1{font-size:16px;font-weight:700}
 .topbar-left p{font-size:11px;opacity:.8;margin-top:2px}
+.sidebar-toggle{display:none;border:none;background:rgba(255,255,255,.16);color:white;padding:8px 12px;border-radius:10px;cursor:pointer;font-weight:700}
 .tb-right{display:flex;gap:7px;flex-wrap:wrap}
 .btn-sm{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block;white-space:nowrap}
 .bg{background:#27ae60;color:white}.bb{background:#2980b9;color:white}
 .br{background:#e74c3c;color:white}.bw{background:rgba(255,255,255,.2);color:white}
 .bo{background:#f39c12;color:white}.bp{background:#8e44ad;color:white}
 .bece-btn{background:#c0392b;color:white}
-.container{max-width:1160px;margin:0 auto;padding:18px 14px}
+.layout{max-width:1160px;margin:0 auto;padding:18px 14px;display:grid;grid-template-columns:280px 1fr;gap:18px}
+.sidebar{background:white;border-radius:18px;padding:18px;box-shadow:0 15px 35px rgba(15,23,42,.08);position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto}
+.sidebar h2{font-size:13px;text-transform:uppercase;letter-spacing:.18em;color:#475569;margin-bottom:12px}
+.menu-group{margin-bottom:20px}
+.menu-item{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-radius:14px;background:#f8fafc;color:#1f2937;text-decoration:none;border:1px solid #e2e8f0;font-size:13px;font-weight:700}
+.menu-item:hover{background:#eef2ff;border-color:#c7d2fe}
+.menu-item.active{background:#eef2ff;color:#4338ca;border-color:#c7d2fe}
+.submenu{display:none;flex-direction:column;gap:8px;margin-top:10px;padding-left:4px}
+.submenu a{padding:10px 14px;border-radius:12px;background:#f8fafc;color:#334155;text-decoration:none;border:1px solid #e2e8f0;font-size:13px}
+.submenu a:hover{background:#eef2ff}
+.menu-item.open + .submenu{display:flex}
+.container{padding:0}
 .ip-bar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);border-radius:12px;padding:14px 20px;margin-bottom:18px;color:white;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
 .ip-bar .ip-addr{font-size:20px;font-weight:700;font-family:monospace}
 .ip-bar .ip-lbl{font-size:11px;opacity:.8;margin-bottom:3px}
@@ -76,6 +88,16 @@ tr:hover td{background:#fafafa}
 .bulk-input{padding:6px 10px;border:1.5px solid rgba(255,255,255,.3);border-radius:6px;background:rgba(255,255,255,.1);color:white;font-size:12px;outline:none}
 .bulk-input option{color:#333;background:white}
 .cbx{width:15px;height:15px;accent-color:#2e86ab;cursor:pointer}
+@media(max-width:980px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{position:fixed;left:-100%;top:0;bottom:0;width:260px;max-height:100vh;overflow:auto;transition:left .25s;z-index:30;}
+  .sidebar.open{left:0}
+  .sidebar-toggle{display:inline-flex}
+  .tb-right{order:3;width:100%;justify-content:flex-end}
+  .topbar{justify-content:space-between}
+  .container{padding:18px 14px}
+  body.sidebar-open::after{content:'';position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:20}
+}
 </style>
 </head>
 <body>
@@ -84,29 +106,50 @@ tr:hover td{background:#fafafa}
     <h1>🎓 {{ school }}</h1>
     <p>Teacher Dashboard</p>
   </div>
+  <button class="sidebar-toggle" onclick="toggleSidebar()">☰ Menu</button>
   <div class="tb-right">
-    {% if is_head %}
-    <a href="/bece/manage" class="btn-sm bece-btn">🎓 BECE</a>
-    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
-    <a href="/list_backups" class="btn-sm bo">💾 Backups</a>
-    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
-    <a href="/superadmin" class="btn-sm" style="background:#c0392b;color:white">🔐 Super Admin</a>
-    {% else %}
-    <a href="/student_report" class="btn-sm bb">👨‍🎓 Reports</a>
-    <a href="/export_excel" class="btn-sm bg">📊 Excel</a>
-    {% endif %}
-    {% if teacher.managed_class %}
-    <a href="/class_manager" class="btn-sm" style="background:#16a085;color:white">📋 My Class ({{ teacher.managed_class }})</a>
-    {% else %}
-    <a href="/class_manager?class={{ classes[0] }}" class="btn-sm" style="background:#16a085;color:white">📋 Class Work</a>
-    {% endif %}
-    <a href="/question_bank?subject={{ selected_subject|urlencode }}" class="btn-sm" style="background:#d35400;color:white">🏦 Question Bank</a>
-    <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="btn-sm bp">🤖 AI Generator</a>
     <a href="/teacher_logout" class="btn-sm bw">🚪 Logout</a>
   </div>
 </div>
 
-<div class="container">
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="menu-group">
+      <h2>Main</h2>
+      <a href="/dashboard" class="menu-item active">🏠 Dashboard</a>
+      {% if is_head %}
+      <div>
+        <a href="javascript:void(0)" class="menu-item" onclick="toggleDropdown(0)">🎓 BECE ▾</a>
+        <div class="submenu" id="drop-0">
+          <a href="/bece/manage">Manage BECE</a>
+          <a href="/bece">BECE Practice</a>
+        </div>
+      </div>
+      {% endif %}
+      <div>
+        <a href="javascript:void(0)" class="menu-item" onclick="toggleDropdown(1)">📋 Class & Results ▾</a>
+        <div class="submenu" id="drop-1">
+          <a href="/student_report">Reports</a>
+          <a href="/list_backups">Backups</a>
+          <a href="/export_excel">Excel</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="menu-group">
+      <h2>Teaching</h2>
+      {% if teacher.managed_class %}
+      <a href="/class_manager" class="menu-item">📚 My Class ({{ teacher.managed_class }})</a>
+      {% else %}
+      <a href="/class_manager?class={{ classes[0] }}" class="menu-item">📚 Class Work</a>
+      {% endif %}
+      <a href="/question_bank?subject={{ selected_subject|urlencode }}" class="menu-item">🏦 Question Bank</a>
+      <a href="/ai_generator?subject={{ selected_subject|urlencode }}" class="menu-item">🤖 AI Generator</a>
+    </div>
+
+  </aside>
+
+  <main class="container">
   {% if pdf_msg %}
   <div class="{{ 'msg-ok' if pdf_msg.startswith('ok:') else 'msg-err' }}">{{ pdf_msg[3:] }}</div>
   {% endif %}
@@ -419,11 +462,36 @@ tr:hover td{background:#fafafa}
     <div class="empty">No questions yet. Add manually or upload a PDF.</div>
     {% endif %}
   </div>
+  </main>
 </div>
 
 <script>
 var allStrands = {{ curriculum_strands | tojson }};
 var selSub = "{{ selected_subject }}";
+
+function toggleDropdown(id){
+  var target=document.getElementById('drop-'+id);
+  if(!target) return;
+  var open = target.style.display==='flex';
+  document.querySelectorAll('.submenu').forEach(function(el){el.style.display='none';});
+  if(!open){ target.style.display='flex'; }
+}
+
+function toggleSidebar(){
+  var sidebar = document.getElementById('sidebar');
+  if(!sidebar) return;
+  var open = sidebar.classList.toggle('open');
+  document.body.classList.toggle('sidebar-open', open);
+}
+
+window.addEventListener('click', function(event){
+  var sidebar = document.getElementById('sidebar');
+  if(!sidebar) return;
+  if(!sidebar.contains(event.target) && !event.target.closest('.sidebar-toggle')){
+    sidebar.classList.remove('open');
+    document.body.classList.remove('sidebar-open');
+  }
+});
 
 function sw(t,btn){
   document.getElementById("qt").value=t;
