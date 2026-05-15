@@ -1,6 +1,7 @@
 from flask import (Flask, render_template, request, redirect,
                    url_for, session, send_file, jsonify)
 import json, os, datetime, re, random, threading, shutil, zipfile, socket
+from urllib.parse import urlencode
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from docx import Document
@@ -39,6 +40,12 @@ HOMEWORK_FILE= "homework_saves.json"
 UPLOAD_FOLDER= "static/uploads"
 ALLOWED_IMG  = {"png","jpg","jpeg","gif","webp"}
 ALLOWED_PDF  = {"pdf"}
+GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "523848643345-5pjbo9avqt8b8s2gm1rc9u4mrk7cfkcf.apps.googleusercontent.com")
+GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "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")
+GOOGLE_AUTH_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5000/google-callback")
+GOOGLE_AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
+GOOGLE_USERINFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs("static", exist_ok=True)
@@ -350,7 +357,65 @@ def teacher():
             session["teacher"]=True; session["teacher_data"]={**t,"uid":uid}
             return redirect(url_for("dashboard"))
         return render_template("teacher_login.html",error="Wrong username or password.",school=SCHOOL_NAME,teachers=TEACHERS)
-    return render_template("teacher_login.html",school=SCHOOL_NAME,error=None,teachers=TEACHERS)
+    return render_template("teacher_login.html",school=SCHOOL_NAME,error=request.args.get("error"),teachers=TEACHERS)
+
+@app.route("/google-login")
+def google_login():
+    return render_template("google_login.html",school=SCHOOL_NAME)
+
+@app.route("/google-auth")
+def google_auth():
+    if not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and REQUESTS_OK):
+        return redirect(url_for("google_login"))
+    params={
+        "client_id": GOOGLE_CLIENT_ID,
+        "redirect_uri": GOOGLE_AUTH_REDIRECT_URI,
+        "response_type": "code",
+        "scope": "openid email profile",
+        "access_type": "offline",
+        "prompt": "select_account"
+    }
+    return redirect(f"{GOOGLE_AUTH_ENDPOINT}?{urlencode(params)}")
+
+@app.route("/google-callback")
+def google_callback():
+    error=request.args.get("error")
+    if error:
+        return redirect(url_for("teacher", error="Google login cancelled."))
+
+    code=request.args.get("code")
+    if not code or not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and REQUESTS_OK):
+        return redirect(url_for("teacher", error="Google login failed."))
+
+    token_resp=req_lib.post(GOOGLE_TOKEN_ENDPOINT, data={
+        "code": code,
+        "client_id": GOOGLE_CLIENT_ID,
+        "client_secret": GOOGLE_CLIENT_SECRET,
+        "redirect_uri": GOOGLE_AUTH_REDIRECT_URI,
+        "grant_type": "authorization_code"
+    }, headers={"Content-Type": "application/x-www-form-urlencoded"})
+
+    if token_resp.status_code!=200:
+        return redirect(url_for("teacher", error="Unable to exchange Google code."))
+
+    token_data=token_resp.json()
+    access_token=token_data.get("access_token")
+    if not access_token:
+        return redirect(url_for("teacher", error="Google token not received."))
+
+    profile_resp=req_lib.get(GOOGLE_USERINFO_ENDPOINT, headers={"Authorization": f"Bearer {access_token}"})
+    if profile_resp.status_code!=200:
+        return redirect(url_for("teacher", error="Unable to fetch Google profile."))
+
+    profile=profile_resp.json()
+    email=profile.get("email","")
+    uid=email.split("@")[0] if email else None
+    t=TEACHERS.get(uid)
+    if not t:
+        t={"name": profile.get("name","Google User"),"subjects":[],"is_head":False,"managed_class":None}
+    session["teacher"]=True
+    session["teacher_data"]={**t,"uid":uid or email}
+    return redirect(url_for("dashboard"))
 
 @app.route("/teacher_logout")
 def teacher_logout(): session.clear(); return redirect(url_for("index"))

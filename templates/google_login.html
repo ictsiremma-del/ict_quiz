@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Google Login — {{ school }}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:white;border-radius:20px;padding:36px;width:100%;max-width:420px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.icon{text-align:center;font-size:48px;margin-bottom:12px}
+h1{text-align:center;color:#1a3a5c;font-size:22px;margin-bottom:8px}
+p{text-align:center;color:#556;font-size:14px;margin-bottom:24px;line-height:1.6}
+.btn{width:100%;padding:13px;background:#fff;color:#444;border:1px solid #ddd;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;transition:all .2s}
+.btn:hover{background:#f7f7f7;box-shadow:0 8px 18px rgba(0,0,0,.08)}
+.google-icon{width:20px;height:20px;display:inline-block;background:url('data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 533.5 544.3"%3E%3Cpath fill="%23db4437" d="M533.5 278.4c0-17.4-1.6-34-4.6-50.2H272v95h146.9c-6.4 34.7-25.6 64.1-54.5 84v69h87.9c51.5-47.5 81.2-117.4 81.2-197.8z"/%3E%3Cpath fill="%234285f4" d="M272 544.3c73.7 0 135.7-24.3 181-66.2l-87.9-69c-24.4 16.4-55.6 26-93.1 26-71.6 0-132.3-48.4-154-113.3h-90.7v71.1C76.1 475.6 168 544.3 272 544.3z"/%3E%3Cpath fill="%23f4b400" d="M118 323.6c-5.6-16.7-8.8-34.6-8.8-53s3.2-36.3 8.8-53.1v-71.1H27.3C9.7 198.9 0 234.7 0 270.6s9.7 71.7 27.3 106.1l90.7-71.1z"/%3E%3Cpath fill="%2327ae60" d="M272 107c39.8 0 75.5 13.7 103.7 40.5l77.8-77.8C404.1 24.8 344.7 0 272 0 168 0 76.1 68.7 27.3 170.5l90.7 71.1C139.7 155.4 200.4 107 272 107z"/%3E%3C/svg%3E') no-repeat center center;background-size:contain}
+.back{text-align:center;margin-top:20px}
+.back a{color:#2e86ab;font-size:13px;text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔗</div>
+  <h1>Sign in with Google</h1>
+  <p>Use your Google account to access the teacher dashboard without entering a username and password.</p>
+  <a href="/google-auth" class="btn"><span class="google-icon"></span>Continue with Google</a>
+  <div class="back"><a href="/teacher">← Back to Teacher Login</a></div>
+</div>
+</body>
+</html>
