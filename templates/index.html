@@ -6,8 +6,8 @@
 <title>{{ school }} — Quiz Portal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c 0%,#2e86ab 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:white;border-radius:20px;padding:32px;width:100%;max-width:520px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c 0%,#2e86ab 100%);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px;}
+.card{background:white;border-radius:20px;padding:32px;width:100%;max-width:520px;max-height:calc(100vh - 60px);overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .school-icon{text-align:center;font-size:48px;margin-bottom:8px}
 h1{text-align:center;color:#1a3a5c;font-size:18px;font-weight:700;margin-bottom:3px}
 h2{text-align:center;color:#666;font-size:13px;font-weight:400;margin-bottom:22px}
@@ -44,6 +44,7 @@ input:focus,select:focus{border-color:#2e86ab}
 .link-teacher{color:#2e86ab}
 .err{color:#e74c3c;font-size:12px;display:none;margin-top:4px}
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 <div class="card">
