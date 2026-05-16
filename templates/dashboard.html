@@ -99,6 +99,7 @@ tr:hover td{background:#fafafa}
   body.sidebar-open::after{content:'';position:fixed;inset:0;background:rgba(15,23,42,.35);z-index:20}
 }
 </style>
+<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 <div class="topbar">
@@ -479,9 +480,11 @@ function toggleDropdown(id){
 
 function toggleSidebar(){
   var sidebar = document.getElementById('sidebar');
+  var btn = document.querySelector('.sidebar-toggle');
   if(!sidebar) return;
   var open = sidebar.classList.toggle('open');
   document.body.classList.toggle('sidebar-open', open);
+  if(btn) btn.classList.toggle('is-open', open);
 }
 
 window.addEventListener('click', function(event){

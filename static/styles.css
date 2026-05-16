@@ -1,0 +1,59 @@
+:root{
+  --brand-1:#1a3a5c;
+  --brand-2:#2e86ab;
+  --accent:#4338ca;
+  --muted:#64748b;
+  --bg:#f8fafc;
+  --radius:12px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{font-family:Segoe UI, system-ui, -apple-system, 'Helvetica Neue', Arial; color:#0f172a; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale}
+
+/* Buttons */
+.btn, .btn-home, a.btn-primary, a.btn-secondary{transition:transform .15s ease, box-shadow .15s ease}
+.btn:active, .btn:focus, a.btn-primary:active{transform:translateY(0)}
+
+/* Make inputs and buttons larger on touch devices */
+input, select, textarea, button, .menu-item{touch-action:manipulation}
+
+/* Responsive helpers */
+@media(max-width:720px){
+  .card, .page, .container, .section{padding:16px !important}
+  .subj-grid{grid-template-columns:1fr !important}
+  .atype-row{flex-direction:column !important}
+  .layout{grid-template-columns:1fr !important;padding:12px}
+  .sidebar{position:fixed;left:-100%;top:0;bottom:0;width:86%;max-width:320px;z-index:40}
+  .sidebar.open{left:0}
+}
+
+/* Accessibility improvements */
+
+/* Sidebar animation and backdrop */
+.sidebar{transition:transform .28s cubic-bezier(.22,.9,.36,1), left .28s ease}
+body.sidebar-open::after{content:'';position:fixed;inset:0;background:rgba(15,23,42,0.35);z-index:20;opacity:0;pointer-events:none;transition:opacity .28s ease}
+body.sidebar-open::after{opacity:1;pointer-events:auto}
+
+/* Toggle button animation */
+.sidebar-toggle{transition:transform .28s ease, background .2s ease}
+.sidebar-toggle.is-open{transform:rotate(90deg) scale(1.02);background:rgba(255,255,255,0.22)}
+
+/* Animated submenu (smooth open/close) */
+.submenu{display:flex;flex-direction:column;gap:8px;margin-top:10px;padding-left:4px;max-height:0;overflow:hidden;transition:max-height .28s ease, opacity .22s ease;opacity:0}
+.menu-item.open + .submenu{max-height:420px;opacity:1}
+
+/* Small polish for mobile topbar */
+.topbar{gap:8px;padding:12px}
+.topbar-left h1{font-size:15px}
+.ip-bar .ip-addr{font-size:16px}
+
+.menu-item:focus, .btn:focus, input:focus, select:focus{outline:3px solid rgba(66,153,225,0.18);outline-offset:2px}
+
+/* Slightly stronger shadows and consistent radii */
+.card, .section, .sidebar, .page{border-radius:var(--radius);box-shadow:0 12px 30px rgba(2,6,23,0.06)}
+
+/* Improve link styles */
+a{color:var(--brand-2)}
+
+/* Utility */
+.hidden{display:none!important}
