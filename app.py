@@ -428,19 +428,27 @@ def teacher_register():
         email=request.form.get("email","\"").strip().lower()
         password=request.form.get("password","")
         confirm=request.form.get("confirm_password","")
+        role=request.form.get("role","").strip()
+        managed_class=request.form.get("managed_class","").strip()
         subjects=request.form.getlist("subjects")
-        if not (name and uid and password and confirm and subjects):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Please fill in all fields and select at least one subject.")
+        if not (name and uid and password and confirm and subjects and role):
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Please fill in all fields and select at least one subject and a role.")
+        if role not in ["subject_teacher", "class_manager"]:
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Invalid role selected.")
+        if role == "class_manager" and not managed_class:
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Class managers must select a class.")
+        if managed_class and managed_class not in CLASSES:
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Invalid class selected.")
         if password != confirm:
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Passwords do not match.")
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Passwords do not match.")
         if teacher_exists(uid, email):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="A teacher with that username or email already exists.")
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="A teacher with that username or email already exists.")
         if any(s not in SUBJECTS for s in subjects):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error="Please select valid subjects.")
-        CUSTOM_TEACHERS[uid] = {"name":name,"password":password,"subjects":subjects,"is_head":False,"managed_class":None,"email":email,"status":"pending"}
+            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Please select valid subjects.")
+        CUSTOM_TEACHERS[uid] = {"name":name,"password":password,"subjects":subjects,"is_head":False,"managed_class":managed_class if managed_class else None,"email":email,"status":"pending"}
         save_custom_teachers(CUSTOM_TEACHERS)
         return redirect(url_for("teacher", error="Registration submitted and is pending admin approval."))
-    return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,error=None)
+    return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error=None)
 
 @app.route("/google-login")
 def google_login():

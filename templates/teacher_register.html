@@ -53,6 +53,23 @@ textarea{resize:vertical}
       <input type="password" name="confirm_password" placeholder="Confirm your password" required>
     </div>
     <div class="fg">
+      <label>Role</label>
+      <select name="role" required>
+        <option value="">-- Select Role --</option>
+        <option value="subject_teacher">Subject Teacher</option>
+        <option value="class_manager">Class Manager</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Class (if Class Manager)</label>
+      <select name="managed_class">
+        <option value="">-- No Class Assignment --</option>
+        {% for cls in classes %}
+        <option value="{{ cls }}">{{ cls }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="fg">
       <label>Subjects</label>
       <div class="subjects">
         {% for subject in subjects %}
