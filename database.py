@@ -89,6 +89,18 @@ def init_db():
             )
         """)
         cur.execute("""
+            CREATE TABLE IF NOT EXISTS attendance (
+                id SERIAL PRIMARY KEY,
+                class_name TEXT NOT NULL,
+                attendance_date TEXT NOT NULL,
+                student_name TEXT NOT NULL,
+                status TEXT NOT NULL,
+                marked_by TEXT,
+                created_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE (class_name, attendance_date, student_name)
+            )
+        """)
+        cur.execute("""
             CREATE TABLE IF NOT EXISTS question_bank (
                 id SERIAL PRIMARY KEY,
                 subject TEXT NOT NULL,
@@ -161,6 +173,18 @@ def init_db():
                 assigned_date TEXT,
                 assigned_by TEXT,
                 created_at TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS attendance (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                class_name TEXT NOT NULL,
+                attendance_date TEXT NOT NULL,
+                student_name TEXT NOT NULL,
+                status TEXT NOT NULL,
+                marked_by TEXT,
+                created_at TEXT,
+                UNIQUE (class_name, attendance_date, student_name)
             )
         """)
         cur.execute("""
@@ -504,6 +528,69 @@ def db_delete_assignment(aid):
         conn.commit(); cur.close(); conn.close()
     except Exception as e:
         print("db_delete_assignment error:", e)
+
+# ── Attendance ─────────────────────────────────────────────────────
+
+def db_load_attendance(class_name, attendance_date=None):
+    try:
+        conn, db_type = get_db()
+        if db_type == "postgres":
+            import psycopg2.extras
+            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            if attendance_date:
+                cur.execute(
+                    "SELECT * FROM attendance WHERE class_name=%s AND attendance_date=%s ORDER BY student_name",
+                    (class_name, attendance_date)
+                )
+            else:
+                cur.execute(
+                    "SELECT * FROM attendance WHERE class_name=%s ORDER BY attendance_date DESC, student_name",
+                    (class_name,)
+                )
+        else:
+            cur = conn.cursor()
+            if attendance_date:
+                cur.execute(
+                    "SELECT * FROM attendance WHERE class_name=? AND attendance_date=? ORDER BY student_name",
+                    (class_name, attendance_date)
+                )
+            else:
+                cur.execute(
+                    "SELECT * FROM attendance WHERE class_name=? ORDER BY attendance_date DESC, student_name",
+                    (class_name,)
+                )
+        rows = cur.fetchall(); cur.close(); conn.close()
+        return [dict(r) for r in rows]
+    except Exception as e:
+        print("db_load_attendance error:", e)
+        return []
+
+def db_save_attendance(record):
+    try:
+        conn, db_type = get_db()
+        cur = conn.cursor()
+        if db_type == "postgres":
+            import psycopg2.extras
+            cur.execute(
+                """
+                INSERT INTO attendance (class_name, attendance_date, student_name, status, marked_by)
+                VALUES (%s,%s,%s,%s,%s)
+                ON CONFLICT (class_name, attendance_date, student_name)
+                DO UPDATE SET status = EXCLUDED.status, marked_by = EXCLUDED.marked_by
+                """,
+                (record["class_name"], record["attendance_date"], record["student_name"], record["status"], record.get("marked_by",""))
+            )
+        else:
+            cur.execute(
+                """
+                INSERT OR REPLACE INTO attendance (class_name, attendance_date, student_name, status, marked_by, created_at)
+                VALUES (?,?,?,?,?,?)
+                """,
+                (record["class_name"], record["attendance_date"], record["student_name"], record["status"], record.get("marked_by",""), datetime.datetime.now().isoformat())
+            )
+        conn.commit(); cur.close(); conn.close()
+    except Exception as e:
+        print("db_save_attendance error:", e)
 
 # ── Question Bank ──────────────────────────────────────────────────
 

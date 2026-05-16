@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance — {{ view_class }}</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;color:#1a3a5c}
+        .topbar{background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;padding:16px 28px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+        .topbar h1{font-size:20px;font-weight:700}
+        .topbar .sub{font-size:13px;opacity:.8;margin-top:2px}
+        .topbar-right{display:flex;gap:10px;align-items:center}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:8px;border:none;cursor:pointer;font-size:14px;font-weight:600;text-decoration:none;transition:.2s}
+        .btn-white{background:white;color:#1a3a5c}
+        .btn-white:hover{background:#e8f0fe}
+        .btn-primary{background:#2e86ab;color:white}
+        .btn-primary:hover{background:#1a6a8a}
+        .container{max-width:1100px;margin:0 auto;padding:24px}
+        .section{background:white;border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:24px;overflow:hidden}
+        .section-header{padding:18px 24px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;justify-content:space-between}
+        .section-header h2{font-size:17px;font-weight:700;color:#1a3a5c}
+        .section-body{padding:24px}
+        .form-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end}
+        .form-group{display:flex;flex-direction:column;gap:6px}
+        .form-group label{font-size:12px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.5px}
+        .form-group input,.form-group select{padding:10px 14px;border:1.5px solid #dde3ec;border-radius:8px;font-size:14px;color:#1a3a5c;background:white;outline:none;transition:.2s}
+        .form-group input:focus,.form-group select:focus{border-color:#2e86ab;box-shadow:0 0 0 3px rgba(46,134,171,.1)}
+        .attendance-table{width:100%;border-collapse:collapse;margin-bottom:16px}
+        .attendance-table th, .attendance-table td{padding:14px 16px;border-bottom:1px solid #eef2f7;text-align:left}
+        .attendance-table th{font-size:12px;text-transform:uppercase;color:#777;background:#f8fafc}
+        .attendance-table input{width:100%;padding:10px 12px;border:1px solid #dde3ec;border-radius:8px}
+        .attendance-table select{width:100%;padding:10px 12px;border:1px solid #dde3ec;border-radius:8px;background:white}
+        .msg{padding:14px 20px;border-radius:10px;margin-bottom:20px;font-weight:600;font-size:14px}
+        .msg.ok{background:#e8f5e9;color:#2e7d32;border-left:4px solid #27ae60}
+        .msg.err{background:#ffebee;color:#c62828;border-left:4px solid #e74c3c}
+        .history-table{width:100%;border-collapse:collapse}
+        .history-table th, .history-table td{padding:12px 14px;border-bottom:1px solid #eef2f7;font-size:14px}
+        .history-table th{background:#f8fafc;color:#555;text-align:left;font-size:12px;text-transform:uppercase}
+        .tag{display:inline-flex;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700}
+        .tag.present{background:#e8f5e9;color:#2e7d32}
+        .tag.absent{background:#ffebee;color:#c62828}
+        .empty{padding:40px;text-align:center;color:#aaa}
+        @media(max-width:768px){.form-row{grid-template-columns:1fr;}.topbar{flex-direction:column;align-items:flex-start;gap:12px}}    
+    </style>
+</head>
+<body>
+<div class="topbar">
+    <div>
+        <div class="topbar h1" style="font-size:20px;font-weight:700">📅 Attendance — {{ view_class }}</div>
+        <div class="sub">{{ school }} &nbsp;·&nbsp; {{ teacher.name }}</div>
+    </div>
+    <div class="topbar-right">
+        <a href="/class_manager?class={{ view_class }}" class="btn btn-white">📋 Class Manager</a>
+        <a href="/dashboard" class="btn btn-white">📊 Dashboard</a>
+        <a href="/teacher_logout" class="btn btn-white">🚪 Logout</a>
+    </div>
+</div>
+<div class="container">
+    {% if attendance_msg %}
+    <div class="msg ok">{{ attendance_msg }}</div>
+    {% endif %}
+
+    <div class="section">
+        <div class="section-header"><h2>Attendance Date & Class</h2></div>
+        <div class="section-body">
+            <form method="GET" action="/attendance" class="form-row">
+                <input type="hidden" name="class" value="{{ view_class }}">
+                <div class="form-group">
+                    <label>Class</label>
+                    <input type="text" value="{{ view_class }}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Date</label>
+                    <input type="date" name="date" value="{{ selected_date }}" required>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Load Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Mark Attendance</h2></div>
+        <div class="section-body">
+            <form method="POST" action="/save_attendance">
+                <input type="hidden" name="view_class" value="{{ view_class }}">
+                <input type="hidden" name="attendance_date" value="{{ selected_date }}">
+                <table class="attendance-table">
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance_body">
+                        {% if student_names %}
+                            {% for name in student_names %}
+                            <tr>
+                                <td><input type="text" name="student_name" value="{{ name }}" required></td>
+                                <td>
+                                    <select name="status">
+                                        <option value="Present" {{ 'selected' if attendance_by_name.get(name,{}).get('status','Absent') == 'Present' }}>Present</option>
+                                        <option value="Absent" {{ 'selected' if attendance_by_name.get(name,{}).get('status','Absent') != 'Present' }}>Absent</option>
+                                    </select>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% endif %}
+                        {% for _ in range(5) %}
+                        <tr>
+                            <td><input type="text" name="student_name" placeholder="New student name"></td>
+                            <td>
+                                <select name="status">
+                                    <option value="Present">Present</option>
+                                    <option value="Absent">Absent</option>
+                                </select>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                    <button type="button" class="btn btn-white" onclick="addAttendanceRow()">+ Add Row</button>
+                    <button type="submit" class="btn btn-primary">Save Attendance</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header"><h2>Saved Attendance for {{ selected_date }}</h2></div>
+        <div class="section-body">
+            {% if attendance_records %}
+            <table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Status</th>
+                        <th>Marked By</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in attendance_records %}
+                    <tr>
+                        <td>{{ record.student_name }}</td>
+                        <td><span class="tag {{ record.status|lower }}">{{ record.status }}</span></td>
+                        <td>{{ record.marked_by or '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty">
+                <div class="icon">📝</div>
+                <strong>No attendance recorded yet.</strong>
+                <p style="margin-top:8px;color:#bbb">Use the form above to mark attendance for this date.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+function addAttendanceRow(){
+    var tbody = document.getElementById('attendance_body');
+    var row = document.createElement('tr');
+    row.innerHTML = '<td><input type="text" name="student_name" placeholder="New student name"></td>' +
+                    '<td><select name="status"><option value="Present">Present</option><option value="Absent">Absent</option></select></td>';
+    tbody.appendChild(row);
+}
+</script>
+</body>
+</html>

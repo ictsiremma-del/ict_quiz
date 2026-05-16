@@ -16,6 +16,7 @@ from database import (
     db_load_hw, db_save_hw, db_del_hw,
     db_load_bece, db_save_bece,
     db_load_assignments, db_save_assignment, db_delete_assignment,
+    db_load_attendance, db_save_attendance,
     db_load_bank, db_add_to_bank, db_delete_from_bank,
     db_register_school, db_get_all_schools, db_get_school,
     db_update_school_status, db_school_code_exists
@@ -1138,15 +1139,16 @@ def class_manager():
         })
     assignment_stats.sort(key=lambda x: (x["overdue"], x.get("due_date","")))
     # Build list of classes this teacher can view
-    viewable_classes = []
     if t.get("is_head"):
         viewable_classes = CLASSES
+    elif managed:
+        viewable_classes = [managed]
+        if view_class != managed:
+            view_class = managed
     else:
-        if managed: viewable_classes.append(managed)
-        # Add classes where teacher teaches subjects
-        for cls in CLASSES:
-            if cls not in viewable_classes:
-                viewable_classes.append(cls)
+        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
+            error_message="No Class Assigned",
+            error_detail="You are not assigned as a class manager for any class."), 403
     return render_template("class_manager.html", school=SCHOOL_NAME,
         teacher=t, managed_class=managed, view_class=view_class,
         viewable_classes=viewable_classes,
@@ -1154,6 +1156,53 @@ def class_manager():
         assessment_types=ASSESSMENT_TYPES,
         subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
         assign_msg=session.pop("assign_msg", None))
+
+@app.route("/attendance")
+def attendance():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    t = current_teacher()
+    managed = t.get("managed_class")
+    view_class = request.args.get("class", managed)
+    if not view_class:
+        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
+            error_message="No Class Assigned",
+            error_detail="You are not assigned as a class manager for any class."), 403
+    selected_date = request.args.get("date", datetime.datetime.now().strftime("%Y-%m-%d"))
+    attendance_records = db_load_attendance(view_class, selected_date)
+    attendance_by_name = {r.get("student_name",""): r for r in attendance_records}
+    student_names = sorted({r.get("student_name","") for r in attendance_records if r.get("student_name","")})
+    if not student_names:
+        student_names = sorted({r.get("name","") for r in load_results() if r.get("class","") == view_class and r.get("name","")})
+    return render_template("attendance.html", school=SCHOOL_NAME,
+        teacher=t, managed_class=managed, view_class=view_class,
+        selected_date=selected_date, attendance_records=attendance_records,
+        attendance_by_name=attendance_by_name, student_names=student_names,
+        attendance_msg=session.pop("attendance_msg", None))
+
+@app.route("/save_attendance", methods=["POST"])
+def save_attendance():
+    if not session.get("teacher"): return redirect(url_for("teacher"))
+    t = current_teacher()
+    view_class = request.form.get("view_class")
+    selected_date = request.form.get("attendance_date", datetime.datetime.now().strftime("%Y-%m-%d"))
+    names = request.form.getlist("student_name")
+    statuses = request.form.getlist("status")
+    saved = 0
+    for name, status in zip(names, statuses):
+        student_name = (name or "").strip()
+        if not student_name:
+            continue
+        if status not in ("Present", "Absent"): status = "Absent"
+        db_save_attendance({
+            "class_name": view_class,
+            "attendance_date": selected_date,
+            "student_name": student_name,
+            "status": status,
+            "marked_by": t.get("name","")
+        })
+        saved += 1
+    session["attendance_msg"] = f"Saved attendance for {saved} student{'s' if saved != 1 else ''}."
+    return redirect(url_for("attendance", **{"class": view_class, "date": selected_date}))
 
 @app.route("/assign_work", methods=["POST"])
 def assign_work():

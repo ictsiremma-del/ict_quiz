@@ -24,6 +24,7 @@
       <h2>Main</h2>
       <a href="/dashboard" class="menu-item active">🏠 Dashboard</a>
       {% if is_head %}
+      <a href="/superadmin" class="menu-item">🔐 Super Admin</a>
       <div>
         <a href="javascript:void(0)" class="menu-item" onclick="toggleDropdown(0)">🎓 BECE ▾</a>
         <div class="submenu" id="drop-0">
@@ -35,7 +36,7 @@
       <div>
         <a href="javascript:void(0)" class="menu-item" onclick="toggleDropdown(1)">📋 Class & Results ▾</a>
         <div class="submenu" id="drop-1">
-          <a href="/student_report">Reports</a>
+          <a href="/student_report">Class Score</a>
           <a href="/list_backups">Backups</a>
           <a href="/export_excel">Excel</a>
         </div>
@@ -378,9 +379,10 @@ var selSub = "{{ selected_subject }}";
 function toggleDropdown(id){
   var target=document.getElementById('drop-'+id);
   if(!target) return;
-  var open = target.style.display==='flex';
-  document.querySelectorAll('.submenu').forEach(function(el){el.style.display='none';});
-  if(!open){ target.style.display='flex'; }
+  var button = target.previousElementSibling;
+  var isOpen = button && button.classList.contains('open');
+  document.querySelectorAll('.menu-item.open').forEach(function(el){el.classList.remove('open');});
+  if(button && !isOpen){ button.classList.add('open'); }
 }
 
 function toggleSidebar(){
