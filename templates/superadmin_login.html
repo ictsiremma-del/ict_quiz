@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:linear-gradient(135deg,#0A1628,#1A3060);
+         min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+    .card{background:#fff;border-radius:18px;padding:40px 36px;width:100%;max-width:400px;
+          box-shadow:0 8px 40px rgba(10,22,40,.25)}
+    .icon{font-size:40px;text-align:center;margin-bottom:12px}
+    h2{font-size:22px;font-weight:800;color:#0A1628;text-align:center;margin-bottom:4px}
+    .sub{font-size:13px;color:#8A93A8;text-align:center;margin-bottom:24px}
+    label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;
+          color:#4A5168;display:block;margin-bottom:5px}
+    input[type=password]{width:100%;padding:11px 14px;border:1.5px solid #E8EBF4;
+          border-radius:8px;font-size:14px;font-family:'Outfit',sans-serif;
+          color:#0A1628;background:#F7F8FC;margin-bottom:16px}
+    input:focus{outline:none;border-color:#2472F5;box-shadow:0 0 0 3px rgba(36,114,245,.1);background:#fff}
+    .btn{width:100%;padding:13px;background:#0A1628;color:#F5B800;border:none;
+         border-radius:8px;font-size:15px;font-weight:700;font-family:'Outfit',sans-serif;
+         cursor:pointer;transition:all .15s}
+    .btn:hover{background:#1a3060}
+    .error{background:#FDEAEA;border:1.5px solid #f5b8b8;color:#C0392B;
+           border-radius:8px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:16px}
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔐</div>
+  <h2>Super Admin</h2>
+  <p class="sub">{{ school }}</p>
+  {% if error %}<div class="error">⚠️ {{ error }}</div>{% endif %}
+  <form method="POST">
+    <label>Admin Password</label>
+    <input type="password" name="password" placeholder="Enter admin password" autofocus required>
+    <button type="submit" class="btn">🔓 Sign In</button>
+  </form>
+</div>
+</body>
+</html>

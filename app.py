@@ -1143,12 +1143,16 @@ def superadmin():
         return render_template("superadmin_login.html",school=SCHOOL_NAME,error="Wrong password")
     if not session.get("superadmin"):
         return render_template("superadmin_login.html",school=SCHOOL_NAME,error=None)
-    # Load all pending custom teachers
-    CUSTOM_TEACHERS.update(load_custom_teachers())
+    # Always reload from file so Railway sees latest registrations
+    fresh = load_custom_teachers()
+    CUSTOM_TEACHERS.update(fresh)
     pending   = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="pending"}
     approved  = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="approved"}
     rejected  = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="rejected"}
-    schools   = db_get_all_schools()
+    try:
+        schools = db_get_all_schools()
+    except Exception:
+        schools = []
     return render_template("superadmin.html", school=SCHOOL_NAME,
         pending=pending, approved=approved, rejected=rejected,
         schools=schools, subjects=SUBJECTS, classes=CLASSES)
@@ -1156,44 +1160,48 @@ def superadmin():
 @app.route("/superadmin/approve/<uid>")
 def approve_teacher(uid):
     if not session.get("superadmin"): return redirect(url_for("superadmin"))
-    CUSTOM_TEACHERS.update(load_custom_teachers())
-    if uid in CUSTOM_TEACHERS:
-        CUSTOM_TEACHERS[uid]["status"]="approved"
-        save_custom_teachers(CUSTOM_TEACHERS)
+    data = load_custom_teachers()
+    if uid in data:
+        data[uid]["status"] = "approved"
+        save_custom_teachers(data)
+        CUSTOM_TEACHERS.update(data)
     return redirect(url_for("superadmin"))
 
 @app.route("/superadmin/reject/<uid>")
 def reject_teacher(uid):
     if not session.get("superadmin"): return redirect(url_for("superadmin"))
-    CUSTOM_TEACHERS.update(load_custom_teachers())
-    if uid in CUSTOM_TEACHERS:
-        CUSTOM_TEACHERS[uid]["status"]="rejected"
-        save_custom_teachers(CUSTOM_TEACHERS)
+    data = load_custom_teachers()
+    if uid in data:
+        data[uid]["status"] = "rejected"
+        save_custom_teachers(data)
+        CUSTOM_TEACHERS.update(data)
     return redirect(url_for("superadmin"))
 
 @app.route("/superadmin/delete/<uid>")
 def delete_teacher(uid):
     if not session.get("superadmin"): return redirect(url_for("superadmin"))
-    CUSTOM_TEACHERS.update(load_custom_teachers())
-    if uid in CUSTOM_TEACHERS:
-        del CUSTOM_TEACHERS[uid]
-        save_custom_teachers(CUSTOM_TEACHERS)
+    data = load_custom_teachers()
+    if uid in data:
+        del data[uid]
+        save_custom_teachers(data)
+        CUSTOM_TEACHERS.clear()
+        CUSTOM_TEACHERS.update(data)
     return redirect(url_for("superadmin"))
 
 @app.route("/superadmin/edit_teacher/<uid>", methods=["POST"])
 def edit_teacher(uid):
-    """Allow superadmin to edit a teacher's subjects, class, and role after approval."""
     if not session.get("superadmin"): return redirect(url_for("superadmin"))
-    CUSTOM_TEACHERS.update(load_custom_teachers())
-    if uid in CUSTOM_TEACHERS:
+    data = load_custom_teachers()
+    if uid in data:
         new_subjects = request.form.getlist("subjects")
         new_class    = request.form.get("managed_class","").strip()
         new_role     = request.form.get("role","subject_teacher").strip()
         if new_subjects:
-            CUSTOM_TEACHERS[uid]["subjects"]      = new_subjects
-            CUSTOM_TEACHERS[uid]["managed_class"] = new_class if new_class else None
-            CUSTOM_TEACHERS[uid]["role"]          = new_role
-            save_custom_teachers(CUSTOM_TEACHERS)
+            data[uid]["subjects"]      = new_subjects
+            data[uid]["managed_class"] = new_class if new_class else None
+            data[uid]["role"]          = new_role
+            save_custom_teachers(data)
+            CUSTOM_TEACHERS.update(data)
     return redirect(url_for("superadmin"))
 
 @app.route("/superadmin/logout")

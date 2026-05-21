@@ -1,129 +1,146 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>BECE Result</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh;padding:20px 14px}
-.container{max-width:700px;margin:0 auto}
-.header{background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white;border-radius:14px;padding:22px;text-align:center;margin-bottom:16px}
-.header h1{font-size:19px}.header p{font-size:13px;opacity:.85;margin-top:3px}
-.score-card{background:white;border-radius:14px;padding:26px;text-align:center;margin-bottom:14px;box-shadow:0 3px 12px rgba(0,0,0,.07)}
-.grade-circle{width:100px;height:100px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:44px;font-weight:800;color:white;margin-bottom:12px;background:{{ grade_color }}}
-.score-big{font-size:28px;font-weight:700;color:#2c3e50}
-.score-pct{font-size:15px;color:#888;margin:3px 0 9px}
-.remark{display:inline-block;font-size:13px;font-weight:700;color:{{ grade_color }};background:#f8f9fa;padding:5px 16px;border-radius:14px}
-.info-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:14px}
-.info-box{background:white;border-radius:10px;padding:13px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.05)}
-.info-box .v{font-size:14px;font-weight:700;color:#1a0a2e}
-.info-box .l{font-size:10px;color:#999;margin-top:3px}
-.details{background:white;border-radius:14px;padding:18px;margin-bottom:14px;box-shadow:0 2px 5px rgba(0,0,0,.05)}
-.details h3{font-size:14px;font-weight:700;color:#1a0a2e;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0f4f8}
-.q-row{padding:12px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
-.q-row:last-child{border-bottom:none}
-.q-txt{color:#333;font-weight:500;margin-bottom:6px;line-height:1.4}
-.ans-row{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;margin-bottom:5px}
-.ok{color:#27ae60;font-weight:700}.ng{color:#e74c3c;font-weight:700}
-.mp{background:#f0f0f0;color:#666;font-size:10px;padding:1px 6px;border-radius:5px;float:right}
-.explanation{background:#e8f4f8;border-radius:6px;padding:7px 10px;font-size:12px;color:#2e86ab;margin-top:6px;line-height:1.5}
-.q-img{max-width:100%;max-height:150px;border-radius:6px;border:1px solid #e0e0e0;margin:6px 0;object-fit:contain}
-.actions{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
-.btn{flex:1;padding:13px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;display:inline-block;min-width:140px}
-.btn-red{background:linear-gradient(135deg,#c0392b,#e74c3c);color:white}
-.btn-dark{background:#1a0a2e;color:white}
-.encourage{background:linear-gradient(135deg,#fff8e1,#fff3cd);border-radius:10px;padding:14px;margin-bottom:14px;text-align:center;border-left:4px solid #f39c12}
-.encourage p{font-size:13px;color:#856404;line-height:1.6}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BECE Result — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0A1628;--blue:#2472F5;--gold:#F5B800;--gold-dark:#B8880A;
+      --white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;
+      --green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;
+      --radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--navy);padding-bottom:40px}
+    /* HERO */
+    .hero{background:{{ subject_color }};color:#fff;padding:32px 20px 28px;text-align:center}
+    .hero-icon{font-size:40px;margin-bottom:8px}
+    .hero h1{font-size:22px;font-weight:800;margin-bottom:4px}
+    .hero-sub{font-size:13px;opacity:.8}
+    /* SCORE CARD */
+    .score-section{max-width:700px;margin:-20px auto 0;padding:0 16px}
+    .score-card{background:var(--white);border-radius:var(--radius);padding:24px;
+                box-shadow:0 8px 30px rgba(10,22,40,.15);text-align:center;margin-bottom:20px}
+    .score-big{font-size:52px;font-weight:800;line-height:1}
+    .score-label{font-size:13px;color:var(--gray3);margin-top:4px}
+    .grade-badge{display:inline-block;font-size:32px;font-weight:900;padding:8px 28px;
+                 border-radius:40px;color:#fff;margin:12px 0}
+    .remark{font-size:14px;font-weight:600;color:var(--gray4)}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
+               gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray)}
+    .meta-item .label{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--gray3);font-weight:700}
+    .meta-item .value{font-size:13px;font-weight:700;color:var(--navy);margin-top:2px}
+    /* ACTIONS */
+    .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+    .btn{padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;
+         font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;
+         display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+    .btn-navy{background:var(--navy);color:var(--gold)}
+    .btn-navy:hover{background:#1a3060}
+    .btn-outline{background:var(--white);color:var(--navy);border:1.5px solid var(--gray)}
+    .btn-outline:hover{border-color:var(--navy)}
+    /* DETAIL TABLE */
+    .card{background:var(--white);border-radius:var(--radius);padding:20px;
+          box-shadow:var(--shadow);margin-bottom:16px}
+    .card-title{font-size:14px;font-weight:800;margin-bottom:14px;color:var(--navy)}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;
+       font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);
+       border-bottom:1.5px solid var(--gray)}
+    td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:top;line-height:1.5}
+    tr:last-child td{border-bottom:none}
+    .correct{color:var(--green);font-weight:700}
+    .wrong{color:var(--red);font-weight:700}
+    .mark-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
+    .mark-full{background:var(--green-light);color:var(--green)}
+    .mark-zero{background:var(--red-light);color:var(--red)}
+    .mark-part{background:#FFF8E1;color:var(--gold-dark)}
+  </style>
 </head>
 <body>
-<div class="container">
-  <div class="header">
-    <h1>{{ subject_icon }} {{ school }}</h1>
-    <p>BECE {{ result.year }} — {{ result.subject }} |
-      {{ "Practice" if result.mode=="practice" else "Exam" }} Mode</p>
-  </div>
 
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-icon">{{ subject_icon }}</div>
+  <h1>BECE {{ result.year }} — {{ result.subject }}</h1>
+  <div class="hero-sub">{{ school }} &nbsp;·&nbsp; {{ result.mode|capitalize }} Mode</div>
+</div>
+
+<!-- SCORE CARD -->
+<div class="score-section">
   <div class="score-card">
-    <div class="grade-circle">{{ result.grade }}</div>
-    <div class="score-big">{{ result.score }} / {{ result.total }}</div>
-    <div class="score-pct">{{ result.percentage }}%</div>
+    <div class="score-big" style="color:{{ grade_color }}">{{ result.percentage }}%</div>
+    <div class="score-label">{{ result.score }} / {{ result.total }} marks</div>
+    <div class="grade-badge" style="background:{{ grade_color }}">Grade {{ result.grade }}</div>
     <div class="remark">{{ result.remark }}</div>
-  </div>
-
-  <!-- Encouragement message -->
-  <div class="encourage">
-    {% if result.percentage >= 80 %}
-    <p>🌟 <strong>Excellent work!</strong> You are very well prepared for the BECE. Keep it up!</p>
-    {% elif result.percentage >= 60 %}
-    <p>👍 <strong>Good effort!</strong> You are on the right track. Review the questions you got wrong and try again.</p>
-    {% elif result.percentage >= 40 %}
-    <p>📚 <strong>Keep studying!</strong> Focus on the topics where you made mistakes. You can improve!</p>
-    {% else %}
-    <p>💪 <strong>Don't give up!</strong> Study the correct answers below and practice more. Every attempt makes you better!</p>
-    {% endif %}
-  </div>
-
-  <div class="info-grid">
-    <div class="info-box"><div class="v">{{ result.name }}</div><div class="l">Name</div></div>
-    <div class="info-box"><div class="v">{{ result.subject }}</div><div class="l">Subject</div></div>
-    <div class="info-box"><div class="v">BECE {{ result.year }}</div><div class="l">Paper</div></div>
-  </div>
-
-  {% if show_answers %}
-  <div class="details">
-    <h3>📋 Answers & Explanations</h3>
-    {% for d in result.details %}
-    <div class="q-row">
-      <div class="q-txt">
-        {% if d.correct_flag %}<span class="ok">✅</span>
-        {% else %}<span class="ng">❌</span>{% endif %}
-        {{ loop.index }}. {{ d.question }}
-        <span class="mp">{{ d.marks_earned }}/{{ d.marks_total }}</span>
-      </div>
-      {% if d.get('image') %}
-      <img src="/static/{{ d.image }}" class="q-img">
-      {% endif %}
-      <div class="ans-row">
-        <span>Your answer:
-          <strong class="{{ 'ok' if d.correct_flag else 'ng' }}">
-            {{ d.given }}
-          </strong>
-        </span>
-        {% if not d.correct_flag %}
-        <span>Correct answer:
-          <strong class="ok">{{ d.correct }}</strong>
-        </span>
-        {% endif %}
-      </div>
-      {% if d.get('explanation') %}
-      <div class="explanation">
-        💡 <strong>Explanation:</strong> {{ d.explanation }}
-      </div>
-      {% endif %}
+    <div class="meta-grid">
+      <div class="meta-item"><div class="label">Student</div><div class="value">{{ result.name }}</div></div>
+      <div class="meta-item"><div class="label">Subject</div><div class="value">{{ result.subject }}</div></div>
+      <div class="meta-item"><div class="label">Year</div><div class="value">{{ result.year }}</div></div>
+      <div class="meta-item"><div class="label">Mode</div><div class="value">{{ result.mode|capitalize }}</div></div>
+      <div class="meta-item"><div class="label">Date</div><div class="value">{{ result.date }}</div></div>
     </div>
-    {% endfor %}
   </div>
-  {% else %}
-  <div class="details">
-    <h3>📋 Quick Summary</h3>
-    {% for d in result.details %}
-    <div class="q-row" style="display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:13px;color:#333">
-        {% if d.correct_flag %}✅{% else %}❌{% endif %}
-        Q{{ loop.index }}. {{ d.question[:50] }}...
-      </span>
-      <span class="mp" style="float:none">{{ d.marks_earned }}/{{ d.marks_total }}</span>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <a href="{{ url_for('bece_home') }}" class="btn btn-navy">🏠 Back to BECE Home</a>
+    <button class="btn btn-outline" onclick="window.print()">🖨️ Print</button>
+  </div>
+
+  <!-- DETAILED ANSWERS (only in practice mode) -->
+  {% if show_answers and result.details %}
+  <div class="card">
+    <div class="card-title">📋 Detailed Answers</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Question</th>
+            <th>Your Answer</th>
+            <th>Correct Answer</th>
+            <th>Marks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in result.details %}
+          <tr>
+            <td style="color:var(--gray3);font-size:10px;font-weight:700">{{ loop.index }}</td>
+            <td>{{ d.question }}</td>
+            <td class="{{ 'correct' if d.correct_flag else 'wrong' }}">
+              {{ d.given }}
+            </td>
+            <td>
+              {% if d.type == 'theory' %}
+                <em style="color:var(--gray3);font-size:11px">{{ d.correct[:120] }}{% if d.correct|length > 120 %}…{% endif %}</em>
+              {% else %}
+                {{ d.correct }}
+              {% endif %}
+            </td>
+            <td>
+              {% set ratio = d.marks_earned / d.marks_total if d.marks_total > 0 else 0 %}
+              <span class="mark-badge {{ 'mark-full' if ratio >= 1 else 'mark-zero' if ratio == 0 else 'mark-part' }}">
+                {{ d.marks_earned }}/{{ d.marks_total }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    {% endfor %}
+  </div>
+  {% elif not show_answers %}
+  <div class="card" style="text-align:center;color:var(--gray3);padding:30px">
+    📋 Detailed answers are only shown in <strong>Practice Mode</strong>.<br>
+    Switch to practice mode to review your answers.
   </div>
   {% endif %}
 
-  <div class="actions">
-    <a href="/bece" class="btn btn-red">🔄 Practice Again</a>
-    <a href="/" class="btn btn-dark">🏠 Main Portal</a>
-  </div>
-</div>
+</div><!-- /score-section -->
+
 </body>
 </html>

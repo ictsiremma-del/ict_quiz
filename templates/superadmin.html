@@ -1,228 +1,391 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Super Admin — {{ school }}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
-.topbar{background:linear-gradient(135deg,#1a3a5c,#c0392b);color:white;padding:14px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
-.topbar h1{font-size:18px;font-weight:700}
-.topbar p{font-size:11px;opacity:.8;margin-top:2px}
-.btn-sm{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:none;text-decoration:none;display:inline-block}
-.bw{background:rgba(255,255,255,.2);color:white}
-.container{max-width:1100px;margin:0 auto;padding:20px 14px}
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.stat{background:white;border-radius:11px;padding:16px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.06)}
-.stat .v{font-size:28px;font-weight:800;color:#1a3a5c}
-.stat .l{font-size:11px;color:#888;margin-top:3px}
-.section{background:white;border-radius:13px;padding:20px;margin-bottom:18px;box-shadow:0 2px 5px rgba(0,0,0,.06)}
-.section h2{font-size:15px;font-weight:700;margin-bottom:14px;padding-bottom:9px;border-bottom:2px solid #f0f4f8;display:flex;align-items:center;gap:8px}
-.pending-h{color:#e67e22}
-.approved-h{color:#27ae60}
-.rejected-h{color:#e74c3c}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{background:#f8f9fa;padding:9px 12px;text-align:left;font-weight:700;color:#555;border-bottom:2px solid #e0e0e0}
-td{padding:9px 12px;border-bottom:1px solid #f5f5f5;vertical-align:middle}
-tr:hover td{background:#fafafa}
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.b-pending{background:#fef9e7;color:#e67e22;border:1px solid #f9ca24}
-.b-approved{background:#d5f5e3;color:#27ae60;border:1px solid #82e0aa}
-.b-rejected{background:#fadbd8;color:#e74c3c;border:1px solid #f1948a}
-.btn-approve{background:#27ae60;color:white;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;margin-right:4px}
-.btn-reject{background:#e74c3c;color:white;border:none;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
-.btn-approve:hover{background:#219a52}
-.btn-reject:hover{background:#c0392b}
-.school-link{font-size:11px;color:#2e86ab;font-family:monospace}
-.empty{text-align:center;color:#bbb;padding:24px;font-size:13px}
-.msg-ok{background:#d5f5e3;color:#27ae60;border-left:3px solid #27ae60;padding:9px 13px;border-radius:7px;font-size:13px;margin-bottom:13px}
-@media(max-width:600px){.stats-row{grid-template-columns:1fr 1fr}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --navy:#0A1628;--blue:#2472F5;--gold:#F5B800;--gold-dark:#B8880A;
+      --white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;
+      --green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;
+      --orange:#E67E22;--orange-light:#FEF0E3;
+      --radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--navy);min-height:100vh}
+    /* TOPBAR */
+    .topbar{background:var(--navy);color:#fff;padding:0 24px;height:56px;
+            display:flex;align-items:center;justify-content:space-between;
+            position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(10,22,40,.3)}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-logo{width:34px;height:34px;background:var(--gold);border-radius:8px;
+                 display:flex;align-items:center;justify-content:center;font-size:16px}
+    .topbar h1{font-size:15px;font-weight:800}
+    .topbar-sub{font-size:11px;opacity:.6}
+    .topbar-right{display:flex;align-items:center;gap:10px}
+    .badge-admin{background:var(--gold);color:var(--navy);padding:3px 10px;
+                 border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px}
+    .btn-logout{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);
+                padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;
+                font-family:'Outfit',sans-serif;cursor:pointer;text-decoration:none}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    /* LAYOUT */
+    .container{max-width:1100px;margin:0 auto;padding:24px 20px}
+    /* STATS */
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+    .stat-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;
+               box-shadow:var(--shadow);border-top:3px solid var(--blue)}
+    .stat-card.c-gold{border-top-color:var(--gold)}
+    .stat-card.c-green{border-top-color:var(--green)}
+    .stat-card.c-red{border-top-color:var(--red)}
+    .stat-card.c-orange{border-top-color:var(--orange)}
+    .stat-val{font-size:28px;font-weight:800;color:var(--navy)}
+    .stat-label{font-size:11px;color:var(--gray3);font-weight:600;text-transform:uppercase;
+                letter-spacing:.5px;margin-top:2px}
+    /* CARDS */
+    .card{background:var(--white);border-radius:var(--radius);padding:20px;
+          box-shadow:var(--shadow);margin-bottom:18px}
+    .card-header{display:flex;align-items:center;justify-content:space-between;
+                 margin-bottom:14px;flex-wrap:wrap;gap:8px}
+    .card-title{font-size:14px;font-weight:800;color:var(--navy)}
+    .card-sub{font-size:11px;color:var(--gray3);margin-top:2px}
+    /* TEACHER ROW */
+    .teacher-row{border:1.5px solid var(--gray);border-radius:10px;padding:14px 16px;
+                 margin-bottom:10px;background:var(--off);transition:border-color .15s}
+    .teacher-row:hover{border-color:var(--blue);background:var(--white)}
+    .teacher-row.pending{border-left:4px solid var(--orange)}
+    .teacher-row.approved{border-left:4px solid var(--green)}
+    .teacher-row.rejected{border-left:4px solid var(--red);opacity:.7}
+    .tr-top{display:flex;align-items:flex-start;justify-content:space-between;
+            flex-wrap:wrap;gap:8px}
+    .tr-name{font-size:14px;font-weight:700;color:var(--navy)}
+    .tr-uid{font-size:11px;color:var(--gray3);font-family:monospace;margin-top:2px}
+    .tr-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
+          border-radius:20px;font-size:10px;font-weight:700;
+          background:var(--gray);color:var(--gray4)}
+    .pill.role-subject{background:#EFF6FF;color:var(--blue)}
+    .pill.role-class{background:#FFF8E1;color:var(--gold-dark)}
+    .pill.status-pending{background:var(--orange-light);color:var(--orange)}
+    .pill.status-approved{background:var(--green-light);color:var(--green)}
+    .pill.status-rejected{background:var(--red-light);color:var(--red)}
+    .pill.subj{background:#F0F4FF;color:#3B5FB5;font-size:9px}
+    .tr-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    /* BUTTONS */
+    .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;
+         font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;
+         display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+    .btn-approve{background:var(--green);color:#fff}
+    .btn-approve:hover{background:#0a6040}
+    .btn-reject{background:var(--red);color:#fff}
+    .btn-reject:hover{background:#a93226}
+    .btn-delete{background:var(--gray);color:var(--gray4);border:1px solid #ddd}
+    .btn-delete:hover{background:#f8d7d7;color:var(--red);border-color:var(--red)}
+    .btn-edit{background:#EFF6FF;color:var(--blue);border:1.5px solid #B8D0F8}
+    .btn-edit:hover{background:var(--blue);color:#fff}
+    .btn-sm{padding:5px 10px;font-size:11px}
+    /* EDIT FORM */
+    .edit-form{display:none;margin-top:12px;padding:14px;background:#F0F4FF;
+               border-radius:8px;border:1px solid #B8D0F8}
+    .edit-form.open{display:block}
+    .edit-form label{font-size:10px;font-weight:700;text-transform:uppercase;
+                     letter-spacing:.5px;color:var(--gray4);display:block;margin-bottom:4px}
+    .edit-form select{width:100%;padding:8px 10px;border:1.5px solid var(--gray);
+                      border-radius:6px;font-size:12px;font-family:'Outfit',sans-serif;margin-bottom:10px}
+    .edit-subj-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+    .edit-subj-opt{display:flex;align-items:center;gap:6px;padding:6px 8px;
+                   border:1.5px solid var(--gray);border-radius:6px;cursor:pointer;font-size:11px}
+    .edit-subj-opt.checked{border-color:var(--blue);background:#EFF6FF}
+    .edit-subj-opt input{margin:0;accent-color:var(--blue)}
+    /* EMPTY */
+    .empty{text-align:center;padding:30px;color:var(--gray3);font-size:13px}
+    .empty-icon{font-size:32px;margin-bottom:8px}
+    /* TABS */
+    .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;
+             font-family:'Outfit',sans-serif;cursor:pointer;border:1.5px solid var(--gray);
+             background:var(--white);color:var(--gray4);transition:all .15s}
+    .tab-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    /* SCHOOL TABLE */
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;
+       font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);
+       border-bottom:1.5px solid var(--gray)}
+    td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:top}
+    tr:hover td{background:#F9FAFF}
+  </style>
 </head>
 <body>
+
+<!-- TOPBAR -->
 <div class="topbar">
-  <div>
-    <h1>🔐 Super Admin Panel</h1>
-    <p>{{ school }} — School Registration Management</p>
+  <div class="topbar-left">
+    <div class="topbar-logo">🏫</div>
+    <div>
+      <div class="topbar h1" style="font-size:15px;font-weight:800">Super Admin</div>
+      <div class="topbar-sub">{{ school }}</div>
+    </div>
   </div>
-  <div style="display:flex;gap:8px">
-    <a href="/dashboard" class="btn-sm bw">← Dashboard</a>
+  <div class="topbar-right">
+    <span class="badge-admin">ADMIN</span>
+    <a href="{{ url_for('superadmin_logout') }}" class="btn-logout">🚪 Logout</a>
   </div>
 </div>
 
 <div class="container">
-  {% if admin_msg %}
-  <div class="msg-ok">✅ {{ admin_msg }}</div>
-  {% endif %}
 
-  <!-- Stats -->
-  <div class="stats-row">
-    <div class="stat"><div class="v">{{ total }}</div><div class="l">Total Schools</div></div>
-    <div class="stat"><div class="v" style="color:#e67e22">{{ pending|length }}</div><div class="l">⏳ Pending</div></div>
-    <div class="stat"><div class="v" style="color:#27ae60">{{ approved|length }}</div><div class="l">✅ Approved</div></div>
-    <div class="stat"><div class="v" style="color:#e74c3c">{{ rejected|length }}</div><div class="l">❌ Rejected</div></div>
+  <!-- STATS -->
+  {% set total_teachers = pending|length + approved|length + rejected|length %}
+  <div class="stats">
+    <div class="stat-card"><div class="stat-val">{{ total_teachers }}</div><div class="stat-label">Total Registered</div></div>
+    <div class="stat-card c-orange"><div class="stat-val">{{ pending|length }}</div><div class="stat-label">Pending Approval</div></div>
+    <div class="stat-card c-green"><div class="stat-val">{{ approved|length }}</div><div class="stat-label">Approved</div></div>
+    <div class="stat-card c-red"><div class="stat-val">{{ rejected|length }}</div><div class="stat-label">Rejected</div></div>
+    <div class="stat-card c-gold"><div class="stat-val">{{ schools|length }}</div><div class="stat-label">Schools</div></div>
   </div>
 
-  <!-- Pending -->
-  <div class="section">
-    <h2 class="pending-h">⏳ Pending Approval ({{ pending|length }})</h2>
-    {% if pending %}
-    <table>
-      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>Contact</th><th>Registered</th><th>School Link</th><th>Actions</th></tr></thead>
-      <tbody>
-        {% for s in pending %}
-        <tr>
-          <td><strong>{{ s.school_name }}</strong></td>
-          <td>{{ s.head_name }}</td>
-          <td>{{ s.region or '—' }}</td>
-          <td>
-            {% if s.head_phone %}<div>📞 {{ s.head_phone }}</div>{% endif %}
-            {% if s.head_email %}<div>✉️ {{ s.head_email }}</div>{% endif %}
-          </td>
-          <td style="font-size:11px;color:#888">{{ s.created_at|string|truncate(10,true,'') if s.created_at else '—' }}</td>
-          <td><span class="school-link">/school/{{ s.school_code }}</span></td>
-          <td>
-            <form method="POST" style="display:inline">
-              <input type="hidden" name="school_id" value="{{ s.id }}">
-              <input type="hidden" name="action" value="approved">
-              <button type="submit" class="btn-approve" onclick="return confirm('Approve {{ s.school_name }}?')">✅ Approve</button>
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('pending',this)">
+      🕐 Pending {% if pending|length > 0 %}<span style="background:#E67E22;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">{{ pending|length }}</span>{% endif %}
+    </button>
+    <button class="tab-btn" onclick="showTab('approved',this)">✅ Approved ({{ approved|length }})</button>
+    <button class="tab-btn" onclick="showTab('rejected',this)">❌ Rejected ({{ rejected|length }})</button>
+    <button class="tab-btn" onclick="showTab('schools',this)">🏫 Schools ({{ schools|length }})</button>
+  </div>
+
+  <!-- PENDING TAB -->
+  <div id="tab-pending" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🕐 Pending Registrations</div>
+          <div class="card-sub">Teachers waiting for your approval before they can log in</div>
+        </div>
+      </div>
+      {% if pending %}
+        {% for uid, t in pending.items() %}
+        <div class="teacher-row pending">
+          <div class="tr-top">
+            <div>
+              <div class="tr-name">{{ t.name }}</div>
+              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
+            </div>
+            <div>
+              {% if t.get('role') == 'class_manager' %}
+              <span class="pill role-class">🏫 Class Teacher</span>
+              {% else %}
+              <span class="pill role-subject">📚 Subject Teacher</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="tr-meta">
+            <span class="pill status-pending">⏳ Pending</span>
+            {% if t.managed_class %}<span class="pill">Class: {{ t.managed_class }}</span>{% endif %}
+            {% for subj in (t.subjects or []) %}
+            <span class="pill subj">{{ subj }}</span>
+            {% endfor %}
+          </div>
+          <div class="tr-actions">
+            <a href="{{ url_for('approve_teacher', uid=uid) }}" class="btn btn-approve">✅ Approve</a>
+            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-reject"
+               onclick="return confirm('Reject {{ t.name }}?')">❌ Reject</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete"
+               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty"><div class="empty-icon">🎉</div>No pending registrations</div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- APPROVED TAB -->
+  <div id="tab-approved" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">✅ Approved Teachers</div>
+          <div class="card-sub">These teachers can log in. You can edit their subjects and class here.</div>
+        </div>
+      </div>
+      {% if approved %}
+        {% for uid, t in approved.items() %}
+        <div class="teacher-row approved">
+          <div class="tr-top">
+            <div>
+              <div class="tr-name">{{ t.name }}</div>
+              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
+            </div>
+            <div>
+              {% if t.get('role') == 'class_manager' %}
+              <span class="pill role-class">🏫 Class Teacher</span>
+              {% else %}
+              <span class="pill role-subject">📚 Subject Teacher</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="tr-meta">
+            <span class="pill status-approved">✅ Approved</span>
+            {% if t.managed_class %}<span class="pill">Class: {{ t.managed_class }}</span>{% endif %}
+            {% for subj in (t.subjects or []) %}
+            <span class="pill subj">{{ subj }}</span>
+            {% endfor %}
+          </div>
+          <div class="tr-actions">
+            <button class="btn btn-edit btn-sm" onclick="toggleEdit('edit-{{ uid }}')">✏️ Edit Subjects</button>
+            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
+               onclick="return confirm('Revoke access for {{ t.name }}?')">🔒 Revoke Access</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
+               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+          </div>
+          <!-- EDIT FORM -->
+          <div class="edit-form" id="edit-{{ uid }}">
+            <form method="POST" action="{{ url_for('edit_teacher', uid=uid) }}">
+              <label>Role</label>
+              <select name="role">
+                <option value="subject_teacher" {% if t.get('role') != 'class_manager' %}selected{% endif %}>Subject Teacher</option>
+                <option value="class_manager" {% if t.get('role') == 'class_manager' %}selected{% endif %}>Class Teacher</option>
+              </select>
+              <label>Class (if Class Teacher)</label>
+              <select name="managed_class">
+                <option value="">— None —</option>
+                {% for cls in classes %}
+                <option value="{{ cls }}" {% if t.managed_class == cls %}selected{% endif %}>{{ cls }}</option>
+                {% endfor %}
+              </select>
+              <label>Subjects</label>
+              <div class="edit-subj-grid">
+                {% for subj in subjects %}
+                <label class="edit-subj-opt {% if subj in (t.subjects or []) %}checked{% endif %}"
+                       onclick="toggleSubjEdit(this)">
+                  <input type="checkbox" name="subjects" value="{{ subj }}"
+                         {% if subj in (t.subjects or []) %}checked{% endif %}
+                         onchange="this.closest('.edit-subj-opt').classList.toggle('checked',this.checked)">
+                  {{ subj }}
+                </label>
+                {% endfor %}
+              </div>
+              <button type="submit" class="btn btn-approve btn-sm">💾 Save Changes</button>
+              <button type="button" class="btn btn-delete btn-sm" onclick="toggleEdit('edit-{{ uid }}')">Cancel</button>
             </form>
-            <form method="POST" style="display:inline">
-              <input type="hidden" name="school_id" value="{{ s.id }}">
-              <input type="hidden" name="action" value="rejected">
-              <button type="submit" class="btn-reject" onclick="return confirm('Reject {{ s.school_name }}?')">❌ Reject</button>
-            </form>
-          </td>
-        </tr>
+          </div>
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty">🎉 No pending registrations</div>
-    {% endif %}
+      {% else %}
+        <div class="empty"><div class="empty-icon">👥</div>No approved teachers yet</div>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Approved -->
-  <div class="section">
-    <h2 class="approved-h">✅ Approved Schools ({{ approved|length }})</h2>
-    {% if approved %}
-    <table>
-      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>School Link</th><th>Approved</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for s in approved %}
-        <tr>
-          <td><strong>{{ s.school_name }}</strong></td>
-          <td>{{ s.head_name }}</td>
-          <td>{{ s.region or '—' }}</td>
-          <td><a href="/school/{{ s.school_code }}" class="school-link" target="_blank">/school/{{ s.school_code }}</a></td>
-          <td style="font-size:11px;color:#888">{{ s.approved_at|string|truncate(10,true,'') if s.approved_at else '—' }}</td>
-          <td><span class="badge b-approved">✅ Active</span></td>
-        </tr>
+  <!-- REJECTED TAB -->
+  <div id="tab-rejected" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">❌ Rejected Teachers</div>
+      </div>
+      {% if rejected %}
+        {% for uid, t in rejected.items() %}
+        <div class="teacher-row rejected">
+          <div class="tr-top">
+            <div>
+              <div class="tr-name">{{ t.name }}</div>
+              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
+            </div>
+            <span class="pill status-rejected">❌ Rejected</span>
+          </div>
+          <div class="tr-meta">
+            {% for subj in (t.subjects or []) %}
+            <span class="pill subj">{{ subj }}</span>
+            {% endfor %}
+          </div>
+          <div class="tr-actions">
+            <a href="{{ url_for('approve_teacher', uid=uid) }}" class="btn btn-approve btn-sm">✅ Approve Instead</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
+               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+          </div>
+        </div>
         {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty">No approved schools yet</div>
-    {% endif %}
+      {% else %}
+        <div class="empty"><div class="empty-icon">✨</div>No rejected teachers</div>
+      {% endif %}
+    </div>
   </div>
 
-  <!-- Rejected -->
-  {% if rejected %}
-  <div class="section">
-    <h2 class="rejected-h">❌ Rejected ({{ rejected|length }})</h2>
-    <table>
-      <thead><tr><th>School Name</th><th>Head Teacher</th><th>Region</th><th>Registered</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for s in rejected %}
-        <tr>
-          <td>{{ s.school_name }}</td>
-          <td>{{ s.head_name }}</td>
-          <td>{{ s.region or '—' }}</td>
-          <td style="font-size:11px;color:#888">{{ s.created_at|string|truncate(10,true,'') if s.created_at else '—' }}</td>
-          <td><span class="badge b-rejected">❌ Rejected</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-
-  <!-- Teacher Approvals -->
-  <div class="section">
-    <h2 class="approved-h">👩‍🏫 Pending Teachers ({{ teacher_pending|length }})</h2>
-    {% if teacher_pending %}
-    <table>
-      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Action</th></tr></thead>
-      <tbody>
-        {% for t in teacher_pending %}
-        <tr>
-          <td>{{ t.uid }}</td>
-          <td>{{ t.name }}</td>
-          <td>{{ t.email or '—' }}</td>
-          <td>{{ t.subjects|join(', ') }}</td>
-          <td>
-            <form method="POST" style="display:inline">
-              <input type="hidden" name="teacher_uid" value="{{ t.uid }}">
-              <input type="hidden" name="action" value="approved">
-              <button type="submit" class="btn-approve" onclick="return confirm('Approve {{ t.name }}?')">✅ Approve</button>
-            </form>
-            <form method="POST" style="display:inline">
-              <input type="hidden" name="teacher_uid" value="{{ t.uid }}">
-              <input type="hidden" name="action" value="rejected">
-              <button type="submit" class="btn-reject" onclick="return confirm('Reject {{ t.name }}?')">❌ Reject</button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty">No pending teacher registrations</div>
-    {% endif %}
+  <!-- SCHOOLS TAB -->
+  <div id="tab-schools" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">🏫 Registered Schools</div>
+          <div class="card-sub">Schools that have applied to use the system</div>
+        </div>
+      </div>
+      {% if schools %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>School Name</th><th>Code</th><th>Head Teacher</th>
+              <th>Region</th><th>Status</th><th>Registered</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in schools %}
+            <tr>
+              <td style="color:var(--gray3);font-size:10px;font-weight:700">{{ loop.index }}</td>
+              <td style="font-weight:700">{{ s.school_name }}</td>
+              <td><code style="background:var(--off);padding:2px 6px;border-radius:4px;font-size:11px">{{ s.school_code }}</code></td>
+              <td>{{ s.head_name }}</td>
+              <td>{{ s.region or '—' }}</td>
+              <td>
+                {% if s.status == 'pending' %}
+                  <span class="pill status-pending">⏳ Pending</span>
+                {% elif s.status == 'approved' %}
+                  <span class="pill status-approved">✅ Active</span>
+                {% else %}
+                  <span class="pill status-rejected">❌ Rejected</span>
+                {% endif %}
+              </td>
+              <td style="font-size:11px;color:var(--gray3)">{{ (s.created_at or '')[:10] }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty"><div class="empty-icon">🏫</div>No schools registered yet</div>
+      {% endif %}
+    </div>
   </div>
 
-  <div class="section">
-    <h2 class="approved-h">✅ Approved Teachers ({{ teacher_approved|length }})</h2>
-    {% if teacher_approved %}
-    <table>
-      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for t in teacher_approved %}
-        <tr>
-          <td>{{ t.uid }}</td>
-          <td>{{ t.name }}</td>
-          <td>{{ t.email or '—' }}</td>
-          <td>{{ t.subjects|join(', ') }}</td>
-          <td><span class="badge b-approved">✅ Approved</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty">No approved teachers yet</div>
-    {% endif %}
-  </div>
+</div><!-- /container -->
 
-  {% if teacher_rejected %}
-  <div class="section">
-    <h2 class="rejected-h">❌ Rejected Teachers ({{ teacher_rejected|length }})</h2>
-    <table>
-      <thead><tr><th>Username</th><th>Name</th><th>Email</th><th>Subjects</th><th>Status</th></tr></thead>
-      <tbody>
-        {% for t in teacher_rejected %}
-        <tr>
-          <td>{{ t.uid }}</td>
-          <td>{{ t.name }}</td>
-          <td>{{ t.email or '—' }}</td>
-          <td>{{ t.subjects|join(', ') }}</td>
-          <td><span class="badge b-rejected">❌ Rejected</span></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% endif %}
-</div>
+<script>
+function showTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+function toggleEdit(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('open');
+}
+function toggleSubjEdit(labelEl) {
+  const cb = labelEl.querySelector('input');
+  cb.checked = !cb.checked;
+  labelEl.classList.toggle('checked', cb.checked);
+}
+document.querySelectorAll('.edit-subj-opt input').forEach(cb => {
+  cb.addEventListener('click', e => e.stopPropagation());
+});
+</script>
 </body>
 </html>
