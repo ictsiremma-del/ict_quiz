@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Super Admin — {{ school }}</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -10,62 +9,118 @@
       --navy:#0A1628;--blue:#2472F5;--gold:#F5B800;--gold-dark:#B8880A;
       --white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;
       --green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;
-      --orange:#E67E22;--orange-light:#FEF0E3;
-      --radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10);
+      --orange:#E67E22;--orange-light:#FEF0E3;--radius:12px;
+      --shadow:0 4px 20px rgba(10,22,40,.10);--shadow-lg:0 8px 40px rgba(10,22,40,.22);
     }
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--navy);min-height:100vh}
-    /* TOPBAR */
-    .topbar{background:var(--navy);color:#fff;padding:0 24px;height:56px;
-            display:flex;align-items:center;justify-content:space-between;
-            position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(10,22,40,.3)}
+
+    /* ── LOGIN SCREEN ── */
+    .login-screen{
+      background:linear-gradient(135deg,var(--navy) 0%,#1A3060 100%);
+      min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+    }
+    .login-card{
+      background:var(--white);border-radius:20px;padding:0;width:100%;max-width:420px;
+      box-shadow:var(--shadow-lg);overflow:hidden;
+    }
+    .login-header{
+      background:linear-gradient(135deg,var(--navy),#1A3060);
+      padding:36px 36px 28px;text-align:center;
+    }
+    .login-logo{
+      width:64px;height:64px;background:var(--gold);border-radius:16px;
+      display:flex;align-items:center;justify-content:center;font-size:30px;
+      margin:0 auto 14px;box-shadow:0 4px 16px rgba(245,184,0,.4);
+    }
+    .login-header h1{font-size:20px;font-weight:800;color:var(--white);margin-bottom:4px}
+    .login-header p{font-size:12px;color:rgba(255,255,255,.6)}
+    .login-body{padding:28px 32px 32px}
+    .login-body label{
+      font-size:10px;font-weight:700;text-transform:uppercase;
+      letter-spacing:.7px;color:var(--gray4);display:block;margin-bottom:5px;
+    }
+    .login-body input[type=password]{
+      width:100%;padding:12px 14px;border:1.5px solid var(--gray);border-radius:9px;
+      font-size:14px;font-family:'Outfit',sans-serif;color:var(--navy);
+      background:var(--off);margin-bottom:18px;transition:border-color .15s;
+    }
+    .login-body input:focus{
+      outline:none;border-color:var(--blue);
+      box-shadow:0 0 0 3px rgba(36,114,245,.1);background:var(--white);
+    }
+    .btn-login{
+      width:100%;padding:13px;background:var(--navy);color:var(--gold);
+      border:none;border-radius:9px;font-size:15px;font-weight:800;
+      font-family:'Outfit',sans-serif;cursor:pointer;letter-spacing:.3px;
+      transition:all .15s;
+    }
+    .btn-login:hover{background:#1a3060;transform:translateY(-1px)}
+    .error-box{
+      background:var(--red-light);border:1.5px solid #f5b8b8;color:var(--red);
+      border-radius:9px;padding:11px 14px;font-size:13px;font-weight:600;
+      margin-bottom:16px;display:flex;align-items:center;gap:8px;
+    }
+    .login-footer{
+      text-align:center;margin-top:20px;padding-top:16px;
+      border-top:1px solid var(--gray);font-size:11px;color:var(--gray3);
+    }
+    .badge-secured{
+      display:inline-flex;align-items:center;gap:5px;
+      background:var(--green-light);color:var(--green);
+      border-radius:20px;padding:4px 10px;font-size:10px;font-weight:700;
+    }
+
+    /* ── DASHBOARD SCREEN ── */
+    .topbar{
+      background:var(--navy);color:#fff;padding:0 24px;height:56px;
+      display:flex;align-items:center;justify-content:space-between;
+      position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(10,22,40,.3);
+    }
     .topbar-left{display:flex;align-items:center;gap:12px}
-    .topbar-logo{width:34px;height:34px;background:var(--gold);border-radius:8px;
-                 display:flex;align-items:center;justify-content:center;font-size:16px}
+    .topbar-logo{
+      width:34px;height:34px;background:var(--gold);border-radius:8px;
+      display:flex;align-items:center;justify-content:center;font-size:16px;
+    }
     .topbar h1{font-size:15px;font-weight:800}
     .topbar-sub{font-size:11px;opacity:.6}
-    .topbar-right{display:flex;align-items:center;gap:10px}
-    .badge-admin{background:var(--gold);color:var(--navy);padding:3px 10px;
-                 border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px}
-    .btn-logout{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);
-                padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;
-                font-family:'Outfit',sans-serif;cursor:pointer;text-decoration:none}
+    .badge-admin{
+      background:var(--gold);color:var(--navy);padding:3px 10px;
+      border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px;
+    }
+    .btn-logout{
+      background:rgba(255,255,255,.1);color:#fff;
+      border:1px solid rgba(255,255,255,.2);padding:6px 14px;
+      border-radius:7px;font-size:12px;font-weight:600;
+      font-family:'Outfit',sans-serif;cursor:pointer;text-decoration:none;
+    }
     .btn-logout:hover{background:rgba(255,255,255,.2)}
-    /* LAYOUT */
     .container{max-width:1100px;margin:0 auto;padding:24px 20px}
-    /* STATS */
     .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
-    .stat-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;
-               box-shadow:var(--shadow);border-top:3px solid var(--blue)}
+    .stat-card{
+      background:var(--white);border-radius:var(--radius);padding:16px 18px;
+      box-shadow:var(--shadow);border-top:3px solid var(--blue);
+    }
     .stat-card.c-gold{border-top-color:var(--gold)}
     .stat-card.c-green{border-top-color:var(--green)}
     .stat-card.c-red{border-top-color:var(--red)}
     .stat-card.c-orange{border-top-color:var(--orange)}
     .stat-val{font-size:28px;font-weight:800;color:var(--navy)}
-    .stat-label{font-size:11px;color:var(--gray3);font-weight:600;text-transform:uppercase;
-                letter-spacing:.5px;margin-top:2px}
-    /* CARDS */
-    .card{background:var(--white);border-radius:var(--radius);padding:20px;
-          box-shadow:var(--shadow);margin-bottom:18px}
-    .card-header{display:flex;align-items:center;justify-content:space-between;
-                 margin-bottom:14px;flex-wrap:wrap;gap:8px}
+    .stat-label{font-size:11px;color:var(--gray3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+    .card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:18px}
+    .card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
     .card-title{font-size:14px;font-weight:800;color:var(--navy)}
     .card-sub{font-size:11px;color:var(--gray3);margin-top:2px}
-    /* TEACHER ROW */
-    .teacher-row{border:1.5px solid var(--gray);border-radius:10px;padding:14px 16px;
-                 margin-bottom:10px;background:var(--off);transition:border-color .15s}
+    .teacher-row{border:1.5px solid var(--gray);border-radius:10px;padding:14px 16px;margin-bottom:10px;background:var(--off);transition:border-color .15s}
     .teacher-row:hover{border-color:var(--blue);background:var(--white)}
     .teacher-row.pending{border-left:4px solid var(--orange)}
     .teacher-row.approved{border-left:4px solid var(--green)}
     .teacher-row.rejected{border-left:4px solid var(--red);opacity:.7}
-    .tr-top{display:flex;align-items:flex-start;justify-content:space-between;
-            flex-wrap:wrap;gap:8px}
+    .tr-top{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px}
     .tr-name{font-size:14px;font-weight:700;color:var(--navy)}
     .tr-uid{font-size:11px;color:var(--gray3);font-family:monospace;margin-top:2px}
     .tr-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
-          border-radius:20px;font-size:10px;font-weight:700;
-          background:var(--gray);color:var(--gray4)}
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:var(--gray);color:var(--gray4)}
     .pill.role-subject{background:#EFF6FF;color:var(--blue)}
     .pill.role-class{background:#FFF8E1;color:var(--gold-dark)}
     .pill.status-pending{background:var(--orange-light);color:var(--orange)}
@@ -73,65 +128,77 @@
     .pill.status-rejected{background:var(--red-light);color:var(--red)}
     .pill.subj{background:#F0F4FF;color:#3B5FB5;font-size:9px}
     .tr-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-    /* BUTTONS */
-    .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;
-         font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;
-         display:inline-flex;align-items:center;gap:5px;transition:all .15s}
-    .btn-approve{background:var(--green);color:#fff}
-    .btn-approve:hover{background:#0a6040}
-    .btn-reject{background:var(--red);color:#fff}
-    .btn-reject:hover{background:#a93226}
-    .btn-delete{background:var(--gray);color:var(--gray4);border:1px solid #ddd}
-    .btn-delete:hover{background:#f8d7d7;color:var(--red);border-color:var(--red)}
-    .btn-edit{background:#EFF6FF;color:var(--blue);border:1.5px solid #B8D0F8}
-    .btn-edit:hover{background:var(--blue);color:#fff}
+    .btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:all .15s}
+    .btn-approve{background:var(--green);color:#fff}.btn-approve:hover{background:#0a6040}
+    .btn-reject{background:var(--red);color:#fff}.btn-reject:hover{background:#a93226}
+    .btn-delete{background:var(--gray);color:var(--gray4);border:1px solid #ddd}.btn-delete:hover{background:#f8d7d7;color:var(--red);border-color:var(--red)}
+    .btn-edit{background:#EFF6FF;color:var(--blue);border:1.5px solid #B8D0F8}.btn-edit:hover{background:var(--blue);color:#fff}
     .btn-sm{padding:5px 10px;font-size:11px}
-    /* EDIT FORM */
-    .edit-form{display:none;margin-top:12px;padding:14px;background:#F0F4FF;
-               border-radius:8px;border:1px solid #B8D0F8}
+    .edit-form{display:none;margin-top:12px;padding:14px;background:#F0F4FF;border-radius:8px;border:1px solid #B8D0F8}
     .edit-form.open{display:block}
-    .edit-form label{font-size:10px;font-weight:700;text-transform:uppercase;
-                     letter-spacing:.5px;color:var(--gray4);display:block;margin-bottom:4px}
-    .edit-form select{width:100%;padding:8px 10px;border:1.5px solid var(--gray);
-                      border-radius:6px;font-size:12px;font-family:'Outfit',sans-serif;margin-bottom:10px}
+    .edit-form label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray4);display:block;margin-bottom:4px}
+    .edit-form select{width:100%;padding:8px 10px;border:1.5px solid var(--gray);border-radius:6px;font-size:12px;font-family:'Outfit',sans-serif;margin-bottom:10px}
     .edit-subj-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
-    .edit-subj-opt{display:flex;align-items:center;gap:6px;padding:6px 8px;
-                   border:1.5px solid var(--gray);border-radius:6px;cursor:pointer;font-size:11px}
+    .edit-subj-opt{display:flex;align-items:center;gap:6px;padding:6px 8px;border:1.5px solid var(--gray);border-radius:6px;cursor:pointer;font-size:11px}
     .edit-subj-opt.checked{border-color:var(--blue);background:#EFF6FF}
     .edit-subj-opt input{margin:0;accent-color:var(--blue)}
-    /* EMPTY */
     .empty{text-align:center;padding:30px;color:var(--gray3);font-size:13px}
     .empty-icon{font-size:32px;margin-bottom:8px}
-    /* TABS */
     .tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
-    .tab-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;
-             font-family:'Outfit',sans-serif;cursor:pointer;border:1.5px solid var(--gray);
-             background:var(--white);color:var(--gray4);transition:all .15s}
+    .tab-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;border:1.5px solid var(--gray);background:var(--white);color:var(--gray4);transition:all .15s}
     .tab-btn.active{background:var(--navy);color:var(--white);border-color:var(--navy)}
-    .tab-content{display:none}
-    .tab-content.active{display:block}
-    /* SCHOOL TABLE */
+    .tab-content{display:none}.tab-content.active{display:block}
     .table-wrap{overflow-x:auto}
     table{width:100%;border-collapse:collapse;font-size:12px}
-    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;
-       font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);
-       border-bottom:1.5px solid var(--gray)}
+    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);border-bottom:1.5px solid var(--gray)}
     td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:top}
     tr:hover td{background:#F9FAFF}
+    @media(max-width:500px){.edit-subj-grid{grid-template-columns:1fr 1fr}}
   </style>
 </head>
 <body>
 
-<!-- TOPBAR -->
+{% if not logged_in %}
+<!-- ═══════════════════════════════════════════════════════
+     LOGIN SCREEN
+═══════════════════════════════════════════════════════ -->
+<div class="login-screen">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="login-logo">🏫</div>
+      <h1>Super Admin Portal</h1>
+      <p>{{ school }}</p>
+    </div>
+    <div class="login-body">
+      {% if error %}
+      <div class="error-box">⚠️ {{ error }}</div>
+      {% endif %}
+      <form method="POST">
+        <label>Admin Password</label>
+        <input type="password" name="password" placeholder="Enter your admin password" autofocus required>
+        <button type="submit" class="btn-login">🔓 Sign In to Admin Panel</button>
+      </form>
+      <div class="login-footer">
+        <span class="badge-secured">🔒 Secured Area</span>
+        <div style="margin-top:10px">Authorised personnel only</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<!-- ═══════════════════════════════════════════════════════
+     DASHBOARD SCREEN
+═══════════════════════════════════════════════════════ -->
 <div class="topbar">
   <div class="topbar-left">
     <div class="topbar-logo">🏫</div>
     <div>
-      <div class="topbar h1" style="font-size:15px;font-weight:800">Super Admin</div>
+      <div style="font-size:15px;font-weight:800">Super Admin</div>
       <div class="topbar-sub">{{ school }}</div>
     </div>
   </div>
-  <div class="topbar-right">
+  <div style="display:flex;align-items:center;gap:10px">
     <span class="badge-admin">ADMIN</span>
     <a href="{{ url_for('superadmin_logout') }}" class="btn-logout">🚪 Logout</a>
   </div>
@@ -152,14 +219,17 @@
   <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('pending',this)">
-      🕐 Pending {% if pending|length > 0 %}<span style="background:#E67E22;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">{{ pending|length }}</span>{% endif %}
+      🕐 Pending
+      {% if pending|length > 0 %}
+        <span style="background:#E67E22;color:#fff;border-radius:20px;padding:1px 7px;font-size:10px;margin-left:4px">{{ pending|length }}</span>
+      {% endif %}
     </button>
     <button class="tab-btn" onclick="showTab('approved',this)">✅ Approved ({{ approved|length }})</button>
     <button class="tab-btn" onclick="showTab('rejected',this)">❌ Rejected ({{ rejected|length }})</button>
     <button class="tab-btn" onclick="showTab('schools',this)">🏫 Schools ({{ schools|length }})</button>
   </div>
 
-  <!-- PENDING TAB -->
+  <!-- PENDING -->
   <div id="tab-pending" class="tab-content active">
     <div class="card">
       <div class="card-header">
@@ -174,7 +244,7 @@
           <div class="tr-top">
             <div>
               <div class="tr-name">{{ t.name }}</div>
-              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
+              <div class="tr-uid">@{{ uid }}{% if t.email %} · {{ t.email }}{% endif %}</div>
             </div>
             <div>
               {% if t.get('role') == 'class_manager' %}
@@ -187,32 +257,28 @@
           <div class="tr-meta">
             <span class="pill status-pending">⏳ Pending</span>
             {% if t.managed_class %}<span class="pill">Class: {{ t.managed_class }}</span>{% endif %}
-            {% for subj in (t.subjects or []) %}
-            <span class="pill subj">{{ subj }}</span>
-            {% endfor %}
+            {% for subj in (t.subjects or []) %}<span class="pill subj">{{ subj }}</span>{% endfor %}
           </div>
           <div class="tr-actions">
             <a href="{{ url_for('approve_teacher', uid=uid) }}" class="btn btn-approve">✅ Approve</a>
-            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-reject"
-               onclick="return confirm('Reject {{ t.name }}?')">❌ Reject</a>
-            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete"
-               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-reject" onclick="return confirm('Reject {{ t.name }}?')">❌ Reject</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete" onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
           </div>
         </div>
         {% endfor %}
       {% else %}
-        <div class="empty"><div class="empty-icon">🎉</div>No pending registrations</div>
+        <div class="empty"><div class="empty-icon">🎉</div>No pending registrations — all clear!</div>
       {% endif %}
     </div>
   </div>
 
-  <!-- APPROVED TAB -->
+  <!-- APPROVED -->
   <div id="tab-approved" class="tab-content">
     <div class="card">
       <div class="card-header">
         <div>
           <div class="card-title">✅ Approved Teachers</div>
-          <div class="card-sub">These teachers can log in. You can edit their subjects and class here.</div>
+          <div class="card-sub">These teachers can log in. Edit their subjects and class here if needed.</div>
         </div>
       </div>
       {% if approved %}
@@ -221,7 +287,7 @@
           <div class="tr-top">
             <div>
               <div class="tr-name">{{ t.name }}</div>
-              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
+              <div class="tr-uid">@{{ uid }}{% if t.email %} · {{ t.email }}{% endif %}</div>
             </div>
             <div>
               {% if t.get('role') == 'class_manager' %}
@@ -234,18 +300,13 @@
           <div class="tr-meta">
             <span class="pill status-approved">✅ Approved</span>
             {% if t.managed_class %}<span class="pill">Class: {{ t.managed_class }}</span>{% endif %}
-            {% for subj in (t.subjects or []) %}
-            <span class="pill subj">{{ subj }}</span>
-            {% endfor %}
+            {% for subj in (t.subjects or []) %}<span class="pill subj">{{ subj }}</span>{% endfor %}
           </div>
           <div class="tr-actions">
             <button class="btn btn-edit btn-sm" onclick="toggleEdit('edit-{{ uid }}')">✏️ Edit Subjects</button>
-            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
-               onclick="return confirm('Revoke access for {{ t.name }}?')">🔒 Revoke Access</a>
-            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
-               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+            <a href="{{ url_for('reject_teacher', uid=uid) }}" class="btn btn-delete btn-sm" onclick="return confirm('Revoke access for {{ t.name }}?')">🔒 Revoke</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm" onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
           </div>
-          <!-- EDIT FORM -->
           <div class="edit-form" id="edit-{{ uid }}">
             <form method="POST" action="{{ url_for('edit_teacher', uid=uid) }}">
               <label>Role</label>
@@ -256,18 +317,13 @@
               <label>Class (if Class Teacher)</label>
               <select name="managed_class">
                 <option value="">— None —</option>
-                {% for cls in classes %}
-                <option value="{{ cls }}" {% if t.managed_class == cls %}selected{% endif %}>{{ cls }}</option>
-                {% endfor %}
+                {% for cls in classes %}<option value="{{ cls }}" {% if t.managed_class == cls %}selected{% endif %}>{{ cls }}</option>{% endfor %}
               </select>
               <label>Subjects</label>
               <div class="edit-subj-grid">
                 {% for subj in subjects %}
-                <label class="edit-subj-opt {% if subj in (t.subjects or []) %}checked{% endif %}"
-                       onclick="toggleSubjEdit(this)">
-                  <input type="checkbox" name="subjects" value="{{ subj }}"
-                         {% if subj in (t.subjects or []) %}checked{% endif %}
-                         onchange="this.closest('.edit-subj-opt').classList.toggle('checked',this.checked)">
+                <label class="edit-subj-opt {% if subj in (t.subjects or []) %}checked{% endif %}" onclick="toggleSubjEdit(this)">
+                  <input type="checkbox" name="subjects" value="{{ subj }}" {% if subj in (t.subjects or []) %}checked{% endif %} onchange="this.closest('.edit-subj-opt').classList.toggle('checked',this.checked)">
                   {{ subj }}
                 </label>
                 {% endfor %}
@@ -284,31 +340,23 @@
     </div>
   </div>
 
-  <!-- REJECTED TAB -->
+  <!-- REJECTED -->
   <div id="tab-rejected" class="tab-content">
     <div class="card">
-      <div class="card-header">
-        <div class="card-title">❌ Rejected Teachers</div>
-      </div>
+      <div class="card-header"><div class="card-title">❌ Rejected Teachers</div></div>
       {% if rejected %}
         {% for uid, t in rejected.items() %}
         <div class="teacher-row rejected">
           <div class="tr-top">
-            <div>
-              <div class="tr-name">{{ t.name }}</div>
-              <div class="tr-uid">@{{ uid }} {% if t.email %}· {{ t.email }}{% endif %}</div>
-            </div>
+            <div><div class="tr-name">{{ t.name }}</div><div class="tr-uid">@{{ uid }}{% if t.email %} · {{ t.email }}{% endif %}</div></div>
             <span class="pill status-rejected">❌ Rejected</span>
           </div>
           <div class="tr-meta">
-            {% for subj in (t.subjects or []) %}
-            <span class="pill subj">{{ subj }}</span>
-            {% endfor %}
+            {% for subj in (t.subjects or []) %}<span class="pill subj">{{ subj }}</span>{% endfor %}
           </div>
           <div class="tr-actions">
             <a href="{{ url_for('approve_teacher', uid=uid) }}" class="btn btn-approve btn-sm">✅ Approve Instead</a>
-            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm"
-               onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
+            <a href="{{ url_for('delete_teacher', uid=uid) }}" class="btn btn-delete btn-sm" onclick="return confirm('Permanently delete {{ t.name }}?')">🗑 Delete</a>
           </div>
         </div>
         {% endfor %}
@@ -318,7 +366,7 @@
     </div>
   </div>
 
-  <!-- SCHOOLS TAB -->
+  <!-- SCHOOLS -->
   <div id="tab-schools" class="tab-content">
     <div class="card">
       <div class="card-header">
@@ -330,12 +378,7 @@
       {% if schools %}
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>#</th><th>School Name</th><th>Code</th><th>Head Teacher</th>
-              <th>Region</th><th>Status</th><th>Registered</th>
-            </tr>
-          </thead>
+          <thead><tr><th>#</th><th>School Name</th><th>Code</th><th>Head Teacher</th><th>Region</th><th>Status</th><th>Registered</th></tr></thead>
           <tbody>
             {% for s in schools %}
             <tr>
@@ -345,13 +388,9 @@
               <td>{{ s.head_name }}</td>
               <td>{{ s.region or '—' }}</td>
               <td>
-                {% if s.status == 'pending' %}
-                  <span class="pill status-pending">⏳ Pending</span>
-                {% elif s.status == 'approved' %}
-                  <span class="pill status-approved">✅ Active</span>
-                {% else %}
-                  <span class="pill status-rejected">❌ Rejected</span>
-                {% endif %}
+                {% if s.status == 'pending' %}<span class="pill status-pending">⏳ Pending</span>
+                {% elif s.status == 'approved' %}<span class="pill status-approved">✅ Active</span>
+                {% else %}<span class="pill status-rejected">❌ Rejected</span>{% endif %}
               </td>
               <td style="font-size:11px;color:var(--gray3)">{{ (s.created_at or '')[:10] }}</td>
             </tr>
@@ -366,6 +405,7 @@
   </div>
 
 </div><!-- /container -->
+{% endif %}
 
 <script>
 function showTab(name, btn) {
@@ -375,8 +415,7 @@ function showTab(name, btn) {
   btn.classList.add('active');
 }
 function toggleEdit(id) {
-  const el = document.getElementById(id);
-  el.classList.toggle('open');
+  document.getElementById(id).classList.toggle('open');
 }
 function toggleSubjEdit(labelEl) {
   const cb = labelEl.querySelector('input');

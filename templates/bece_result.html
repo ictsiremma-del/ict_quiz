@@ -1,55 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>BECE Result — {{ school }}</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --navy:#0A1628;--blue:#2472F5;--gold:#F5B800;--gold-dark:#B8880A;
-      --white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;
-      --green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;
-      --radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10);
-    }
+    :root{--navy:#0A1628;--white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;--green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;--radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10)}
     *{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--navy);padding-bottom:40px}
-    /* HERO */
-    .hero{background:{{ subject_color }};color:#fff;padding:32px 20px 28px;text-align:center}
-    .hero-icon{font-size:40px;margin-bottom:8px}
+    .hero{color:#fff;padding:32px 20px 40px;text-align:center}
+    .hero-icon{font-size:44px;margin-bottom:8px}
     .hero h1{font-size:22px;font-weight:800;margin-bottom:4px}
     .hero-sub{font-size:13px;opacity:.8}
-    /* SCORE CARD */
-    .score-section{max-width:700px;margin:-20px auto 0;padding:0 16px}
-    .score-card{background:var(--white);border-radius:var(--radius);padding:24px;
-                box-shadow:0 8px 30px rgba(10,22,40,.15);text-align:center;margin-bottom:20px}
-    .score-big{font-size:52px;font-weight:800;line-height:1}
+    .score-section{max-width:700px;margin:-24px auto 0;padding:0 16px}
+    .score-card{background:var(--white);border-radius:var(--radius);padding:28px;box-shadow:0 8px 30px rgba(10,22,40,.15);text-align:center;margin-bottom:20px}
+    .score-big{font-size:54px;font-weight:800;line-height:1}
     .score-label{font-size:13px;color:var(--gray3);margin-top:4px}
-    .grade-badge{display:inline-block;font-size:32px;font-weight:900;padding:8px 28px;
-                 border-radius:40px;color:#fff;margin:12px 0}
+    .grade-badge{display:inline-block;font-size:30px;font-weight:900;padding:8px 28px;border-radius:40px;color:#fff;margin:12px 0}
     .remark{font-size:14px;font-weight:600;color:var(--gray4)}
-    .meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));
-               gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray)}
+    .meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid var(--gray)}
     .meta-item .label{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--gray3);font-weight:700}
     .meta-item .value{font-size:13px;font-weight:700;color:var(--navy);margin-top:2px}
-    /* ACTIONS */
     .actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
-    .btn{padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;
-         font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;
-         display:inline-flex;align-items:center;gap:6px;transition:all .15s}
-    .btn-navy{background:var(--navy);color:var(--gold)}
-    .btn-navy:hover{background:#1a3060}
+    .btn{padding:10px 22px;border-radius:8px;font-size:13px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+    .btn-navy{background:var(--navy);color:#F5B800}
     .btn-outline{background:var(--white);color:var(--navy);border:1.5px solid var(--gray)}
-    .btn-outline:hover{border-color:var(--navy)}
-    /* DETAIL TABLE */
-    .card{background:var(--white);border-radius:var(--radius);padding:20px;
-          box-shadow:var(--shadow);margin-bottom:16px}
-    .card-title{font-size:14px;font-weight:800;margin-bottom:14px;color:var(--navy)}
+    .card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+    .card-title{font-size:14px;font-weight:800;margin-bottom:14px}
     .table-wrap{overflow-x:auto}
     table{width:100%;border-collapse:collapse;font-size:12px}
-    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;
-       font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);
-       border-bottom:1.5px solid var(--gray)}
+    th{background:var(--off);padding:8px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);border-bottom:1.5px solid var(--gray)}
     td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:top;line-height:1.5}
     tr:last-child td{border-bottom:none}
     .correct{color:var(--green);font-weight:700}
@@ -57,19 +37,15 @@
     .mark-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700}
     .mark-full{background:var(--green-light);color:var(--green)}
     .mark-zero{background:var(--red-light);color:var(--red)}
-    .mark-part{background:#FFF8E1;color:var(--gold-dark)}
+    .mark-part{background:#FFF8E1;color:#B8880A}
   </style>
 </head>
 <body>
-
-<!-- HERO -->
-<div class="hero">
+<div class="hero" style="background:{{ subject_color }}">
   <div class="hero-icon">{{ subject_icon }}</div>
   <h1>BECE {{ result.year }} — {{ result.subject }}</h1>
   <div class="hero-sub">{{ school }} &nbsp;·&nbsp; {{ result.mode|capitalize }} Mode</div>
 </div>
-
-<!-- SCORE CARD -->
 <div class="score-section">
   <div class="score-card">
     <div class="score-big" style="color:{{ grade_color }}">{{ result.percentage }}%</div>
@@ -84,49 +60,24 @@
       <div class="meta-item"><div class="label">Date</div><div class="value">{{ result.date }}</div></div>
     </div>
   </div>
-
-  <!-- ACTIONS -->
   <div class="actions">
-    <a href="{{ url_for('bece_home') }}" class="btn btn-navy">🏠 Back to BECE Home</a>
+    <a href="{{ url_for('bece_home') }}" class="btn btn-navy">🏠 Back to BECE</a>
     <button class="btn btn-outline" onclick="window.print()">🖨️ Print</button>
   </div>
-
-  <!-- DETAILED ANSWERS (only in practice mode) -->
   {% if show_answers and result.details %}
   <div class="card">
     <div class="card-title">📋 Detailed Answers</div>
     <div class="table-wrap">
       <table>
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Question</th>
-            <th>Your Answer</th>
-            <th>Correct Answer</th>
-            <th>Marks</th>
-          </tr>
-        </thead>
+        <thead><tr><th>#</th><th>Question</th><th>Your Answer</th><th>Correct Answer</th><th>Marks</th></tr></thead>
         <tbody>
           {% for d in result.details %}
           <tr>
             <td style="color:var(--gray3);font-size:10px;font-weight:700">{{ loop.index }}</td>
             <td>{{ d.question }}</td>
-            <td class="{{ 'correct' if d.correct_flag else 'wrong' }}">
-              {{ d.given }}
-            </td>
-            <td>
-              {% if d.type == 'theory' %}
-                <em style="color:var(--gray3);font-size:11px">{{ d.correct[:120] }}{% if d.correct|length > 120 %}…{% endif %}</em>
-              {% else %}
-                {{ d.correct }}
-              {% endif %}
-            </td>
-            <td>
-              {% set ratio = d.marks_earned / d.marks_total if d.marks_total > 0 else 0 %}
-              <span class="mark-badge {{ 'mark-full' if ratio >= 1 else 'mark-zero' if ratio == 0 else 'mark-part' }}">
-                {{ d.marks_earned }}/{{ d.marks_total }}
-              </span>
-            </td>
+            <td class="{{ 'correct' if d.correct_flag else 'wrong' }}">{{ d.given }}</td>
+            <td>{% if d.type == 'theory' %}<em style="color:var(--gray3);font-size:11px">{{ d.correct[:120] }}{% if d.correct|length > 120 %}…{% endif %}</em>{% else %}{{ d.correct }}{% endif %}</td>
+            <td>{% set ratio = d.marks_earned / d.marks_total if d.marks_total > 0 else 0 %}<span class="mark-badge {{ 'mark-full' if ratio >= 1 else 'mark-zero' if ratio == 0 else 'mark-part' }}">{{ d.marks_earned }}/{{ d.marks_total }}</span></td>
           </tr>
           {% endfor %}
         </tbody>
@@ -134,13 +85,8 @@
     </div>
   </div>
   {% elif not show_answers %}
-  <div class="card" style="text-align:center;color:var(--gray3);padding:30px">
-    📋 Detailed answers are only shown in <strong>Practice Mode</strong>.<br>
-    Switch to practice mode to review your answers.
-  </div>
+  <div class="card" style="text-align:center;color:var(--gray3);padding:30px">📋 Detailed answers are only shown in <strong>Practice Mode</strong>.</div>
   {% endif %}
-
-</div><!-- /score-section -->
-
+</div>
 </body>
 </html>
