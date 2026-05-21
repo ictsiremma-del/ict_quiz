@@ -31,6 +31,7 @@ except ImportError:
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "gloriouspearlsquiz2024")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "admin2024")
 
 SCHOOL_NAME        = "Glorious Pearls Complex School"
 GROQ_API_KEY       = os.environ.get("GROQ_API_KEY", "")
@@ -998,24 +999,35 @@ def bece_submit():
         grade_color=gcolor(grade),subject_color=SUBJECT_COLORS.get(subject,"#c0392b"),
         subject_icon=SUBJECT_ICONS.get(subject,"📝"),show_answers=mode=="practice")
 
-@app.route("/superadmin",methods=["GET","POST"])
+@app.route("/superadmin", methods=["GET","POST"])
 def superadmin():
-    if request.method=="POST":
-        pw=request.form.get("password","")
-        if pw==app.secret_key or pw==ADMIN_PASSWORD:
-            session["superadmin"]=True
+    error = None
+    if request.method == "POST":
+        pw = request.form.get("password", "").strip()
+        admin_pw = os.environ.get("ADMIN_PASSWORD", "admin2024")
+        secret_pw = app.secret_key
+        if pw == admin_pw or pw == secret_pw:
+            session["superadmin"] = True
             return redirect(url_for("superadmin"))
-        return render_template("superadmin.html",school=SCHOOL_NAME,logged_in=False,error="Wrong password",pending={},approved={},rejected={},schools=[],subjects=SUBJECTS,classes=CLASSES)
+        error = "Wrong password. Please try again."
     if not session.get("superadmin"):
-        return render_template("superadmin.html",school=SCHOOL_NAME,logged_in=False,error=None,pending={},approved={},rejected={},schools=[],subjects=SUBJECTS,classes=CLASSES)
-    fresh=load_custom_teachers(); CUSTOM_TEACHERS.update(fresh)
-    pending  ={k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="pending"}
-    approved ={k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="approved"}
-    rejected ={k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="rejected"}
-    try: schools=db_get_all_schools()
-    except Exception: schools=[]
-    return render_template("superadmin.html",school=SCHOOL_NAME,pending=pending,
-        approved=approved,rejected=rejected,schools=schools,subjects=SUBJECTS,classes=CLASSES)
+        return render_template("superadmin.html", school=SCHOOL_NAME,
+            logged_in=False, error=error,
+            pending={}, approved={}, rejected={}, schools=[], subjects=SUBJECTS, classes=CLASSES)
+    # Logged in — load all data
+    fresh = load_custom_teachers()
+    CUSTOM_TEACHERS.update(fresh)
+    pending  = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status") == "pending"}
+    approved = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status") == "approved"}
+    rejected = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status") == "rejected"}
+    try:
+        schools = db_get_all_schools()
+    except Exception:
+        schools = []
+    return render_template("superadmin.html", school=SCHOOL_NAME,
+        logged_in=True, error=None,
+        pending=pending, approved=approved, rejected=rejected,
+        schools=schools, subjects=SUBJECTS, classes=CLASSES)
 
 @app.route("/superadmin/approve/<uid>")
 def approve_teacher(uid):
