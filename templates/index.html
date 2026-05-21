@@ -6,61 +6,81 @@
 <title>{{ school }} — Quiz Portal</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c 0%,#2e86ab 100%);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px;}
-.card{background:white;border-radius:20px;padding:32px;width:100%;max-width:520px;max-height:calc(100vh - 60px);overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+body{
+  font-family:'Chicago', sans-serif;
+  background:linear-gradient(135deg,#87CEEB 0%,#6A0DAD 100%);
+  min-height:100vh;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:30px 20px;
+}
+.card{
+  background:white;
+  border-radius:20px;
+  padding:32px;
+  width:100%;
+  max-width:520px;
+  max-height:calc(100vh - 60px);
+  overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.3);
+}
 .school-icon{text-align:center;font-size:48px;margin-bottom:8px}
-h1{text-align:center;color:#1a3a5c;font-size:18px;font-weight:700;margin-bottom:3px}
-h2{text-align:center;color:#666;font-size:13px;font-weight:400;margin-bottom:22px}
+h1{text-align:center;color:#6A0DAD;font-size:22px;font-weight:bold;margin-bottom:3px}
+h2{text-align:center;color:#FFD700;font-size:14px;font-weight:bold;margin-bottom:22px}
 .fg{margin-bottom:14px}
 label{display:block;font-size:11px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
-input,select{width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s;color:#333;background:white}
-input:focus,select:focus{border-color:#2e86ab}
-.subj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:14px}
-.subj-btn{padding:9px 8px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;font-size:11px;font-weight:600;background:white;transition:all .15s;text-align:center;color:#555}
-.subj-btn:hover{border-color:#2e86ab;background:#f0f8ff}
-.subj-btn.sel{border-color:#2e86ab;background:#2e86ab;color:white}
-.subj-btn .si{font-size:16px;display:block;margin-bottom:2px}
+input,select{
+  width:100%;padding:10px 13px;border:2px solid #e0e0e0;border-radius:10px;
+  font-size:14px;outline:none;transition:border .2s;color:#333;background:white
+}
+input:focus,select:focus{border-color:#87CEEB}
+
+/* Assessment type buttons */
 .atype-row{display:flex;gap:8px;margin-bottom:14px}
-.atype-btn{flex:1;padding:10px 6px;border:2px solid #e0e0e0;border-radius:9px;cursor:pointer;text-align:center;transition:all .15s;background:white}
-.atype-btn:hover{border-color:#2e86ab}
-.atype-btn.sel{border-color:#2e86ab;background:#2e86ab;color:white}
+.atype-btn{
+  flex:1;padding:10px 6px;border:2px solid #e0e0e0;border-radius:9px;
+  cursor:pointer;text-align:center;transition:all .15s;background:white;color:#333
+}
+.atype-btn:hover{
+  border-color:#6A0DAD;background:#B266FF;color:#FFD700;
+  transition:all .3s ease;box-shadow:0 0 8px rgba(106,13,173,0.3)
+}
+.atype-btn.sel{
+  border-color:#6A0DAD;background:#6A0DAD;color:#FFD700;
+  font-weight:bold;box-shadow:0 0 10px rgba(106,13,173,0.4)
+}
+.atype-btn.sel .an{color:#FFD700}
+.atype-btn.sel .ad{color:#ecf0f1}
 .atype-btn .ai{font-size:18px;display:block;margin-bottom:2px}
 .atype-btn .an{font-size:11px;font-weight:700}
 .atype-btn .ad{font-size:10px;opacity:.7;margin-top:1px}
+
 .strand-wrap{display:none;margin-bottom:14px}
-.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;transition:opacity .2s}
-.btn:hover{opacity:.9}
-.hw-resume{background:linear-gradient(135deg,#f39c12,#e67e22);color:white;border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
-.hw-resume .hw-info{font-size:13px}
-.hw-resume .hw-title{font-weight:700;font-size:14px;margin-bottom:2px}
-.hw-resume a{background:rgba(255,255,255,.25);color:white;padding:7px 16px;border-radius:8px;text-decoration:none;font-size:12px;font-weight:700}
+.btn{
+  width:100%;padding:13px;background:linear-gradient(135deg,#87CEEB,#FFD700);
+  color:#6A0DAD;border:none;border-radius:10px;font-size:15px;font-weight:700;
+  cursor:pointer;transition:opacity .2s
+}
+.btn:hover{opacity:.9;box-shadow:0 0 12px rgba(135,206,235,0.6)}
+
 .info-strip{display:flex;gap:7px;margin-top:14px}
 .info-box{flex:1;background:#f8f9fa;border-radius:8px;padding:9px;text-align:center}
-.info-box .n{font-size:16px;font-weight:700;color:#1a3a5c}
+.info-box .n{font-size:16px;font-weight:700;color:#6A0DAD}
 .info-box .l{font-size:10px;color:#888;margin-top:2px}
+
 .links{display:flex;gap:8px;margin-top:12px;justify-content:center;flex-wrap:wrap}
 .links a{font-size:12px;font-weight:600;text-decoration:none;padding:7px 14px;border-radius:8px}
-.link-bece{background:linear-gradient(135deg,#1a0a2e,#c0392b);color:white}
-.link-teacher{color:#2e86ab}
+.link-bece{background:linear-gradient(135deg,#6A0DAD,#FFD700);color:white}
+.link-teacher{color:#3498db}
 .err{color:#e74c3c;font-size:12px;display:none;margin-top:4px}
 </style>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
 <div class="card">
   <div class="school-icon">🎓</div>
   <h1>{{ school }}</h1>
   <h2>Student Assessment Portal</h2>
-
-  {% if hw_save %}
-  <div class="hw-resume">
-    <div class="hw-info">
-      <div class="hw-title">🏠 Saved Homework</div>
-      <div>{{ hw_save.subject }} — saved {{ hw_save.saved_at }}</div>
-    </div>
-    <a href="/resume_homework/{{ session.get('hw_save_key','') }}">Resume →</a>
-  </div>
-  {% endif %}
 
   <form action="/start" method="POST" onsubmit="return validate()">
     <div class="fg">
@@ -93,35 +113,19 @@ input:focus,select:focus{border-color:#2e86ab}
 
     <div class="fg">
       <label>Subject</label>
-      <div class="subj-grid" id="subjGrid">
+      <select name="subject" id="subjectInput" required>
+        <option value="" disabled selected>-- Select Your Subject --</option>
         {% for s in subjects %}
-        <div class="subj-btn" onclick="pickSubj('{{ s }}',this)">
-          <span class="si">{{ subject_icons[s] }}</span>
-          {{ s }}
-        </div>
+          <option value="{{ s }}">{{ s }}</option>
         {% endfor %}
-      </div>
-      <input type="hidden" name="subject" id="subjectInput">
+      </select>
       <div class="err" id="subjErr">Please select a subject.</div>
-    </div>
-
-    <div class="strand-wrap fg" id="strandWrap">
-      <label>Strand (optional — leave blank for all strands)</label>
-      <select name="strand" id="strandSel" onchange="loadSubStrands()">
-        <option value="">All Strands</option>
-      </select>
-    </div>
-
-    <div class="strand-wrap fg" id="subStrandWrap">
-      <label>Sub-Strand (optional)</label>
-      <select name="sub_strand" id="subStrandSel">
-        <option value="">All Sub-Strands</option>
-      </select>
     </div>
 
     <button type="submit" class="btn" id="startBtn">START →</button>
   </form>
 
+  <!-- Restored info strip -->
   <div class="info-strip">
     <div class="info-box"><div class="n">📝</div><div class="l">Class Test 30min</div></div>
     <div class="info-box"><div class="n">📋</div><div class="l">Exam 60min</div></div>
@@ -136,61 +140,16 @@ input:focus,select:focus{border-color:#2e86ab}
 </div>
 
 <script>
-var allStrands = {{ curriculum_strands | tojson }};
-var selSubject = "";
-
 function pickType(val, el){
   document.querySelectorAll(".atype-btn").forEach(b=>b.classList.remove("sel"));
   el.classList.add("sel");
   el.querySelector("input").checked=true;
-  // Update button text
-  var labels={"class_test":"START CLASS TEST →",
-               "exam":"START EXAM →","homework":"START HOMEWORK →"};
+  var labels={
+    "class_test":"START CLASS TEST →",
+    "exam":"START EXAM →",
+    "homework":"START HOMEWORK →"
+  };
   document.getElementById("startBtn").textContent=labels[val]||"START →";
-}
-
-function pickSubj(val,el){
-  document.querySelectorAll(".subj-btn").forEach(b=>b.classList.remove("sel"));
-  el.classList.add("sel");
-  selSubject=val;
-  document.getElementById("subjectInput").value=val;
-  document.getElementById("subjErr").style.display="none";
-  // Load strands
-  var strands=allStrands[val]||{};
-  var strandSel=document.getElementById("strandSel");
-  strandSel.innerHTML='<option value="">All Strands</option>';
-  Object.keys(strands).forEach(function(s){
-    var opt=document.createElement("option");
-    opt.value=s; opt.textContent=s;
-    strandSel.appendChild(opt);
-  });
-  document.getElementById("strandWrap").style.display="block";
-  document.getElementById("subStrandWrap").style.display="none";
-  document.getElementById("subStrandSel").innerHTML='<option value="">All Sub-Strands</option>';
-}
-
-function loadSubStrands(){
-  var strand=document.getElementById("strandSel").value;
-  var sub=document.getElementById("subStrandSel");
-  sub.innerHTML='<option value="">All Sub-Strands</option>';
-  if(strand && allStrands[selSubject] && allStrands[selSubject][strand]){
-    allStrands[selSubject][strand].forEach(function(ss){
-      var opt=document.createElement("option");
-      opt.value=ss; opt.textContent=ss;
-      sub.appendChild(opt);
-    });
-    document.getElementById("subStrandWrap").style.display="block";
-  } else {
-    document.getElementById("subStrandWrap").style.display="none";
-  }
-}
-
-function validate(){
-  if(!document.getElementById("subjectInput").value){
-    document.getElementById("subjErr").style.display="block";
-    return false;
-  }
-  return true;
 }
 </script>
 </body>

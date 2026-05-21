@@ -116,6 +116,48 @@
         </div>
     </div>
 
+    <!-- Quick Attendance -->
+    <div class="section">
+        <div class="section-header">
+            <h2>📅 Quick Attendance — {{ today_date }}</h2>
+            <a href="/attendance?class={{ view_class }}" class="btn btn-primary" style="font-size:12px;padding:6px 12px">View Full Attendance →</a>
+        </div>
+        <div style="padding:20px;background:#f8fafc">
+            <form method="POST" action="/save_attendance" style="display:flex;flex-direction:column;gap:12px">
+                <input type="hidden" name="view_class" value="{{ view_class }}">
+                <input type="hidden" name="attendance_date" value="{{ today_date }}">
+                
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px" id="attendance_grid">
+                    {% if today_attendance_names %}
+                        {% for name in today_attendance_names %}
+                        <div style="display:flex;align-items:center;gap:8px;padding:10px;background:white;border-radius:8px;border:1px solid #dde3ec">
+                            <input type="hidden" name="student_name" value="{{ name }}">
+                            <span style="flex:1;font-size:13px;font-weight:600">{{ name }}</span>
+                            <select name="status" style="padding:6px 8px;border:1px solid #dde3ec;border-radius:6px;font-size:12px;background:white">
+                                {% set att_record = today_attendance_map.get(name, {}) %}
+                                <option value="Present" {{ 'selected' if att_record.get('status','Absent') == 'Present' else '' }}>✅ Present</option>
+                                <option value="Absent" {{ 'selected' if att_record.get('status','Absent') != 'Present' else '' }}>❌ Absent</option>
+                            </select>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div style="grid-column:1/-1;padding:20px;text-align:center;color:#aaa">
+                        <div style="font-size:14px;margin-bottom:8px">📭 No students found for {{ view_class }}</div>
+                        <div style="font-size:12px">Use the full <a href="/attendance?class={{ view_class }}" style="color:#2e86ab;text-decoration:underline">Attendance page</a> to add students manually.</div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if today_attendance_names %}
+                <div style="display:flex;gap:10px">
+                    <button type="submit" class="btn btn-primary" style="flex:1">💾 Save Today's Attendance</button>
+                    <a href="/attendance?class={{ view_class }}" class="btn btn-white" style="flex:1;text-align:center">📊 Detailed View</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
     <!-- Assign New Work -->
     <div class="section">
         <div class="section-header">

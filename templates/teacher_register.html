@@ -1,85 +1,324 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Teacher Registration — {{ school }}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',sans-serif;background:linear-gradient(135deg,#1a3a5c,#2e86ab);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.card{background:white;border-radius:20px;padding:36px;width:100%;max-width:520px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-.icon{text-align:center;font-size:48px;margin-bottom:12px}
-h1{text-align:center;color:#1a3a5c;font-size:22px;margin-bottom:8px}
-p{text-align:center;color:#556;font-size:14px;margin-bottom:24px;line-height:1.6}
-.fg{margin-bottom:16px}
-label{display:block;font-size:12px;font-weight:700;color:#555;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
-input,select{width:100%;padding:11px 14px;border:2px solid #e0e0e0;border-radius:10px;font-size:14px;outline:none;transition:border .2s}
-input:focus,textarea:focus,select:focus{border-color:#2e86ab}
-textarea{resize:vertical}
-.btn{width:100%;padding:13px;background:linear-gradient(135deg,#1a3a5c,#2e86ab);color:white;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px}
-.error{background:#fadbd8;color:#e74c3c;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;border-left:3px solid #e74c3c}
-.subjects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.subjects label{display:flex;align-items:center;gap:8px;font-size:13px;color:#444;font-weight:600}
-.back{text-align:center;margin-top:18px}
-.back a{color:#2e86ab;font-size:13px;text-decoration:none;font-weight:600}
-</style>
-<link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Registration — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0A1628; --blue: #1B5FD4; --blue2: #2472F5;
+      --gold: #F5B800; --gold-dark: #B8880A;
+      --white: #FFFFFF; --offwhite: #F7F8FC; --gray: #E8EBF4;
+      --gray3: #8A93A8; --gray4: #4A5168;
+      --green: #0D7A4E; --green-light: #E6F5EE;
+      --red: #C0392B; --red-light: #FDEAEA;
+      --radius: 12px; --radius-sm: 8px;
+      --shadow-lg: 0 8px 40px rgba(10,22,40,0.18);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, var(--navy) 0%, #1A3060 100%);
+      min-height: 100vh;
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 30px 16px;
+    }
+    .container {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 36px 32px;
+      width: 100%; max-width: 580px;
+      box-shadow: var(--shadow-lg);
+    }
+    .logo-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px;
+    }
+    .logo-box {
+      width: 48px; height: 48px;
+      background: var(--gold);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 10px rgba(245,184,0,0.4);
+      flex-shrink: 0;
+    }
+    .logo-text h1 { font-size: 16px; font-weight: 800; color: var(--navy); }
+    .logo-text p  { font-size: 11px; color: var(--gray3); }
+    h2 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: var(--gray3); margin-bottom: 24px; }
+    .section-divider {
+      font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+      color: var(--gray3);
+      border-bottom: 1.5px solid var(--gray);
+      padding-bottom: 6px;
+      margin: 20px 0 16px;
+    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .full { grid-column: 1 / -1; }
+    .field-group { display: flex; flex-direction: column; gap: 4px; }
+    label.field-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--gray4);
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+      padding: 10px 12px;
+      border: 1.5px solid var(--gray);
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-family: 'Outfit', sans-serif;
+      color: var(--navy); background: var(--offwhite);
+      transition: border-color 0.15s;
+      width: 100%;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--blue2);
+      box-shadow: 0 0 0 3px rgba(36,114,245,0.10);
+      background: var(--white);
+    }
+    .class-field { display: none; }
+    .class-field.visible { display: contents; }
+    .subjects-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--gray4); margin-bottom: 8px; display: block;
+    }
+    .subjects-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 20px;
+    }
+    .subject-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px;
+      border: 1.5px solid var(--gray);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .subject-option:hover { border-color: var(--blue2); background: #EFF6FF; }
+    .subject-option.checked { border-color: var(--blue2); background: #EFF6FF; }
+    .subject-option input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--blue2);
+      margin: 0; flex-shrink: 0;
+      pointer-events: none;
+    }
+    .subject-option span {
+      font-size: 12px; font-weight: 500;
+      color: var(--navy); line-height: 1.3;
+    }
+    .tip {
+      background: #FFF8E1;
+      border: 1px solid #F5D77A;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 12px; color: var(--gold-dark);
+      margin-bottom: 16px; line-height: 1.5;
+    }
+    .error-box {
+      background: var(--red-light);
+      border: 1.5px solid #f5b8b8;
+      color: var(--red);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px; font-weight: 600;
+      margin-bottom: 18px;
+    }
+    .btn-submit {
+      width: 100%; padding: 13px;
+      background: var(--blue2); color: white;
+      border: none; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      margin-top: 4px;
+    }
+    .btn-submit:hover { background: #1a5bcc; transform: translateY(-1px); }
+    .divider { border: none; border-top: 1px solid var(--gray); margin: 20px 0; }
+    .back-link { text-align: center; font-size: 12px; color: var(--gray3); }
+    .back-link a { color: var(--blue2); font-weight: 600; text-decoration: none; }
+    .back-link a:hover { text-decoration: underline; }
+    .google-btn {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 11px;
+      background: var(--white); color: var(--navy);
+      border: 1.5px solid var(--gray); border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer; text-decoration: none;
+      transition: all 0.15s; margin-top: 10px;
+    }
+    .google-btn:hover { background: var(--offwhite); border-color: var(--gray3); }
+    .g-logo {
+      width: 18px; height: 18px;
+      background: url('https://www.google.com/favicon.ico') center/contain no-repeat;
+    }
+    @media (max-width: 480px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .full { grid-column: 1; }
+      .subjects-grid { grid-template-columns: 1fr; }
+      .container { padding: 24px 18px; }
+    }
+  </style>
 </head>
 <body>
-<div class="card">
-  <div class="icon">🧑‍🏫</div>
-  <h1>Teacher Registration</h1>
-  <p>Create a new teacher account for the quiz system.</p>
-  {% if error %}<div class="error">{{ error }}</div>{% endif %}
-  <form method="POST">
-    <div class="fg">
-      <label>Full Name</label>
-      <input type="text" name="name" placeholder="Enter your full name" required>
+<div class="container">
+
+  <!-- Logo -->
+  <div class="logo-row">
+    <div class="logo-box">🏫</div>
+    <div class="logo-text">
+      <h1>{{ school }}</h1>
+      <p>Teacher Portal</p>
     </div>
-    <div class="fg">
-      <label>Login ID</label>
-      <input type="text" name="uid" placeholder="Choose a username" required>
-    </div>
-    <div class="fg">
-      <label>Email Address</label>
-      <input type="email" name="email" placeholder="Enter your email address" required>
-    </div>
-    <div class="fg">
-      <label>Password</label>
-      <input type="password" name="password" placeholder="Enter a password" required>
-    </div>
-    <div class="fg">
-      <label>Confirm Password</label>
-      <input type="password" name="confirm_password" placeholder="Confirm your password" required>
-    </div>
-    <div class="fg">
-      <label>Role</label>
-      <select name="role" required>
-        <option value="">-- Select Role --</option>
-        <option value="subject_teacher">Subject Teacher</option>
-        <option value="class_manager">Class Manager</option>
-      </select>
-    </div>
-    <div class="fg">
-      <label>Class (if Class Manager)</label>
-      <select name="managed_class">
-        <option value="">-- No Class Assignment --</option>
-        {% for cls in classes %}
-        <option value="{{ cls }}">{{ cls }}</option>
-        {% endfor %}
-      </select>
-    </div>
-    <div class="fg">
-      <label>Subjects</label>
-      <div class="subjects">
-        {% for subject in subjects %}
-        <label><input type="checkbox" name="subjects" value="{{ subject }}"> {{ subject }}</label>
-        {% endfor %}
+  </div>
+
+  <h2>📝 Teacher Registration</h2>
+  <p class="subtitle">Create your teacher account. An admin will review and approve it before you can log in.</p>
+
+  {% if error %}
+  <div class="error-box">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <form method="POST" id="reg-form">
+
+    <!-- PERSONAL DETAILS -->
+    <div class="section-divider">Personal Details</div>
+    <div class="form-grid">
+      <div class="field-group full">
+        <label class="field-label">Full Name <span style="color:var(--red)">*</span></label>
+        <input type="text" name="name" placeholder="e.g. Kofi Mensah" required>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Username <span style="color:var(--red)">*</span></label>
+        <input type="text" name="uid" placeholder="e.g. mr_kofi" required autocomplete="username"
+               pattern="[a-zA-Z0-9_]+" title="Letters, numbers and underscores only">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Email Address</label>
+        <input type="email" name="email" placeholder="yourname@email.com">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password <span style="color:var(--red)">*</span></label>
+        <input type="password" name="password" placeholder="Min. 6 characters" required minlength="6" autocomplete="new-password">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Confirm Password <span style="color:var(--red)">*</span></label>
+        <input type="password" name="confirm_password" placeholder="Repeat password" required autocomplete="new-password">
       </div>
     </div>
-    <button type="submit" class="btn">Register</button>
+
+    <!-- ROLE & CLASS -->
+    <div class="section-divider">Role &amp; Class</div>
+    <div class="form-grid">
+      <div class="field-group full">
+        <label class="field-label">Your Role <span style="color:var(--red)">*</span></label>
+        <select name="role" id="role-select" onchange="toggleClassField()" required>
+          <option value="">— Select your role —</option>
+          <option value="subject_teacher">Subject Teacher — I teach specific subjects across different classes</option>
+          <option value="class_manager">Class Teacher — I manage one full class (all or most subjects)</option>
+        </select>
+      </div>
+      <div class="field-group full class-field" id="class-field">
+        <label class="field-label">Your Class <span style="color:var(--red)">*</span></label>
+        <select name="managed_class" id="managed-class-select">
+          <option value="">— Select your class —</option>
+          {% for cls in classes %}
+          <option value="{{ cls }}">{{ cls }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- SUBJECTS -->
+    <div class="section-divider">Subjects You Teach</div>
+
+    <div class="tip">
+      📌 <strong>Important:</strong>
+      <br>• <strong>Subject Teacher?</strong> Tick only the specific subject(s) you personally teach.
+      <br>• <strong>Class Teacher?</strong> Tick all subjects you handle for your class.
+      <br>Only the subjects you select will appear in your dashboard.
+    </div>
+
+    <span class="subjects-label">
+      Select subjects <span style="color:var(--red)">*</span>
+    </span>
+    <div class="subjects-grid">
+      {% for subject in subjects %}
+      <label class="subject-option" onclick="toggleCheck(this)">
+        <input type="checkbox" name="subjects" value="{{ subject }}"
+               onchange="updateStyle(this)">
+        <span>{{ subject }}</span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn-submit">
+      🎓 Submit Registration
+    </button>
+
+    <hr class="divider">
+    <a href="{{ url_for('google_auth') }}" class="google-btn">
+      <span class="g-logo"></span>
+      Register with Google instead
+    </a>
+
   </form>
-  <div class="back"><a href="/teacher">← Back to Teacher Login</a></div>
+
+  <hr class="divider">
+  <p class="back-link">
+    Already have an account? <a href="{{ url_for('teacher') }}">Sign In</a>
+  </p>
+
 </div>
+
+<script>
+// Toggle class selector based on role
+function toggleClassField() {
+  const role  = document.getElementById('role-select').value;
+  const cf    = document.getElementById('class-field');
+  const mcSel = document.getElementById('managed-class-select');
+  const show  = role === 'class_manager';
+  cf.classList.toggle('visible', show);
+  mcSel.required = show;
+}
+
+// Subject checkbox styling
+function toggleCheck(labelEl) {
+  const cb = labelEl.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  labelEl.classList.toggle('checked', cb.checked);
+}
+function updateStyle(cb) {
+  cb.closest('.subject-option').classList.toggle('checked', cb.checked);
+}
+document.querySelectorAll('.subject-option input').forEach(cb => {
+  cb.addEventListener('click', e => e.stopPropagation());
+});
+
+// Client-side password match check
+document.getElementById('reg-form').addEventListener('submit', function(e) {
+  const pw  = document.querySelector('[name="password"]').value;
+  const cpw = document.querySelector('[name="confirm_password"]').value;
+  if (pw !== cpw) {
+    e.preventDefault();
+    alert('Passwords do not match. Please re-enter.');
+    return false;
+  }
+  const checked = document.querySelectorAll('[name="subjects"]:checked');
+  if (checked.length === 0) {
+    e.preventDefault();
+    alert('Please select at least one subject you teach.');
+    return false;
+  }
+});
+</script>
 </body>
 </html>

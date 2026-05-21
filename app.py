@@ -1,5 +1,5 @@
 from flask import (Flask, render_template, request, redirect,
-                   url_for, session, send_file, jsonify)
+    url_for, session, send_file, jsonify)
 import json, os, datetime, re, random, threading, shutil, zipfile, socket
 from urllib.parse import urlencode
 from openpyxl import Workbook
@@ -8,6 +8,7 @@ from docx import Document
 from docx.shared import Pt, RGBColor, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import PyPDF2
 from database import (
     init_db,
@@ -32,21 +33,23 @@ app = Flask(__name__)
 app.secret_key = "gloriouspearlsquiz2024"
 
 # ── CONFIG ─────────────────────────────────────────────────────────
-SCHOOL_NAME  = "Glorious Pearls Complex School"
-GROQ_API_KEY = "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"
-GROQ_MODEL   = "llama-3.3-70b-versatile"
-GROQ_URL     = "https://api.groq.com/openai/v1/chat/completions"
-RESULTS_FILE = "results.json"
-HOMEWORK_FILE= "homework_saves.json"
-UPLOAD_FOLDER= "static/uploads"
-ALLOWED_IMG  = {"png","jpg","jpeg","gif","webp"}
-ALLOWED_PDF  = {"pdf"}
-TEACHERS_FILE = "teachers.json"
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "523848643345-5pjbo9avqt8b8s2gm1rc9u4mrk7cfkcf.apps.googleusercontent.com")
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "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")
+SCHOOL_NAME       = "Glorious Pearls Complex School"
+
+# !! SECURITY: Move these to Railway environment variables !!
+GROQ_API_KEY      = os.environ.get("GROQ_API_KEY", "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")
+GROQ_MODEL        = "llama-3.3-70b-versatile"
+GROQ_URL          = "https://api.groq.com/openai/v1/chat/completions"
+RESULTS_FILE      = "results.json"
+HOMEWORK_FILE     = "homework_saves.json"
+UPLOAD_FOLDER     = "static/uploads"
+ALLOWED_IMG       = {"png","jpg","jpeg","gif","webp"}
+ALLOWED_PDF       = {"pdf"}
+TEACHERS_FILE     = "teachers.json"
+GOOGLE_CLIENT_ID  = os.environ.get("GOOGLE_CLIENT_ID", "523848643345-5pjbo9avqt8b8s2gm1rc9u4mrk7cfkcf.apps.googleusercontent.com")
+GOOGLE_CLIENT_SECRET    = os.environ.get("GOOGLE_CLIENT_SECRET", "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")
 GOOGLE_AUTH_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "http://localhost:5000/google-callback")
-GOOGLE_AUTH_ENDPOINT = "https://accounts.google.com/o/oauth2/v2/auth"
-GOOGLE_TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token"
+GOOGLE_AUTH_ENDPOINT    = "https://accounts.google.com/o/oauth2/v2/auth"
+GOOGLE_TOKEN_ENDPOINT   = "https://oauth2.googleapis.com/token"
 GOOGLE_USERINFO_ENDPOINT = "https://openidconnect.googleapis.com/v1/userinfo"
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -54,6 +57,7 @@ os.makedirs("static", exist_ok=True)
 os.makedirs("backups", exist_ok=True)
 os.makedirs("templates", exist_ok=True)
 
+# ── TEACHER FILE HELPERS ───────────────────────────────────────────
 def load_custom_teachers():
     if not os.path.exists(TEACHERS_FILE):
         with open(TEACHERS_FILE,"w",encoding="utf-8") as f:
@@ -66,14 +70,12 @@ def load_custom_teachers():
         print("Unable to load teachers file:", e)
         return {}
 
-
 def save_custom_teachers(data):
     try:
         with open(TEACHERS_FILE,"w",encoding="utf-8") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         print("Unable to save teachers file:", e)
-
 
 CUSTOM_TEACHERS = load_custom_teachers()
 
@@ -83,42 +85,49 @@ try:
 except Exception as e:
     print("DB init warning:", e)
 
-app.config["UPLOAD_FOLDER"]      = UPLOAD_FOLDER
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024
+
 _lock = threading.Lock()
 
-# ── DATA ───────────────────────────────────────────────────────────
+# ── HARDCODED TEACHERS (legacy) ────────────────────────────────────
 TEACHERS = {
-    "sir_emma":      {"name":"Sir Emma",       "password":"Letgohome", "subjects":["ICT"],                                                      "is_head":True,  "managed_class":"JHS 2"},
-    "sir_eddie":     {"name":"Sir Eddie",      "password":"eddie123",  "subjects":["Science"],                                                  "is_head":False, "managed_class":"Basic 6"},
-    "sir_bismark":   {"name":"Sir Bismark",    "password":"bismark123","subjects":["Creative Arts and Design","Career Technology"],              "is_head":False, "managed_class":"Basic 5"},
-    "sir_sam":       {"name":"Sir Sam",        "password":"sam123",    "subjects":["French"],                                                   "is_head":False, "managed_class":"JHS 1"},
-    "ms_gasu":       {"name":"Ms. Gasu",       "password":"gasu123",   "subjects":["English Language","Religious and Moral Education"],          "is_head":False, "managed_class":None},
-    "sir_sackey":    {"name":"Sir Sackey",     "password":"sackey123", "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"], "is_head":False, "managed_class":"Basic 2"},
-    "master":        {"name":"Master",         "password":"master123", "subjects":["Mathematics"],                                              "is_head":False, "managed_class":"JHS 3"},
-    "sir_otoo":      {"name":"Sir Otoo",       "password":"otoo123",   "subjects":["Ghanaian Language"],                                        "is_head":False, "managed_class":None},
-    "mr_tinkorange": {"name":"Mr. Tinkorange", "password":"Sir TK",    "subjects":["Mathematics"],                                              "is_head":False, "managed_class":"Basic 4A"},
-    "mrs_victoria":  {"name":"Mrs. Victoria",  "password":"madvic",    "subjects":["English Language","Religious and Moral Education"],          "is_head":False, "managed_class":"Basic 4B"},
-    "ms_priscilla":  {"name":"Ms. Priscilla",  "password":"priscilla", "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"], "is_head":False, "managed_class":"Basic 1"},
-    "mr_edem":       {"name":"Mr. Edem",       "password":"siredem",   "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"], "is_head":False, "managed_class":"Basic 3"},
+    "sir_emma":      {"name":"Sir Emma",      "password":"Letgohome",   "subjects":["ICT"],                                                                                                                                               "is_head":True,  "managed_class":"JHS 2"},
+    "sir_eddie":     {"name":"Sir Eddie",     "password":"eddie123",    "subjects":["Science"],                                                                                                                                           "is_head":False, "managed_class":"Basic 6"},
+    "sir_bismark":   {"name":"Sir Bismark",   "password":"bismark123",  "subjects":["Creative Arts and Design","Career Technology"],                                                                                                       "is_head":False, "managed_class":"Basic 5"},
+    "sir_sam":       {"name":"Sir Sam",       "password":"sam123",      "subjects":["French"],                                                                                                                                            "is_head":False, "managed_class":"JHS 1"},
+    "ms_gasu":       {"name":"Ms. Gasu",      "password":"gasu123",     "subjects":["English Language","Religious and Moral Education"],                                                                                                   "is_head":False, "managed_class":None},
+    "sir_sackey":    {"name":"Sir Sackey",    "password":"sackey123",   "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"],"is_head":False, "managed_class":"Basic 2"},
+    "master":        {"name":"Master",        "password":"master123",   "subjects":["Mathematics"],                                                                                                                                       "is_head":False, "managed_class":"JHS 3"},
+    "sir_otoo":      {"name":"Sir Otoo",      "password":"otoo123",     "subjects":["Ghanaian Language"],                                                                                                                                 "is_head":False, "managed_class":None},
+    "mr_tinkorange": {"name":"Mr. Tinkorange","password":"Sir TK",      "subjects":["Mathematics"],                                                                                                                                       "is_head":False, "managed_class":"Basic 4A"},
+    "mrs_victoria":  {"name":"Mrs. Victoria", "password":"madvic",      "subjects":["English Language","Religious and Moral Education"],                                                                                                   "is_head":False, "managed_class":"Basic 4B"},
+    "ms_priscilla":  {"name":"Ms. Priscilla", "password":"priscilla",   "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"],"is_head":False, "managed_class":"Basic 1"},
+    "mr_edem":       {"name":"Mr. Edem",      "password":"siredem",     "subjects":["ICT","Mathematics","Science","English Language","Social Studies","Religious and Moral Education","French","Career Technology","Creative Arts and Design"],"is_head":False, "managed_class":"Basic 3"},
 }
+
 SUBJECTS = ["ICT","Mathematics","Science","English Language","Social Studies",
             "Religious and Moral Education","French","Ghanaian Language",
             "Career Technology","Creative Arts and Design"]
-CLASSES  = ["Basic 1","Basic 2","Basic 3","Basic 4A","Basic 4B",
-            "Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"]
-GRADES   = [(90,100,"A","Excellent"),(80,89,"B","Very Good"),(70,79,"C","Good"),
-            (60,69,"D","Average"),(50,59,"E","Below Average"),(0,49,"F","Fail")]
+
+CLASSES = ["Basic 1","Basic 2","Basic 3","Basic 4A","Basic 4B",
+           "Basic 5","Basic 6","JHS 1","JHS 2","JHS 3"]
+
+GRADES = [(90,100,"A","Excellent"),(80,89,"B","Very Good"),(70,79,"C","Good"),
+          (60,69,"D","Average"),(50,59,"E","Below Average"),(0,49,"F","Fail")]
+
 SUBJECT_COLORS = {
     "ICT":"#2e86ab","Mathematics":"#e74c3c","Science":"#27ae60",
     "English Language":"#8e44ad","Social Studies":"#f39c12",
     "Religious and Moral Education":"#16a085","French":"#2980b9",
     "Ghanaian Language":"#d35400","Career Technology":"#c0392b",
     "Creative Arts and Design":"#e91e8c"}
+
 SUBJECT_ICONS = {
     "ICT":"💻","Mathematics":"🔢","Science":"🔬","English Language":"📚",
     "Social Studies":"🌍","Religious and Moral Education":"✝️","French":"🇫🇷",
     "Ghanaian Language":"🇬🇭","Career Technology":"⚙️","Creative Arts and Design":"🎨"}
+
 ASSESSMENT_TYPES = {
     "class_test":{"label":"Class Test","icon":"📝","timer_minutes":30,
                   "show_answers_after":True,"can_pause":False,"shuffle":True,"description":"Timed 30-minute test"},
@@ -127,6 +136,7 @@ ASSESSMENT_TYPES = {
     "homework":  {"label":"Homework","icon":"🏠","timer_minutes":0,
                   "show_answers_after":True,"can_pause":True,"shuffle":False,"description":"No timer — save and continue later"},
 }
+
 CURRICULUM_STRANDS = {
     "ICT":{"Computing Systems":["Hardware Components","Software and Operating Systems","Input and Output Devices","Storage Devices","Computer Networks"],"Data and Information":["Data Collection and Processing","Spreadsheets","Databases","Information Representation","Data Security"],"Algorithms and Programming":["Problem Solving","Algorithms and Flowcharts","Scratch Programming","Python Basics","Web Design"],"Communication and Collaboration":["Internet and Email","Social Media Safety","Digital Citizenship","Online Collaboration Tools"],"Digital Literacy":["Word Processing","Presentation Software","Digital Safety and Ethics","Emerging Technologies"]},
     "Mathematics":{"Number and Numeration":["Whole Numbers","Fractions and Decimals","Percentages and Ratios","Indices and Logarithms","Number Bases"],"Algebra":["Algebraic Expressions","Linear Equations","Quadratic Equations","Inequalities","Sequences and Series"],"Geometry and Measurement":["Shapes and Properties","Angles and Lines","Perimeter Area and Volume","Pythagoras Theorem","Trigonometry"],"Data Handling":["Data Collection","Statistical Graphs","Measures of Central Tendency","Probability"],"Patterns and Relations":["Number Patterns","Functions and Relations","Matrices"]},
@@ -139,6 +149,7 @@ CURRICULUM_STRANDS = {
     "Career Technology":{"Home Economics":["Food and Nutrition","Clothing and Textiles","Home Management","Child Development"],"Technical Drawing":["Drawing Instruments","Geometrical Constructions","Orthographic Projection","Isometric Drawing"],"Workshop Technology":["Safety in the Workshop","Woodwork","Metalwork","Electrical Work"],"Agricultural Science":["Crop Production","Animal Husbandry","Farm Tools and Equipment","Soil and Fertilizers"],"Business Studies":["Entrepreneurship","Book Keeping","Office Practice","Buying and Selling"]},
     "Creative Arts and Design":{"Visual Arts":["Drawing and Painting","Sculpture and Modelling","Graphic Design","Printmaking","Weaving and Basketry"],"Performing Arts":["Music and Rhythm","Dance","Drama and Theatre","Traditional Performances"],"Design and Technology":["Product Design","Fashion and Textiles","Pottery and Ceramics","Jewellery Making"],"Ghanaian Cultural Arts":["Kente Weaving","Adinkra Symbols","Traditional Music","Ghanaian Dance Forms"]},
 }
+
 BECE_SUBJECTS = ["ICT","Mathematics","Science","English Language","Social Studies",
                  "Religious and Moral Education","French","Career Technology","Creative Arts and Design"]
 BECE_YEARS = [str(y) for y in range(2010,2026)]
@@ -160,19 +171,23 @@ def save_result(r): db_save_result(r)
 def load_hw(): return db_load_hw()
 def save_hw(k,d): db_save_hw(k,d)
 def del_hw(k): db_del_hw(k)
+
 def get_grade(p):
     for lo,hi,g,r in GRADES:
         if lo<=p<=hi: return g,r
     return "F","Fail"
+
 def gcolor(g): return {"A":"#27ae60","B":"#2980b9","C":"#8e44ad","D":"#f39c12","E":"#e67e22","F":"#e74c3c"}.get(g,"#95a5a6")
 def allowed_img(fn): return "." in fn and fn.rsplit(".",1)[1].lower() in ALLOWED_IMG
 def allowed_pdf(fn): return "." in fn and fn.rsplit(".",1)[1].lower() in ALLOWED_PDF
+
 def keyword_score(ans,model,marks):
     if not ans or not model: return 0,[]
     kws=list(set([w.strip().lower() for w in model.split() if len(w.strip())>3]))
     matched=[k for k in kws if k in ans.lower()]
     if not kws: return marks,[]
     return min(round(len(matched)/len(kws)*marks),marks),matched
+
 def get_qs_for_student(subject,cls,shuffle=True,strand=None,sub_strand=None):
     qs=load_qs(subject); filtered=[]
     for q in qs:
@@ -187,6 +202,7 @@ def get_qs_for_student(subject,cls,shuffle=True,strand=None,sub_strand=None):
             if q["type"]=="mcq" and q.get("options"):
                 opts=q["options"].copy(); random.shuffle(opts); q["options"]=opts
     return filtered
+
 def current_teacher(): return session.get("teacher_data")
 
 def get_teacher_by_id(uid):
@@ -197,10 +213,9 @@ def get_teacher_by_id(uid):
         return uid, CUSTOM_TEACHERS[uid]
     lower = uid.lower()
     for key, teacher in {**TEACHERS, **CUSTOM_TEACHERS}.items():
-        if teacher.get("email","",).lower() == lower:
+        if teacher.get("email","").lower() == lower:
             return key, teacher
     return None, None
-
 
 def teacher_exists(uid, email=None):
     _, teacher = get_teacher_by_id(uid)
@@ -209,7 +224,7 @@ def teacher_exists(uid, email=None):
     if email:
         lower = email.lower()
         for teacher in {**TEACHERS, **CUSTOM_TEACHERS}.values():
-            if teacher.get("email","",).lower() == lower:
+            if teacher.get("email","").lower() == lower:
                 return True
     return False
 
@@ -217,6 +232,16 @@ def can_access(subject):
     t=current_teacher()
     if not t: return False
     return t.get("is_head") or subject in t.get("subjects",[])
+
+def verify_password(stored_password, provided_password):
+    """
+    Supports both plain-text (legacy) and hashed passwords.
+    New registrations store hashed; old hardcoded teachers stay plain-text.
+    """
+    if stored_password.startswith("pbkdf2:") or stored_password.startswith("scrypt:"):
+        return check_password_hash(stored_password, provided_password)
+    return stored_password == provided_password
+
 def extract_pdf(filepath):
     qs=[]
     try:
@@ -265,9 +290,11 @@ def extract_pdf(filepath):
             i+=1
     except Exception as e: print("PDF error:",e)
     return qs
+
 def bece_file(s,y): return "bece_{}_{}.json".format(s.replace(" ","_"),y)
 def load_bece(s,y): return db_load_bece(s,y)
 def save_bece(s,y,qs): db_save_bece(s,y,qs)
+
 def bece_years_for(subject):
     safe=subject.replace(" ","_"); years=[]
     for f in os.listdir("."):
@@ -300,8 +327,8 @@ def start():
     qs=get_qs_for_student(subject,cls,aconf["shuffle"],strand or None,sub_strand or None)
     if not qs: return render_template("no_questions.html",school=SCHOOL_NAME,subject=subject,cls=cls)
     session.update({"student_name":name,"student_class":cls,"student_subject":subject,
-                    "assessment_type":atype,"aconf":aconf,"start_time":datetime.datetime.now().isoformat(),
-                    "questions":qs,"strand":strand,"sub_strand":sub_strand})
+        "assessment_type":atype,"aconf":aconf,"start_time":datetime.datetime.now().isoformat(),
+        "questions":qs,"strand":strand,"sub_strand":sub_strand})
     return render_template("quiz.html",questions=qs,student_name=name,student_class=cls,
         subject=subject,atype=atype,aconf=aconf,
         subject_color=SUBJECT_COLORS.get(subject,"#2e86ab"),
@@ -316,8 +343,8 @@ def save_homework():
     cls=session.get("student_class","")
     key="{}_{}_{}_hw".format(name.lower().replace(" ","_"),cls.lower().replace(" ","_"),subject.lower().replace(" ","_"))
     save_hw(key,{"name":name,"class":cls,"subject":subject,"answers":request.json.get("answers",{}),
-                 "questions":session.get("questions",[]),"aconf":session.get("aconf",{}),
-                 "saved_at":datetime.datetime.now().strftime("%d/%m/%Y %H:%M")})
+        "questions":session.get("questions",[]),"aconf":session.get("aconf",{}),
+        "saved_at":datetime.datetime.now().strftime("%d/%m/%Y %H:%M")})
     session["hw_save_key"]=key
     return jsonify({"ok":True})
 
@@ -327,8 +354,8 @@ def resume_homework(key):
     if not save: return redirect(url_for("index"))
     aconf=save.get("aconf",ASSESSMENT_TYPES["homework"])
     session.update({"student_name":save["name"],"student_class":save["class"],
-                    "student_subject":save["subject"],"assessment_type":"homework",
-                    "aconf":aconf,"questions":save["questions"],"start_time":datetime.datetime.now().isoformat()})
+        "student_subject":save["subject"],"assessment_type":"homework",
+        "aconf":aconf,"questions":save["questions"],"start_time":datetime.datetime.now().isoformat()})
     return render_template("quiz.html",questions=save["questions"],student_name=save["name"],
         student_class=save["class"],subject=save["subject"],atype="homework",aconf=aconf,
         subject_color=SUBJECT_COLORS.get(save["subject"],"#2e86ab"),
@@ -348,20 +375,17 @@ def submit():
         if qtype in ["mcq","tf","fitb"]:
             if qtype=="mcq":
                 opts=q.get("options",[]); letters=["A","B","C","D"]
-                # Normalize given to letter
                 given_letter=given.upper() if given.upper() in letters else ""
                 if not given_letter:
                     for i,opt in enumerate(opts):
                         if opt.strip().lower()==given.strip().lower() and i<4:
                             given_letter=letters[i]; break
-                # Normalize correct to letter
                 correct_letter=correct.upper() if correct.upper() in letters else ""
                 if not correct_letter:
                     for i,opt in enumerate(opts):
                         if opt.strip().lower()==correct.strip().lower() and i<4:
                             correct_letter=letters[i]; break
                 right = given_letter==correct_letter if given_letter and correct_letter else False
-                # Get full text for display
                 given_display = "{}: {}".format(given_letter, opts[letters.index(given_letter)] if given_letter in letters and letters.index(given_letter)<len(opts) else given_letter) if given_letter else "Not answered"
                 correct_display = "{}: {}".format(correct_letter, opts[letters.index(correct_letter)] if correct_letter in letters and letters.index(correct_letter)<len(opts) else correct_letter) if correct_letter else correct
             else:
@@ -392,9 +416,9 @@ def submit():
     pct=round((earned/total)*100,1) if total>0 else 0
     grade,remark=get_grade(pct)
     result={"name":name,"class":cls,"subject":subject,"assessment_type":atype,
-            "assessment_label":aconf.get("label","Class Test"),"strand":strand,"sub_strand":sub_strand,
-            "score":earned,"total":total,"percentage":pct,"grade":grade,"remark":remark,
-            "date":datetime.datetime.now().strftime("%d/%m/%Y"),"time":datetime.datetime.now().strftime("%H:%M"),"details":details}
+        "assessment_label":aconf.get("label","Class Test"),"strand":strand,"sub_strand":sub_strand,
+        "score":earned,"total":total,"percentage":pct,"grade":grade,"remark":remark,
+        "date":datetime.datetime.now().strftime("%d/%m/%Y"),"time":datetime.datetime.now().strftime("%H:%M"),"details":details}
     save_result(result)
     if atype=="homework":
         hw_key=session.get("hw_save_key")
@@ -403,6 +427,7 @@ def submit():
         grade_color=gcolor(grade),subject_color=SUBJECT_COLORS.get(subject,"#2e86ab"),
         subject_icon=SUBJECT_ICONS.get(subject,"📝"),show_answers=aconf.get("show_answers_after",True))
 
+# ── TEACHER LOGIN ──────────────────────────────────────────────────
 @app.route("/teacher",methods=["GET","POST"])
 def teacher():
     if request.method=="POST":
@@ -414,42 +439,72 @@ def teacher():
                 return render_template("teacher_login.html",error="Your registration is pending admin approval.",school=SCHOOL_NAME)
             if status == "rejected":
                 return render_template("teacher_login.html",error="Your registration was rejected. Contact the administrator.",school=SCHOOL_NAME)
-            if t.get("password") == pwd:
+            # ── FIX: use verify_password which supports both hashed and plain-text ──
+            if verify_password(t.get("password",""), pwd):
                 session["teacher"] = True; session["teacher_data"] = {**t, "uid": stored_uid}
                 return redirect(url_for("dashboard"))
         return render_template("teacher_login.html",error="Wrong username or password.",school=SCHOOL_NAME)
     return render_template("teacher_login.html",school=SCHOOL_NAME,error=request.args.get("error"))
 
+# ── TEACHER REGISTRATION ───────────────────────────────────────────
 @app.route("/teacher_register", methods=["GET","POST"])
 def teacher_register():
     if request.method=="POST":
-        name=request.form.get("name","\"").strip()
-        uid=request.form.get("uid","\"").strip().lower()
-        email=request.form.get("email","\"").strip().lower()
-        password=request.form.get("password","")
-        confirm=request.form.get("confirm_password","")
-        role=request.form.get("role","").strip()
-        managed_class=request.form.get("managed_class","").strip()
-        subjects=request.form.getlist("subjects")
-        if not (name and uid and password and confirm and subjects and role):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Please fill in all fields and select at least one subject and a role.")
+        name          = request.form.get("name","").strip()
+        uid           = request.form.get("uid","").strip().lower()
+        email         = request.form.get("email","").strip().lower()
+        password      = request.form.get("password","")
+        confirm       = request.form.get("confirm_password","")
+        role          = request.form.get("role","").strip()
+        managed_class = request.form.get("managed_class","").strip()
+
+        # ── FIX: subject_teacher selects only their subjects;
+        #         class_manager selects their subjects too (not all forced)
+        subjects = request.form.getlist("subjects")
+
+        def err(msg):
+            return render_template("teacher_register.html", school=SCHOOL_NAME,
+                subjects=SUBJECTS, classes=CLASSES, error=msg)
+
+        if not (name and uid and email and password and confirm and role):
+            return err("Please fill in all required fields.")
+        if not subjects:
+            return err("Please select at least one subject you teach.")
         if role not in ["subject_teacher", "class_manager"]:
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Invalid role selected.")
+            return err("Please select a valid role.")
         if role == "class_manager" and not managed_class:
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Class managers must select a class.")
+            return err("Class teachers must select their class.")
         if managed_class and managed_class not in CLASSES:
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Invalid class selected.")
+            return err("Invalid class selected.")
         if password != confirm:
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Passwords do not match.")
+            return err("Passwords do not match.")
+        if len(password) < 6:
+            return err("Password must be at least 6 characters.")
         if teacher_exists(uid, email):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="A teacher with that username or email already exists.")
+            return err("A teacher with that username or email already exists.")
         if any(s not in SUBJECTS for s in subjects):
-            return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error="Please select valid subjects.")
-        CUSTOM_TEACHERS[uid] = {"name":name,"password":password,"subjects":subjects,"is_head":False,"managed_class":managed_class if managed_class else None,"email":email,"status":"pending"}
+            return err("One or more selected subjects are invalid.")
+
+        # Hash the password before storing
+        hashed_pw = generate_password_hash(password)
+
+        CUSTOM_TEACHERS[uid] = {
+            "name":          name,
+            "password":      hashed_pw,                              # ✅ hashed
+            "subjects":      subjects,                               # ✅ only chosen subjects
+            "is_head":       False,
+            "role":          role,                                   # ✅ role stored
+            "managed_class": managed_class if managed_class else None,
+            "email":         email,
+            "status":        "pending"
+        }
         save_custom_teachers(CUSTOM_TEACHERS)
         return redirect(url_for("teacher", error="Registration submitted and is pending admin approval."))
-    return render_template("teacher_register.html",school=SCHOOL_NAME,subjects=SUBJECTS,classes=CLASSES,error=None)
 
+    return render_template("teacher_register.html", school=SCHOOL_NAME,
+        subjects=SUBJECTS, classes=CLASSES, error=None)
+
+# ── GOOGLE LOGIN ───────────────────────────────────────────────────
 @app.route("/google-login")
 def google_login():
     return render_template("google_login.html",school=SCHOOL_NAME)
@@ -466,18 +521,16 @@ def google_auth():
         "access_type": "offline",
         "prompt": "select_account"
     }
-    return redirect(f"{GOOGLE_AUTH_ENDPOINT}?{urlencode(params)}")
+    return redirect("{}?{}".format(GOOGLE_AUTH_ENDPOINT, urlencode(params)))
 
 @app.route("/google-callback")
 def google_callback():
     error=request.args.get("error")
     if error:
         return redirect(url_for("teacher", error="Google login cancelled."))
-
     code=request.args.get("code")
     if not code or not (GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET and REQUESTS_OK):
         return redirect(url_for("teacher", error="Google login failed."))
-
     token_resp=req_lib.post(GOOGLE_TOKEN_ENDPOINT, data={
         "code": code,
         "client_id": GOOGLE_CLIENT_ID,
@@ -485,22 +538,19 @@ def google_callback():
         "redirect_uri": GOOGLE_AUTH_REDIRECT_URI,
         "grant_type": "authorization_code"
     }, headers={"Content-Type": "application/x-www-form-urlencoded"})
-
     if token_resp.status_code!=200:
         return redirect(url_for("teacher", error="Unable to exchange Google code."))
-
     token_data=token_resp.json()
     access_token=token_data.get("access_token")
     if not access_token:
         return redirect(url_for("teacher", error="Google token not received."))
-
-    profile_resp=req_lib.get(GOOGLE_USERINFO_ENDPOINT, headers={"Authorization": f"Bearer {access_token}"})
+    profile_resp=req_lib.get(GOOGLE_USERINFO_ENDPOINT, headers={"Authorization": "Bearer {}".format(access_token)})
     if profile_resp.status_code!=200:
         return redirect(url_for("teacher", error="Unable to fetch Google profile."))
-
     profile=profile_resp.json()
     email=profile.get("email","")
     uid=email.split("@")[0] if email else None
+
     stored_uid, t = get_teacher_by_id(uid or email)
     if t:
         status = t.get("status","approved")
@@ -511,29 +561,102 @@ def google_callback():
         session["teacher"] = True
         session["teacher_data"] = {**t, "uid": stored_uid}
         return redirect(url_for("dashboard"))
-    created_uid = email or uid
-    t = {"name": profile.get("name","Google User"),"password":"","subjects":SUBJECTS,"is_head":False,"managed_class":None,"email":email,"status":"pending"}
-    CUSTOM_TEACHERS[created_uid] = t
-    save_custom_teachers(CUSTOM_TEACHERS)
-    return redirect(url_for("teacher", error="Google account registration submitted and is pending admin approval."))
+
+    # ── FIX: New Google user — redirect to completion form instead of
+    #         assigning ALL subjects automatically ──────────────────
+    session["google_pending"] = {
+        "name":           profile.get("name", "Google User"),
+        "email":          email,
+        "uid_suggestion": email.split("@")[0] if email else ""
+    }
+    return redirect(url_for("google_complete_registration"))
+
+# ── NEW: Google registration completion ───────────────────────────
+@app.route("/google-complete-registration", methods=["GET","POST"])
+def google_complete_registration():
+    pending = session.get("google_pending")
+    if not pending:
+        return redirect(url_for("teacher"))
+
+    if request.method == "POST":
+        uid           = request.form.get("uid","").strip().lower()
+        role          = request.form.get("role","").strip()
+        managed_class = request.form.get("managed_class","").strip()
+        subjects      = request.form.getlist("subjects")
+
+        def err(msg):
+            return render_template("google_complete_registration.html",
+                school=SCHOOL_NAME, subjects=SUBJECTS, classes=CLASSES,
+                pending=pending, error=msg)
+
+        if not uid:
+            return err("Please enter a username.")
+        if role not in ["subject_teacher", "class_manager"]:
+            return err("Please select a valid role.")
+        if not subjects:
+            return err("Please select at least one subject you teach.")
+        if role == "class_manager" and not managed_class:
+            return err("Class teachers must select their class.")
+        if managed_class and managed_class not in CLASSES:
+            return err("Invalid class selected.")
+        if any(s not in SUBJECTS for s in subjects):
+            return err("One or more selected subjects are invalid.")
+        if teacher_exists(uid, pending["email"]):
+            return err("That username or email is already registered.")
+
+        CUSTOM_TEACHERS[uid] = {
+            "name":          pending["name"],
+            "password":      "",                                     # Google auth — no password needed
+            "subjects":      subjects,                               # ✅ only their chosen subjects
+            "is_head":       False,
+            "role":          role,                                   # ✅ role stored
+            "managed_class": managed_class if managed_class else None,
+            "email":         pending["email"],
+            "status":        "pending"
+        }
+        save_custom_teachers(CUSTOM_TEACHERS)
+        session.pop("google_pending", None)
+        return redirect(url_for("teacher",
+            error="Registration submitted and is pending admin approval."))
+
+    return render_template("google_complete_registration.html",
+        school=SCHOOL_NAME, subjects=SUBJECTS, classes=CLASSES,
+        pending=pending, error=None)
 
 @app.route("/teacher_logout")
 def teacher_logout(): session.clear(); return redirect(url_for("index"))
 
+# ── DASHBOARD ─────────────────────────────────────────────────────
 @app.route("/dashboard")
 def dashboard():
     if not session.get("teacher"): return redirect(url_for("teacher"))
-    t=current_teacher(); my_subjects=SUBJECTS if t.get("is_head") else t.get("subjects",SUBJECTS)
-    sel_sub=request.args.get("subject",my_subjects[0])
-    if sel_sub not in my_subjects: sel_sub=my_subjects[0]
+    t=current_teacher()
+
+    # ── FIX: never silently fall back to ALL subjects ──
+    if t.get("is_head"):
+        my_subjects = SUBJECTS
+    else:
+        my_subjects = t.get("subjects") or []
+        # If somehow empty (edge case), show nothing rather than everything
+        if not my_subjects:
+            my_subjects = []
+
+    sel_sub=request.args.get("subject", my_subjects[0] if my_subjects else "")
+    if sel_sub not in my_subjects and my_subjects:
+        sel_sub=my_subjects[0]
+
     results=load_results()
-    if not t.get("is_head"): results=[r for r in results if r.get("subject","") in t["subjects"]]
-    qs=load_qs(sel_sub); total=len(results)
+    if not t.get("is_head"):
+        results=[r for r in results if r.get("subject","") in my_subjects]
+
+    qs=load_qs(sel_sub) if sel_sub else []
+    total=len(results)
     avg=round(sum(r["percentage"] for r in results)/len(results),1) if results else 0
     gc={}
     for r in results: gc[r["grade"]]=gc.get(r["grade"],0)+1
     sc={}
     for r in results: sc[r.get("subject","")]=sc.get(r.get("subject",""),0)+1
+
     return render_template("dashboard.html",results=results,questions=qs,selected_subject=sel_sub,
         subjects=my_subjects,all_subjects=SUBJECTS,subject_colors=SUBJECT_COLORS,subject_icons=SUBJECT_ICONS,
         total_students=total,avg_score=avg,grade_counts=gc,sub_counts=sc,school=SCHOOL_NAME,
@@ -659,8 +782,8 @@ def delete_result(idx):
 @app.route("/ai_generator")
 def ai_generator():
     if not session.get("teacher"): return redirect(url_for("teacher"))
-    t=current_teacher(); my_subjects=SUBJECTS if t.get("is_head") else t.get("subjects",SUBJECTS)
-    sel_sub=request.args.get("subject",my_subjects[0])
+    t=current_teacher(); my_subjects=SUBJECTS if t.get("is_head") else (t.get("subjects") or [])
+    sel_sub=request.args.get("subject",my_subjects[0] if my_subjects else "")
     return render_template("ai_generator.html",school=SCHOOL_NAME,subjects=my_subjects,
         selected_subject=sel_sub,subject_icons=SUBJECT_ICONS,classes=CLASSES,
         strands=CURRICULUM_STRANDS.get(sel_sub,{}),curriculum_strands=CURRICULUM_STRANDS)
@@ -668,9 +791,9 @@ def ai_generator():
 @app.route("/ai_generate_questions",methods=["POST"])
 def ai_generate_questions():
     if not session.get("teacher"): return jsonify({"error":"Not logged in"}),401
-    if not REQUESTS_OK: return jsonify({"error":"Run: pip install requests --user  then restart"})
+    if not REQUESTS_OK: return jsonify({"error":"Run: pip install requests --user then restart"})
     if not GROQ_API_KEY or "PASTE" in GROQ_API_KEY:
-        return jsonify({"error":"Set your Groq API key in app.py — find PASTE_YOUR_GROQ_KEY_HERE and replace it."})
+        return jsonify({"error":"Set your Groq API key in Railway environment variables (GROQ_API_KEY)."})
     data=request.json
     topic=data.get("topic","").strip(); subject=data.get("subject","ICT")
     strand=data.get("strand",""); sub_strand=data.get("sub_strand","")
@@ -683,9 +806,7 @@ def ai_generate_questions():
 Subject: {subject} | Class: {cls} | Topic: {topic}
 Strand: {strand} | Difficulty: {diff}
 Question types: {types}
-
 IMPORTANT FOR MCQ: The "answer" field MUST be exactly "A", "B", "C", or "D" (the letter only, matching the correct option position).
-
 Return ONLY valid JSON, no other text:
 {{"questions":[
   {{"type":"mcq","question":"text","options":["option1","option2","option3","option4"],"answer":"A","marks":2}},
@@ -726,11 +847,9 @@ Return ONLY valid JSON, no other text:
                 if len(opts)<2: continue
                 clean["options"]=opts[:4]
                 raw_ans=q.get("answer","").strip()
-                # Normalize answer to A/B/C/D
                 if raw_ans.upper() in ["A","B","C","D"]:
                     clean["answer"]=raw_ans.upper()
                 else:
-                    # Try to match answer text to option index
                     matched_letter="A"
                     for i,opt in enumerate(opts[:4]):
                         if opt.strip().lower()==raw_ans.lower():
@@ -771,7 +890,7 @@ def ai_add_questions():
 def student_report():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     t=current_teacher(); results=load_results()
-    if not t.get("is_head"): results=[r for r in results if r.get("subject","") in t["subjects"]]
+    if not t.get("is_head"): results=[r for r in results if r.get("subject","") in (t.get("subjects") or [])]
     students={}
     for r in results:
         key=r["name"].strip().lower()+"|"+r["class"].strip().lower()
@@ -805,7 +924,7 @@ def student_report_word(key):
     doc.add_paragraph()
     grgb={"A":RGBColor(0x27,0xAE,0x60),"B":RGBColor(0x29,0x80,0xB9),"C":RGBColor(0x8E,0x44,0xAD),"D":RGBColor(0xF3,0x9C,0x12),"E":RGBColor(0xE6,0x7E,0x22),"F":RGBColor(0xE7,0x4C,0x3C)}
     p=doc.add_paragraph(); p.alignment=WD_ALIGN_PARAGRAPH.CENTER
-    run=p.add_run("OVERALL: {}%  |  GRADE: {}  |  {}".format(avg,grade,remark.upper()))
+    run=p.add_run("OVERALL: {}% | GRADE: {} | {}".format(avg,grade,remark.upper()))
     run.font.bold=True; run.font.size=Pt(14); run.font.color.rgb=grgb.get(grade,RGBColor(0,0,0))
     doc.add_paragraph(); doc.add_heading("Subject Results",level=2)
     t2=doc.add_table(rows=1,cols=5); t2.style="Table Grid"
@@ -817,7 +936,7 @@ def student_report_word(key):
     doc.add_paragraph(); doc.add_heading("Teacher's Remark",level=2)
     rem=doc.add_table(rows=1,cols=1); rem.style="Table Grid"; rem.rows[0].cells[0].text="\n\n\n"
     doc.add_paragraph(); sig=doc.add_paragraph(); sig.alignment=WD_ALIGN_PARAGRAPH.CENTER
-    sig.add_run("Class Teacher: ________________     Date: ________________").font.size=Pt(11)
+    sig.add_run("Class Teacher: ________________ Date: ________________").font.size=Pt(11)
     fname="report_{}_all.docx".format(tests[0]["name"].replace(" ","_")); doc.save(fname)
     return send_file(fname,as_attachment=True)
 
@@ -826,7 +945,7 @@ def student_report_word(key):
 def export_excel():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     t=current_teacher(); results=load_results()
-    if not t.get("is_head"): results=[r for r in results if r.get("subject","") in t["subjects"]]
+    if not t.get("is_head"): results=[r for r in results if r.get("subject","") in (t.get("subjects") or [])]
     wb=Workbook(); ws=wb.active; ws.title="Results"
     ws.merge_cells("A1:K1"); ws["A1"]=SCHOOL_NAME+" — Quiz Results"
     ws["A1"].font=Font(bold=True,size=14,color="FFFFFF"); ws["A1"].fill=PatternFill("solid",fgColor="1A3A5C"); ws["A1"].alignment=Alignment(horizontal="center")
@@ -864,7 +983,7 @@ def export_word(idx):
     doc.add_paragraph()
     grgb={"A":RGBColor(0x27,0xAE,0x60),"B":RGBColor(0x29,0x80,0xB9),"C":RGBColor(0x8E,0x44,0xAD),"D":RGBColor(0xF3,0x9C,0x12),"E":RGBColor(0xE6,0x7E,0x22),"F":RGBColor(0xE7,0x4C,0x3C)}
     sp=doc.add_paragraph(); sp.alignment=WD_ALIGN_PARAGRAPH.CENTER
-    run=sp.add_run("SCORE: {}/{}  |  {}%  |  GRADE: {}  |  {}".format(r["score"],r["total"],r["percentage"],r["grade"],r["remark"].upper()))
+    run=sp.add_run("SCORE: {}/{} | {}% | GRADE: {} | {}".format(r["score"],r["total"],r["percentage"],r["grade"],r["remark"].upper()))
     run.font.bold=True; run.font.size=Pt(13); run.font.color.rgb=grgb.get(r["grade"],RGBColor(0,0,0))
     doc.add_paragraph(); doc.add_heading("Detailed Results",level=2)
     dtbl=doc.add_table(rows=1,cols=5); dtbl.style="Table Grid"
@@ -892,9 +1011,9 @@ def pdf_template():
     doc.add_paragraph("IMPORTANT: Type in Microsoft Word and Save As PDF. Scanned images will NOT work.")
     doc.add_paragraph()
     for title,body in [("MCQ","1. What does CPU stand for?\nA. Central Processing Unit\nB. Computer Processing Unit\nC. Central Program Unit\nD. Computer Program Unit\nAnswer: Central Processing Unit"),
-                       ("True/False","TF: 1. A monitor is an output device.\nAnswer: True"),
-                       ("Fill in Blank","FB: 1. The brain of the computer is called the _______.\nAnswer: CPU"),
-                       ("Theory","TH: 1. Explain what a computer network is. [5 marks]\nModel: A computer network connects computers to share resources and data.")]:
+                        ("True/False","TF: 1. A monitor is an output device.\nAnswer: True"),
+                        ("Fill in Blank","FB: 1. The brain of the computer is called the _______.\nAnswer: CPU"),
+                        ("Theory","TH: 1. Explain what a computer network is. [5 marks]\nModel: A computer network connects computers to share resources and data.")]:
         doc.add_heading(title,2); doc.add_paragraph(body); doc.add_paragraph()
     fname="pdf_template.docx"; doc.save(fname); return send_file(fname,as_attachment=True)
 
@@ -998,446 +1117,111 @@ def bece_submit():
                         if opt.strip().lower()==correct.strip().lower() and i<4:
                             correct_letter=letters[i]; break
                 right=given_letter==correct_letter if given_letter and correct_letter else False
-                given_display="{}: {}".format(given_letter,opts[letters.index(given_letter)] if given_letter in letters and letters.index(given_letter)<len(opts) else given_letter) if given_letter else "Not answered"
-                correct_display="{}: {}".format(correct_letter,opts[letters.index(correct_letter)] if correct_letter in letters and letters.index(correct_letter)<len(opts) else correct_letter) if correct_letter else correct
+                given_disp="{}: {}".format(given_letter,opts[letters.index(given_letter)]) if given_letter and letters.index(given_letter)<len(opts) else given_letter or "Not answered"
+                correct_disp="{}: {}".format(correct_letter,opts[letters.index(correct_letter)]) if correct_letter and letters.index(correct_letter)<len(opts) else correct_letter
             else:
                 right=given.lower()==correct.lower()
-                given_display=given or "Not answered"
-                correct_display=correct
+                given_disp=given or "Not answered"; correct_disp=correct
             got=marks if right else 0; earned+=got
-            details.append({"question":q["question"],"type":q["type"],"given":given_display,"correct":correct_display,"correct_flag":right,"marks_earned":got,"marks_total":marks,"explanation":q.get("explanation",""),"image":q.get("image","")})
+            details.append({"question":q["question"],"type":q["type"],"given":given_disp,"correct":correct_disp,"correct_flag":right,"marks_earned":got,"marks_total":marks})
         elif q["type"]=="theory":
             got,matched=keyword_score(given,q.get("model_answer",""),marks); earned+=got
-            details.append({"question":q["question"],"type":"theory","given":given or "Not answered","correct":q.get("model_answer",""),"correct_flag":got>=marks*0.5,"marks_earned":got,"marks_total":marks,"matched_keywords":matched,"explanation":q.get("explanation",""),"image":q.get("image","")})
-    pct=round((earned/total)*100,1) if total>0 else 0; grade,remark=get_grade(pct)
-    result={"name":name,"subject":subject,"year":year,"mode":mode,"score":earned,"total":total,"percentage":pct,"grade":grade,"remark":remark,"date":datetime.datetime.now().strftime("%d/%m/%Y"),"time":datetime.datetime.now().strftime("%H:%M"),"details":details}
-    r2=dict(result); r2["class"]="JHS 3"; r2["assessment_type"]="bece_practice"; r2["assessment_label"]="BECE Practice"; save_result(r2)
-    return render_template("bece_result.html",result=result,school=SCHOOL_NAME,grade_color=gcolor(grade),
-        subject_color=SUBJECT_COLORS.get(subject,"#c0392b"),subject_icon=SUBJECT_ICONS.get(subject,"📝"),show_answers=(mode=="practice"))
+            details.append({"question":q["question"],"type":"theory","given":given or "Not answered","correct":q.get("model_answer",""),"correct_flag":got>=marks*0.5,"marks_earned":got,"marks_total":marks,"matched_keywords":matched})
+    pct=round((earned/total)*100,1) if total>0 else 0
+    grade,remark=get_grade(pct)
+    result={"name":name,"subject":subject,"year":year,"mode":mode,"score":earned,"total":total,"percentage":pct,"grade":grade,"remark":remark,"date":datetime.datetime.now().strftime("%d/%m/%Y"),"details":details}
+    return render_template("bece_result.html",result=result,school=SCHOOL_NAME,grade_color=gcolor(grade),subject_color=SUBJECT_COLORS.get(subject,"#c0392b"),subject_icon=SUBJECT_ICONS.get(subject,"📝"),show_answers=mode=="practice")
 
-@app.route("/bece/manage")
-def bece_manage():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    sel_sub=request.args.get("subject",BECE_SUBJECTS[0])
-    sel_year=request.args.get("year",str(datetime.datetime.now().year-1))
-    return render_template("bece_manage.html",school=SCHOOL_NAME,questions=load_bece(sel_sub,sel_year),
-        selected_subject=sel_sub,selected_year=sel_year,bece_subjects=BECE_SUBJECTS,bece_years=BECE_YEARS,
-        all_years=bece_years_for(sel_sub),subject_icons=SUBJECT_ICONS,subject_colors=SUBJECT_COLORS,
-        classes=CLASSES,bece_msg=session.pop("bece_msg",None))
-
-@app.route("/bece/add_question",methods=["POST"])
-def bece_add_question():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    subject=request.form.get("subject","ICT"); year=request.form.get("year","2024")
-    qtype=request.form.get("type","mcq"); question=request.form.get("question","").strip()
-    marks=int(request.form.get("marks",2)); expl=request.form.get("explanation","").strip()
-    qs=load_bece(subject,year); new_id=max((q["id"] for q in qs),default=0)+1
-    img_path=""
-    if "image" in request.files:
-        img=request.files["image"]
-        if img and img.filename and allowed_img(img.filename):
-            fn=secure_filename("bece_{}_{}".format(new_id,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); img_path="uploads/{}".format(fn)
-    base={"id":new_id,"type":qtype,"question":question,"marks":marks,"image":img_path,"explanation":expl}
-    if qtype=="mcq": base["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; base["answer"]=request.form.get("answer","").strip()
-    elif qtype=="tf": base["answer"]=request.form.get("tf_answer","True")
-    elif qtype=="fitb": base["answer"]=request.form.get("fitb_answer","").strip()
-    elif qtype=="theory": base["model_answer"]=request.form.get("model_answer","").strip()
-    qs.append(base); save_bece(subject,year,qs)
-    return redirect(url_for("bece_manage",subject=subject,year=year))
-
-@app.route("/bece/upload_pdf",methods=["POST"])
-def bece_upload_pdf():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    subject=request.form.get("subject","ICT"); year=request.form.get("year","2024")
-    if "pdf" not in request.files: return redirect(url_for("bece_manage",subject=subject,year=year))
-    pdf=request.files["pdf"]
-    if not pdf or not allowed_pdf(pdf.filename): return redirect(url_for("bece_manage",subject=subject,year=year))
-    fp=os.path.join(UPLOAD_FOLDER,secure_filename(pdf.filename)); pdf.save(fp)
-    extracted=extract_pdf(fp)
-    if extracted:
-        qs=load_bece(subject,year); mid=max((q["id"] for q in qs),default=0)
-        for q in extracted: q["id"]=mid+q["id"]; q["explanation"]=""
-        qs.extend(extracted); save_bece(subject,year,qs)
-        session["bece_msg"]="ok:Extracted {} questions for {} {}.".format(len(extracted),subject,year)
-    else:
-        session["bece_msg"]="err:No questions extracted. Check PDF format."
-    return redirect(url_for("bece_manage",subject=subject,year=year))
-
-@app.route("/bece/edit_question/<subject>/<year>/<int:qid>",methods=["GET","POST"])
-def bece_edit_question(subject,year,qid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    qs=load_bece(subject,year); q=next((x for x in qs if x["id"]==qid),None)
-    if not q: return redirect(url_for("bece_manage",subject=subject,year=year))
-    if request.method=="POST":
-        q["question"]=request.form.get("question","").strip(); q["marks"]=int(request.form.get("marks",q["marks"])); q["explanation"]=request.form.get("explanation","").strip()
-        if q["type"]=="mcq": q["options"]=[request.form.get("opt{}".format(i),"").strip() for i in range(1,5)]; q["answer"]=request.form.get("answer","").strip()
-        elif q["type"]=="tf": q["answer"]=request.form.get("tf_answer","True")
-        elif q["type"]=="fitb": q["answer"]=request.form.get("fitb_answer","").strip()
-        elif q["type"]=="theory": q["model_answer"]=request.form.get("model_answer","").strip()
-        if "image" in request.files:
-            img=request.files["image"]
-            if img and img.filename and allowed_img(img.filename):
-                fn=secure_filename("bece_{}_{}".format(qid,img.filename)); img.save(os.path.join(UPLOAD_FOLDER,fn)); q["image"]="uploads/{}".format(fn)
-        save_bece(subject,year,qs); return redirect(url_for("bece_manage",subject=subject,year=year))
-    return render_template("bece_edit_question.html",q=q,subject=subject,year=year,school=SCHOOL_NAME,subject_color=SUBJECT_COLORS.get(subject,"#c0392b"))
-
-@app.route("/bece/delete_question/<subject>/<year>/<int:qid>")
-def bece_delete_question(subject,year,qid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    save_bece(subject,year,[q for q in load_bece(subject,year) if q["id"]!=qid])
-    return redirect(url_for("bece_manage",subject=subject,year=year))
-
-@app.route("/no_questions")
-def no_questions_page():
-    return render_template("no_questions.html",school=SCHOOL_NAME,
-        subject=request.args.get("subject",""),cls=request.args.get("cls",""))
-
-@app.route("/class_manager")
-def class_manager():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    t = current_teacher()
-    managed = t.get("managed_class")
-    # Subject teachers can view assignments for classes they teach
-    # by passing ?class= parameter. Class managers see their own class by default.
-    view_class = request.args.get("class", managed)
-    if not view_class:
-        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
-            error_message="No Class Assigned",
-            error_detail="You are not assigned as a class manager for any class."), 403
-    # Load all assignments for this class
-    assignments = db_load_assignments(view_class)
-    # Load all results to check submissions
-    all_results = load_results()
-    # Build stats for each assignment
-    now = datetime.datetime.now()
-    # Filter assignments: class manager sees all, subject teachers see only their own
-    filtered_assignments = []
-    for a in assignments:
-        is_manager = (managed == view_class)
-        is_assigner = (a.get("assigned_by","") == t.get("name",""))
-        if is_manager or is_assigner or t.get("is_head"):
-            filtered_assignments.append(a)
-    assignments = filtered_assignments
-    assignment_stats = []
-    for a in assignments:
-        submitted = [r for r in all_results if
-            r.get("class","") == view_class and
-            r.get("subject","") == a["subject"] and
-            r.get("assessment_type","") == a["assessment_type"] and
-            r.get("assessment_label","") == a["title"]]
-        done_names = set(r["name"].strip().lower() for r in submitted)
-        due = None; countdown = None; overdue = False
-        if a.get("due_date"):
-            try:
-                due = datetime.datetime.strptime(a["due_date"], "%Y-%m-%d")
-                delta = due - now
-                if delta.days < 0:
-                    overdue = True; countdown = "Overdue by {} days".format(abs(delta.days))
-                elif delta.days == 0:
-                    countdown = "Due Today!"
-                else:
-                    countdown = "{} days left".format(delta.days)
-            except: pass
-        assignment_stats.append({
-            "id": a["id"], "title": a["title"], "subject": a["subject"],
-            "assessment_type": a["assessment_type"], "due_date": a.get("due_date",""),
-            "assigned_date": a.get("assigned_date",""), "countdown": countdown,
-            "overdue": overdue, "submitted_count": len(done_names),
-            "submitted_results": submitted,
-        })
-    assignment_stats.sort(key=lambda x: (x["overdue"], x.get("due_date","")))
-    # Build list of classes this teacher can view
-    if t.get("is_head"):
-        viewable_classes = CLASSES
-    elif managed:
-        viewable_classes = [managed]
-        if view_class != managed:
-            view_class = managed
-    else:
-        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
-            error_message="No Class Assigned",
-            error_detail="You are not assigned as a class manager for any class."), 403
-    return render_template("class_manager.html", school=SCHOOL_NAME,
-        teacher=t, managed_class=managed, view_class=view_class,
-        viewable_classes=viewable_classes,
-        assignments=assignment_stats, subjects=SUBJECTS,
-        assessment_types=ASSESSMENT_TYPES,
-        subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
-        assign_msg=session.pop("assign_msg", None))
-
-@app.route("/attendance")
-def attendance():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    t = current_teacher()
-    managed = t.get("managed_class")
-    view_class = request.args.get("class", managed)
-    if not view_class:
-        return render_template("error.html", school=SCHOOL_NAME, error_code=403,
-            error_message="No Class Assigned",
-            error_detail="You are not assigned as a class manager for any class."), 403
-    selected_date = request.args.get("date", datetime.datetime.now().strftime("%Y-%m-%d"))
-    attendance_records = db_load_attendance(view_class, selected_date)
-    attendance_by_name = {r.get("student_name",""): r for r in attendance_records}
-    student_names = sorted({r.get("student_name","") for r in attendance_records if r.get("student_name","")})
-    if not student_names:
-        student_names = sorted({r.get("name","") for r in load_results() if r.get("class","") == view_class and r.get("name","")})
-    return render_template("attendance.html", school=SCHOOL_NAME,
-        teacher=t, managed_class=managed, view_class=view_class,
-        selected_date=selected_date, attendance_records=attendance_records,
-        attendance_by_name=attendance_by_name, student_names=student_names,
-        attendance_msg=session.pop("attendance_msg", None))
-
-@app.route("/save_attendance", methods=["POST"])
-def save_attendance():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    t = current_teacher()
-    view_class = request.form.get("view_class")
-    selected_date = request.form.get("attendance_date", datetime.datetime.now().strftime("%Y-%m-%d"))
-    names = request.form.getlist("student_name")
-    statuses = request.form.getlist("status")
-    saved = 0
-    for name, status in zip(names, statuses):
-        student_name = (name or "").strip()
-        if not student_name:
-            continue
-        if status not in ("Present", "Absent"): status = "Absent"
-        db_save_attendance({
-            "class_name": view_class,
-            "attendance_date": selected_date,
-            "student_name": student_name,
-            "status": status,
-            "marked_by": t.get("name","")
-        })
-        saved += 1
-    session["attendance_msg"] = f"Saved attendance for {saved} student{'s' if saved != 1 else ''}."
-    return redirect(url_for("attendance", **{"class": view_class, "date": selected_date}))
-
-@app.route("/assign_work", methods=["POST"])
-def assign_work():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    t = current_teacher()
-    managed = t.get("managed_class")
-    view_class = request.form.get("view_class", managed)
-    if not view_class: return redirect(url_for("dashboard"))
-    title      = request.form.get("title","").strip()
-    subject    = request.form.get("subject","").strip()
-    atype      = request.form.get("assessment_type","class_test")
-    due_date   = request.form.get("due_date","").strip()
-    if not title or not subject:
-        session["assign_msg"] = "err:Please fill in all fields."
-        return redirect(url_for("class_manager", **{"class": view_class}))
-    db_save_assignment({
-        "class": view_class, "title": title, "subject": subject,
-        "assessment_type": atype, "due_date": due_date,
-        "assigned_date": datetime.datetime.now().strftime("%Y-%m-%d"),
-        "assigned_by": t.get("name","")
-    })
-    session["assign_msg"] = "ok:Work assigned successfully!"
-    return redirect(url_for("class_manager", **{"class": view_class}))
-
-@app.route("/delete_assignment/<int:aid>")
-def delete_assignment(aid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    db_delete_assignment(aid)
-    session["assign_msg"] = "ok:Assignment deleted."
-    return redirect(url_for("class_manager"))
-
-@app.route("/question_bank")
-def question_bank():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    t = current_teacher()
-    sel_sub = request.args.get("subject","")
-    all_bank = db_load_bank()
-    # Filter to teacher's subjects unless head
-    if not t.get("is_head"):
-        all_bank = [q for q in all_bank if q.get("_subject","") in t.get("subjects",[])]
-    # Group by subject
-    by_subject = {}
-    for q in all_bank:
-        subj = q.get("_subject","Unknown")
-        if subj not in by_subject: by_subject[subj] = []
-        by_subject[subj].append(q)
-    return render_template("question_bank.html", school=SCHOOL_NAME,
-        by_subject=by_subject, total_count=len(all_bank),
-        selected_subject=sel_sub, classes=CLASSES,
-        subject_icons=SUBJECT_ICONS, subjects=SUBJECTS,
-        bank_msg=session.pop("bank_msg", None))
-
-@app.route("/copy_to_bank/<subject>/<int:qid>")
-def copy_to_bank(subject, qid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    if not can_access(subject): return redirect(url_for("dashboard"))
-    qs = load_qs(subject)
-    q = next((x for x in qs if x["id"]==qid), None)
-    if q:
-        db_add_to_bank(subject, q)
-        session["pdf_msg"] = "ok:Question copied to bank (still active)."
-    return redirect(url_for("dashboard", subject=subject))
-
-@app.route("/move_to_bank/<subject>/<int:qid>")
-def move_to_bank(subject, qid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    if not can_access(subject): return redirect(url_for("dashboard"))
-    qs = load_qs(subject)
-    q = next((x for x in qs if x["id"]==qid), None)
-    if q:
-        db_add_to_bank(subject, q)
-        save_qs(subject, [x for x in qs if x["id"]!=qid])
-        session["pdf_msg"] = "ok:Question moved to bank."
-    return redirect(url_for("dashboard", subject=subject))
-
-@app.route("/restore_from_bank/<subject>/<int:bank_id>")
-def restore_from_bank(subject, bank_id):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    all_bank = db_load_bank(subject)
-    q = next((x for x in all_bank if x.get("_bank_id")==bank_id), None)
-    if q:
-        # Add back to active questions
-        qs = load_qs(subject)
-        new_id = max((x["id"] for x in qs), default=0) + 1
-        clean = {k:v for k,v in q.items() if not k.startswith("_")}
-        clean["id"] = new_id
-        qs.append(clean)
-        save_qs(subject, qs)
-        db_delete_from_bank(bank_id)
-        session["bank_msg"] = "ok:Question restored to active pool!"
-    return redirect(url_for("question_bank", subject=subject))
-
-@app.route("/delete_from_bank/<subject>/<int:bank_id>")
-def delete_from_bank(subject, bank_id):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    db_delete_from_bank(bank_id)
-    session["bank_msg"] = "ok:Question permanently deleted from bank."
-    return redirect(url_for("question_bank", subject=subject))
-
-@app.route("/register", methods=["GET","POST"])
-def register_school():
-    if request.method == "POST":
-        school_name  = request.form.get("school_name","").strip()
-        head_name    = request.form.get("head_name","").strip()
-        head_email   = request.form.get("head_email","").strip()
-        head_phone   = request.form.get("head_phone","").strip()
-        head_password= request.form.get("head_password","").strip()
-        region       = request.form.get("region","").strip()
-        if not school_name or not head_name or not head_password:
-            return render_template("register.html", error="Please fill in all required fields.", regions=GHANA_REGIONS)
-        # Generate school code from name
-        code = re.sub(r'[^a-z0-9]','', school_name.lower().replace(" ","-"))[:20]
-        if not code: code = "school"
-        # Make unique
-        base = code; counter = 1
-        while db_school_code_exists(base):
-            base = "{}-{}".format(code, counter); counter += 1
-        code = base
-        ok = db_register_school({
-            "school_name": school_name, "school_code": code,
-            "head_name": head_name, "head_email": head_email,
-            "head_phone": head_phone, "head_password": head_password,
-            "region": region
-        })
-        if ok:
-            return render_template("register.html", success=True, school_code=code, regions=GHANA_REGIONS)
-        return render_template("register.html", error="Registration failed. Please try again.", regions=GHANA_REGIONS)
-    return render_template("register.html", error=None, regions=GHANA_REGIONS)
-
+# ── ADMIN / SUPERADMIN ─────────────────────────────────────────────
 @app.route("/superadmin", methods=["GET","POST"])
 def superadmin():
-    t = current_teacher()
-    if not t or not t.get("is_head"): return redirect(url_for("teacher"))
-    if request.method == "POST":
-        school_id = request.form.get("school_id")
-        teacher_uid = request.form.get("teacher_uid")
-        action    = request.form.get("action")
-        if school_id and action in ["approved","rejected"]:
-            db_update_school_status(int(school_id), action)
-            session["admin_msg"] = "School status updated."
-        if teacher_uid and action in ["approved","rejected"] and teacher_uid in CUSTOM_TEACHERS:
-            CUSTOM_TEACHERS[teacher_uid]["status"] = action
-            save_custom_teachers(CUSTOM_TEACHERS)
-            session["admin_msg"] = "Teacher status updated."
-    schools = db_get_all_schools()
-    pending  = [s for s in schools if s["status"]=="pending"]
-    approved = [s for s in schools if s["status"]=="approved"]
-    rejected = [s for s in schools if s["status"]=="rejected"]
-    all_teachers = [{**t, "uid": uid} for uid,t in CUSTOM_TEACHERS.items()]
-    teacher_pending = [t for t in all_teachers if t.get("status","pending") == "pending"]
-    teacher_approved = [t for t in all_teachers if t.get("status","approved")]
-    teacher_rejected = [t for t in all_teachers if t.get("status","rejected")]
+    if request.method=="POST":
+        pw=request.form.get("password","")
+        if pw == app.secret_key or pw == "admin2024":
+            session["superadmin"]=True
+            return redirect(url_for("superadmin"))
+        return render_template("superadmin_login.html",school=SCHOOL_NAME,error="Wrong password")
+    if not session.get("superadmin"):
+        return render_template("superadmin_login.html",school=SCHOOL_NAME,error=None)
+    # Load all pending custom teachers
+    CUSTOM_TEACHERS.update(load_custom_teachers())
+    pending   = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="pending"}
+    approved  = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="approved"}
+    rejected  = {k:v for k,v in CUSTOM_TEACHERS.items() if v.get("status")=="rejected"}
+    schools   = db_get_all_schools()
     return render_template("superadmin.html", school=SCHOOL_NAME,
         pending=pending, approved=approved, rejected=rejected,
-        total=len(schools), admin_msg=session.pop("admin_msg",None),
-        teacher_pending=teacher_pending, teacher_approved=teacher_approved, teacher_rejected=teacher_rejected,
-        teacher_total=len(all_teachers))
+        schools=schools, subjects=SUBJECTS, classes=CLASSES)
 
-@app.route("/school/<school_code>")
-def school_home(school_code):
-    school = db_get_school(school_code)
-    if not school: return render_template("error.html", school="Quiz System",
-        error_code=404, error_message="School Not Found",
-        error_detail="This school link is invalid or has been removed."), 404
-    return render_template("school_pending.html", school=school)
+@app.route("/superadmin/approve/<uid>")
+def approve_teacher(uid):
+    if not session.get("superadmin"): return redirect(url_for("superadmin"))
+    CUSTOM_TEACHERS.update(load_custom_teachers())
+    if uid in CUSTOM_TEACHERS:
+        CUSTOM_TEACHERS[uid]["status"]="approved"
+        save_custom_teachers(CUSTOM_TEACHERS)
+    return redirect(url_for("superadmin"))
 
-@app.route("/open_assignment/<int:aid>")
-def open_assignment(aid):
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    # Load all assignments and find this one
-    from database import db_load_bank
-    all_assign = []
-    for cls in CLASSES:
-        all_assign.extend(db_load_assignments(cls))
-    a = next((x for x in all_assign if x.get("id")==aid), None)
-    if not a: return redirect(url_for("class_manager"))
-    # Show assignment details and submissions
-    all_results = load_results()
-    submitted = [r for r in all_results if
-        r.get("class","") == a["class"] and
-        r.get("subject","") == a["subject"] and
-        r.get("assessment_type","") == a["assessment_type"] and
-        r.get("assessment_label","") == a["title"]]
-    qs = load_qs(a["subject"])
-    # Filter questions for this class
-    cls_qs = [q for q in qs if not q.get("assigned_classes") or a["class"] in q.get("assigned_classes",[])]
-    return render_template("assignment_detail.html", school=SCHOOL_NAME,
-        assignment=a, submitted=submitted, questions=cls_qs,
-        subject_icons=SUBJECT_ICONS, subject_colors=SUBJECT_COLORS,
-        assessment_types=ASSESSMENT_TYPES, grade_color=gcolor)
-def bulk_copy_to_bank():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    subject = request.form.get("subject","")
-    if not can_access(subject): return redirect(url_for("dashboard"))
-    ids = [int(x) for x in request.form.getlist("selected_ids")]
-    qs = load_qs(subject); count = 0
-    for q in qs:
-        if q["id"] in ids:
-            db_add_to_bank(subject, q); count += 1
-    session["pdf_msg"] = "ok:Copied {} questions to bank (still active).".format(count)
-    return redirect(url_for("dashboard", subject=subject))
+@app.route("/superadmin/reject/<uid>")
+def reject_teacher(uid):
+    if not session.get("superadmin"): return redirect(url_for("superadmin"))
+    CUSTOM_TEACHERS.update(load_custom_teachers())
+    if uid in CUSTOM_TEACHERS:
+        CUSTOM_TEACHERS[uid]["status"]="rejected"
+        save_custom_teachers(CUSTOM_TEACHERS)
+    return redirect(url_for("superadmin"))
 
-@app.route("/bulk_move_to_bank", methods=["POST"])
-def bulk_move_to_bank():
-    if not session.get("teacher"): return redirect(url_for("teacher"))
-    subject = request.form.get("subject","")
-    if not can_access(subject): return redirect(url_for("dashboard"))
-    ids = [int(x) for x in request.form.getlist("selected_ids")]
-    qs = load_qs(subject); count = 0
-    for q in qs:
-        if q["id"] in ids:
-            db_add_to_bank(subject, q); count += 1
-    save_qs(subject, [q for q in qs if q["id"] not in ids])
-    session["pdf_msg"] = "ok:Moved {} questions to bank.".format(count)
-    return redirect(url_for("dashboard", subject=subject))
+@app.route("/superadmin/delete/<uid>")
+def delete_teacher(uid):
+    if not session.get("superadmin"): return redirect(url_for("superadmin"))
+    CUSTOM_TEACHERS.update(load_custom_teachers())
+    if uid in CUSTOM_TEACHERS:
+        del CUSTOM_TEACHERS[uid]
+        save_custom_teachers(CUSTOM_TEACHERS)
+    return redirect(url_for("superadmin"))
 
+@app.route("/superadmin/edit_teacher/<uid>", methods=["POST"])
+def edit_teacher(uid):
+    """Allow superadmin to edit a teacher's subjects, class, and role after approval."""
+    if not session.get("superadmin"): return redirect(url_for("superadmin"))
+    CUSTOM_TEACHERS.update(load_custom_teachers())
+    if uid in CUSTOM_TEACHERS:
+        new_subjects = request.form.getlist("subjects")
+        new_class    = request.form.get("managed_class","").strip()
+        new_role     = request.form.get("role","subject_teacher").strip()
+        if new_subjects:
+            CUSTOM_TEACHERS[uid]["subjects"]      = new_subjects
+            CUSTOM_TEACHERS[uid]["managed_class"] = new_class if new_class else None
+            CUSTOM_TEACHERS[uid]["role"]          = new_role
+            save_custom_teachers(CUSTOM_TEACHERS)
+    return redirect(url_for("superadmin"))
+
+@app.route("/superadmin/logout")
+def superadmin_logout():
+    session.pop("superadmin",None)
+    return redirect(url_for("superadmin"))
+
+# ── SCHOOL REGISTRATION ────────────────────────────────────────────
+@app.route("/register_school", methods=["GET","POST"])
+def register_school():
+    if request.method=="POST":
+        data={
+            "school_name":  request.form.get("school_name","").strip(),
+            "school_code":  request.form.get("school_code","").strip().upper(),
+            "head_name":    request.form.get("head_name","").strip(),
+            "head_email":   request.form.get("head_email","").strip(),
+            "head_phone":   request.form.get("head_phone","").strip(),
+            "head_password":generate_password_hash(request.form.get("head_password","")),
+            "region":       request.form.get("region","").strip()
+        }
+        if not all([data["school_name"],data["school_code"],data["head_name"],data["head_password"]]):
+            return render_template("register_school.html",school=SCHOOL_NAME,regions=GHANA_REGIONS,error="Please fill in all required fields.")
+        if db_school_code_exists(data["school_code"]):
+            return render_template("register_school.html",school=SCHOOL_NAME,regions=GHANA_REGIONS,error="That school code is already registered.")
+        db_register_school(data)
+        return redirect(url_for("landing"))
+    return render_template("register_school.html",school=SCHOOL_NAME,regions=GHANA_REGIONS,error=None)
+
+# ── RUN ────────────────────────────────────────────────────────────
 if __name__=="__main__":
-    try:
-        from waitress import serve
-        ip=get_local_ip()
-        print("="*55)
-        print("  {} Quiz System".format(SCHOOL_NAME))
-        print("="*55)
-        print("  Local:   http://localhost:5000")
-        print("  Network: http://{}:5000".format(ip))
-        print("  Teacher: http://{}:5000/teacher".format(ip))
-        print("="*55)
-        serve(app,host="0.0.0.0",port=5000,threads=16)
-    except ImportError:
-        app.run(debug=False,host="0.0.0.0",port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5000)

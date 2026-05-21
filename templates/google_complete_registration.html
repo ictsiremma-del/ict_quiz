@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Registration — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy: #0A1628; --blue: #1B5FD4; --blue2: #2472F5;
+      --gold: #F5B800; --gold2: #FFCA28; --gold-dark: #B8880A;
+      --white: #FFFFFF; --offwhite: #F7F8FC; --gray: #E8EBF4;
+      --gray3: #8A93A8; --gray4: #4A5168;
+      --green: #0D7A4E; --green-light: #E6F5EE;
+      --red: #C0392B; --red-light: #FDEAEA;
+      --radius: 12px; --radius-sm: 8px;
+      --shadow: 0 4px 20px rgba(10,22,40,0.10);
+      --shadow-lg: 0 8px 40px rgba(10,22,40,0.18);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: linear-gradient(135deg, var(--navy) 0%, #1A3060 100%);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 36px 32px;
+      width: 100%; max-width: 560px;
+      box-shadow: var(--shadow-lg);
+    }
+    .logo-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 20px;
+    }
+    .logo-box {
+      width: 48px; height: 48px;
+      background: var(--gold);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 2px 10px rgba(245,184,0,0.4);
+      flex-shrink: 0;
+    }
+    .logo-text h1 { font-size: 16px; font-weight: 800; color: var(--navy); }
+    .logo-text p  { font-size: 11px; color: var(--gray3); }
+    h2 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: var(--gray3); margin-bottom: 20px; }
+    .google-badge {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--offwhite);
+      border: 1.5px solid var(--gray);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+    .google-badge .gicon {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--blue2); color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 800; flex-shrink: 0;
+    }
+    .google-badge strong { color: var(--navy); display: block; font-size: 13px; }
+    .google-badge span   { color: var(--gray3); font-size: 11px; }
+    .error-box {
+      background: var(--red-light);
+      border: 1.5px solid #f5b8b8;
+      color: var(--red);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--gray4); display: block; margin-bottom: 5px;
+    }
+    input[type="text"], select {
+      width: 100%; padding: 10px 12px;
+      border: 1.5px solid var(--gray);
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-family: 'Outfit', sans-serif;
+      color: var(--navy); background: var(--offwhite);
+      transition: border-color 0.15s;
+      margin-bottom: 16px;
+    }
+    input:focus, select:focus {
+      outline: none; border-color: var(--blue2);
+      box-shadow: 0 0 0 3px rgba(36,114,245,0.10);
+      background: var(--white);
+    }
+    .field-group { margin-bottom: 4px; }
+    .class-field { display: none; }
+    .class-field.visible { display: block; }
+    .subjects-label {
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.7px;
+      color: var(--gray4); margin-bottom: 10px; display: block;
+    }
+    .subjects-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 20px;
+    }
+    .subject-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 10px;
+      border: 1.5px solid var(--gray);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .subject-option:hover { border-color: var(--blue2); background: #EFF6FF; }
+    .subject-option input[type="checkbox"] {
+      width: 15px; height: 15px;
+      accent-color: var(--blue2);
+      margin: 0; flex-shrink: 0;
+      cursor: pointer;
+    }
+    .subject-option span {
+      font-size: 12px; font-weight: 500;
+      color: var(--navy); line-height: 1.3;
+    }
+    .subject-option.checked {
+      border-color: var(--blue2); background: #EFF6FF;
+    }
+    .btn-submit {
+      width: 100%; padding: 13px;
+      background: var(--blue2); color: white;
+      border: none; border-radius: var(--radius-sm);
+      font-size: 14px; font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      cursor: pointer;
+      transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { background: #1a5bcc; transform: translateY(-1px); }
+    .divider { border: none; border-top: 1px solid var(--gray); margin: 20px 0; }
+    .back-link {
+      text-align: center; font-size: 12px; color: var(--gray3);
+    }
+    .back-link a { color: var(--blue2); font-weight: 600; text-decoration: none; }
+    .back-link a:hover { text-decoration: underline; }
+    .tip {
+      background: #FFF8E1;
+      border: 1px solid #F5D77A;
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--gold-dark);
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Logo -->
+  <div class="logo-row">
+    <div class="logo-box">🏫</div>
+    <div class="logo-text">
+      <h1>{{ school }}</h1>
+      <p>Teacher Portal</p>
+    </div>
+  </div>
+
+  <h2>🎓 Complete Your Registration</h2>
+  <p class="subtitle">You signed in with Google. Please tell us your role and subjects so we can set up your account correctly.</p>
+
+  <!-- Google profile badge -->
+  <div class="google-badge">
+    <div class="gicon">G</div>
+    <div>
+      <strong>{{ pending.name }}</strong>
+      <span>{{ pending.email }}</span>
+    </div>
+  </div>
+
+  {% if error %}
+  <div class="error-box">⚠️ {{ error }}</div>
+  {% endif %}
+
+  <div class="tip">
+    📋 <strong>Subject Teachers</strong> — select only the subject(s) you personally teach.<br>
+    🏫 <strong>Class Teachers</strong> — select your class and all subjects you handle for that class.
+  </div>
+
+  <form method="POST">
+
+    <!-- Username -->
+    <div class="field-group">
+      <label>Username (used to log in next time)</label>
+      <input type="text" name="uid"
+             value="{{ pending.uid_suggestion }}"
+             placeholder="e.g. mr_kofi or ms_ama"
+             required autocomplete="username">
+    </div>
+
+    <!-- Role -->
+    <div class="field-group">
+      <label>Your Role <span style="color:var(--red)">*</span></label>
+      <select name="role" id="role-select" onchange="toggleClassField()" required>
+        <option value="">— Select your role —</option>
+        <option value="subject_teacher">Subject Teacher (I teach specific subjects across classes)</option>
+        <option value="class_manager">Class Teacher (I manage one full class)</option>
+      </select>
+    </div>
+
+    <!-- Class (shown only for class managers) -->
+    <div id="class-field" class="class-field field-group">
+      <label>Your Class <span style="color:var(--red)">*</span></label>
+      <select name="managed_class">
+        <option value="">— Select your class —</option>
+        {% for cls in classes %}
+        <option value="{{ cls }}">{{ cls }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Subjects -->
+    <span class="subjects-label">
+      Subjects You Teach <span style="color:var(--red)">*</span>
+      <span style="color:var(--gray3);font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;">
+        — tick only the ones you personally teach
+      </span>
+    </span>
+    <div class="subjects-grid">
+      {% for subject in subjects %}
+      <label class="subject-option" id="opt-{{ loop.index }}" onclick="toggleCheck(this)">
+        <input type="checkbox" name="subjects" value="{{ subject }}"
+               onchange="updateStyle(this)">
+        <span>{{ subject }}</span>
+      </label>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn-submit">
+      ✅ Complete Registration
+    </button>
+  </form>
+
+  <hr class="divider">
+  <p class="back-link">
+    Not the right account? <a href="{{ url_for('teacher_logout') }}">Sign out</a> and use a different method.
+  </p>
+
+</div>
+
+<script>
+function toggleClassField() {
+  const role = document.getElementById('role-select').value;
+  const cf   = document.getElementById('class-field');
+  cf.classList.toggle('visible', role === 'class_manager');
+}
+
+function toggleCheck(labelEl) {
+  const cb = labelEl.querySelector('input[type="checkbox"]');
+  cb.checked = !cb.checked;
+  labelEl.classList.toggle('checked', cb.checked);
+}
+
+function updateStyle(cb) {
+  cb.closest('.subject-option').classList.toggle('checked', cb.checked);
+}
+
+// Prevent the label click from double-toggling
+document.querySelectorAll('.subject-option input').forEach(cb => {
+  cb.addEventListener('click', e => e.stopPropagation());
+});
+</script>
+</body>
+</html>
