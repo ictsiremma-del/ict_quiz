@@ -107,7 +107,7 @@
       width: 15px; height: 15px;
       accent-color: var(--blue2);
       margin: 0; flex-shrink: 0;
-      pointer-events: none;
+      cursor: pointer;
     }
     .subject-option span {
       font-size: 12px; font-weight: 500;
@@ -252,9 +252,9 @@
     </span>
     <div class="subjects-grid">
       {% for subject in subjects %}
-      <label class="subject-option" onclick="toggleCheck(this)">
+      <label class="subject-option">
         <input type="checkbox" name="subjects" value="{{ subject }}"
-               onchange="updateStyle(this)">
+               onchange="this.closest('.subject-option').classList.toggle('checked', this.checked)">
         <span>{{ subject }}</span>
       </label>
       {% endfor %}
@@ -290,20 +290,7 @@ function toggleClassField() {
   mcSel.required = show;
 }
 
-// Subject checkbox styling
-function toggleCheck(labelEl) {
-  const cb = labelEl.querySelector('input[type="checkbox"]');
-  cb.checked = !cb.checked;
-  labelEl.classList.toggle('checked', cb.checked);
-}
-function updateStyle(cb) {
-  cb.closest('.subject-option').classList.toggle('checked', cb.checked);
-}
-document.querySelectorAll('.subject-option input').forEach(cb => {
-  cb.addEventListener('click', e => e.stopPropagation());
-});
-
-// Client-side password match check
+// Client-side password match + subject check before submit
 document.getElementById('reg-form').addEventListener('submit', function(e) {
   const pw  = document.querySelector('[name="password"]').value;
   const cpw = document.querySelector('[name="confirm_password"]').value;
