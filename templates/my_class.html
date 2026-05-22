@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>My Class — {{ managed_class }} — {{ school }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{--navy:#0A1628;--blue:#2472F5;--gold:#F5B800;--white:#fff;--off:#F7F8FC;--gray:#E8EBF4;--gray3:#8A93A8;--gray4:#4A5168;--green:#0D7A4E;--green-light:#E6F5EE;--red:#C0392B;--red-light:#FDEAEA;--radius:12px;--shadow:0 4px 20px rgba(10,22,40,.10)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--navy);min-height:100vh;padding-bottom:40px}
+    .topbar{background:var(--navy);color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(10,22,40,.3)}
+    .topbar-left{display:flex;align-items:center;gap:12px}
+    .topbar-logo{width:34px;height:34px;background:var(--gold);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+    .topbar h1{font-size:15px;font-weight:800}
+    .topbar-sub{font-size:11px;opacity:.6}
+    .btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
+    .btn-outline{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+    .btn-outline:hover{background:rgba(255,255,255,.2)}
+    .container{max-width:1000px;margin:0 auto;padding:24px 20px}
+    .hero{background:linear-gradient(135deg,var(--navy),#1A3060);color:#fff;border-radius:var(--radius);padding:24px 28px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .hero h2{font-size:22px;font-weight:800;margin-bottom:4px}
+    .hero p{font-size:13px;opacity:.7}
+    .hero-badge{background:var(--gold);color:var(--navy);padding:6px 16px;border-radius:20px;font-size:13px;font-weight:800}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:20px}
+    .stat-card{background:var(--white);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);border-top:3px solid var(--blue)}
+    .stat-card.c-green{border-top-color:var(--green)}.stat-card.c-gold{border-top-color:var(--gold)}.stat-card.c-red{border-top-color:var(--red)}
+    .stat-val{font-size:26px;font-weight:800;color:var(--navy)}.stat-label{font-size:11px;color:var(--gray3);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+    .card{background:var(--white);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:16px}
+    .card-title{font-size:14px;font-weight:800;color:var(--navy);margin-bottom:14px}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    th{background:var(--off);padding:10px 12px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gray3);border-bottom:1.5px solid var(--gray)}
+    td{padding:10px 12px;border-bottom:1px solid var(--gray);vertical-align:middle}
+    tr:hover td{background:#F9FAFF}
+    .grade-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:800;color:#fff}
+    .empty{text-align:center;padding:50px;color:var(--gray3)}
+    .empty-icon{font-size:40px;margin-bottom:10px}
+    .rank{font-size:10px;font-weight:800;color:var(--gray3);width:28px;text-align:center}
+    .rank.gold{color:#B8880A}.rank.silver{color:#888}.rank.bronze{color:#A0522D}
+  </style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="topbar-logo">🏫</div>
+    <div>
+      <div style="font-size:15px;font-weight:800">My Class — {{ managed_class }}</div>
+      <div class="topbar-sub">{{ teacher.name }} · {{ school }}</div>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline">← Dashboard</a>
+    <a href="{{ url_for('index') }}" class="btn btn-outline">🏠 Home</a>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="hero">
+    <div>
+      <h2>🏫 {{ managed_class }}</h2>
+      <p>{{ summaries|length }} student{{ 's' if summaries|length != 1 else '' }} with recorded results</p>
+    </div>
+    <div class="hero-badge">Class Teacher: {{ teacher.name }}</div>
+  </div>
+
+  {% if summaries %}
+  <!-- STATS -->
+  {% set class_avg = (summaries|sum(attribute='avg') / summaries|length)|round(1) %}
+  {% set top = summaries[0] %}
+  <div class="stats">
+    <div class="stat-card"><div class="stat-val">{{ summaries|length }}</div><div class="stat-label">Students</div></div>
+    <div class="stat-card c-green"><div class="stat-val">{{ class_avg }}%</div><div class="stat-label">Class Average</div></div>
+    <div class="stat-card c-gold"><div class="stat-val">{{ top.name.split()[0] }}</div><div class="stat-label">Top Student</div></div>
+    <div class="stat-card c-red"><div class="stat-val">{{ summaries|selectattr('grade','equalto','F')|list|length }}</div><div class="stat-label">Failing</div></div>
+  </div>
+
+  <!-- STUDENT TABLE -->
+  <div class="card">
+    <div class="card-title">📋 Student Performance — {{ managed_class }}</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Student Name</th>
+            <th>Tests Taken</th>
+            <th>Average Score</th>
+            <th>Grade</th>
+            <th>Remark</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in summaries %}
+          {% set colors = {'A':'#27ae60','B':'#2980b9','C':'#8e44ad','D':'#f39c12','E':'#e67e22','F':'#e74c3c'} %}
+          <tr>
+            <td class="rank {% if loop.index==1 %}gold{% elif loop.index==2 %}silver{% elif loop.index==3 %}bronze{% endif %}">
+              {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+            </td>
+            <td style="font-weight:700">{{ s.name }}</td>
+            <td style="color:var(--gray3)">{{ s.count }} test{{ 's' if s.count != 1 else '' }}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;background:var(--gray);border-radius:20px;height:6px;max-width:80px">
+                  <div style="width:{{ s.avg }}%;background:{{ colors.get(s.grade,'#95a5a6') }};height:6px;border-radius:20px"></div>
+                </div>
+                <span style="font-weight:700;font-size:13px">{{ s.avg }}%</span>
+              </div>
+            </td>
+            <td><span class="grade-badge" style="background:{{ colors.get(s.grade,'#95a5a6') }}">{{ s.grade }}</span></td>
+            <td style="color:var(--gray4);font-size:12px">{{ s.remark }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card">
+    <div class="empty">
+      <div class="empty-icon">📋</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:8px">No results yet for {{ managed_class }}</div>
+      <div style="font-size:13px;color:var(--gray3)">Results will appear here once students complete quizzes assigned to this class.</div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+</body>
+</html>
