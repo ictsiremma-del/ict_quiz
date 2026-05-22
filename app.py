@@ -1021,7 +1021,8 @@ def my_class():
         subject_colors=SUBJECT_COLORS)
 
 # ── EXPORTS ────────────────────────────────────────────────────────
-@app.route("/export_excel")def export_excel():
+@app.route("/export_excel")
+def export_excel():
     if not session.get("teacher"): return redirect(url_for("teacher"))
     t=current_teacher(); results=load_results()
     if not t.get("is_head"): results=[r for r in results if r.get("subject","") in (t.get("subjects") or [])]
